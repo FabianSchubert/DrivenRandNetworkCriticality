@@ -113,6 +113,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Numpy Data Files
+*.npy
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof

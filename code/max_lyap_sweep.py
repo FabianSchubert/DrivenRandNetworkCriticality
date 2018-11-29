@@ -21,8 +21,8 @@ n_t_def = 25000
 
 t_ext_off_def = 25000
 
-n_sweep_std_in = 2
-n_sweep_std_act_target = 2
+n_sweep_std_in = 20
+n_sweep_std_act_target = 20
 
 std_in_sweep_range = np.linspace(0.,.25,n_sweep_std_in)
 std_act_target_sweep_range = np.linspace(0.,0.72,n_sweep_std_act_target)

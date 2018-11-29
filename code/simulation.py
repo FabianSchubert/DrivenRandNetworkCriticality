@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 from tqdm import tqdm
+import os
 
 class driven_net:
 
@@ -67,3 +68,20 @@ class driven_net:
             self.I_in_rec[t,:] = I_in
             self.gain_rec[t,:] = gain
             self.var_mean_rec[t] = (x_net**2).mean()
+    def save_data(self,folder):
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        np.savez_compressed(folder + "sim_results.npz",
+        N_net = self.N_net
+        cf_net = self.cf_net = cf_net
+        std_conn = self.std_conn = std_conn
+        std_in = self.std_in = std_in
+        var_act_target = self.var_act_target = var_act_target
+        mu_gain = self.mu_gain = mu_gain
+        n_t = self.n_t = n_t
+        t_ext_off = self.t_ext_off = t_ext_off
+        x_net_rec = self.x_net_rec
+        I_in_rec = self.I_in_rec = np.ndarray((n_t, N_net))
+        gain_rec = self.gain_rec = np.ndarray((n_t, N_net))
+        var_mean_rec = self.var_mean_rec = np.ndarray((n_t))
+        W = self.W = np.random.normal(0., std_conn, (N_net,N_net))  )

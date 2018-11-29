@@ -13,15 +13,15 @@ cf_net_def = 0.1
 
 std_conn_def = 1.
 
-std_in_def = 1.
+std_in_def = .125
 
-var_act_target_def = 0.33**2
+var_act_target_def = 0.25**2
 
 mu_gain_def = 0.0005
 
-n_t_def = 50000
+n_t_def = 125000
 
-t_ext_off_def = 25000
+t_ext_off_def = 100000
 
 
 DN = driven_net(N_net_def,
@@ -123,7 +123,7 @@ t_ax_eig = np.array(range(int(n_t_def/dt_subsample)))*dt_subsample
 ax_eig.plot(t_ax_eig, np.log(l_abs_max))
 
 ax_eig.set_xlabel("Time Steps")
-ax_eig.set_ylabel("${\\rm log \\left(argmax\\{Re(\\lambda^t)\\}\\right) }$")
+ax_eig.set_ylabel("${\\rm log \\left(arg\\,max_i\\{||\\lambda_i^t||\\}\\right) }$")
 
 ax_eig.grid()
 
@@ -132,6 +132,11 @@ ax_eig.set_title("D",{'fontweight' : 'bold'}, loc="left")
 fig_eig.tight_layout()
 fig_eig.savefig("../plots/eig.png", dpi=300)
 #####################################
+
+#====================================
+fig_gain_stat, ax_gain_stat = plt.subplots()
+#####################################
+
 
 #====================================
 from PIL import Image

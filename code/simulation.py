@@ -2,6 +2,7 @@
 import numpy as np
 from tqdm import tqdm
 import os
+import sys
 
 class driven_net:
 
@@ -13,7 +14,7 @@ class driven_net:
                 var_act_target,
                 mu_gain,
                 n_t,
-                t_ext_off):
+                t_ext_off,**kwargs):
 
         self.N_net = N_net
         self.cf_net = cf_net
@@ -25,27 +26,45 @@ class driven_net:
         self.t_ext_off = t_ext_off
 
         ### Recording
-        self.x_net_rec = np.ndarray((n_t, N_net))
-        self.I_in_rec = np.ndarray((n_t, N_net))
+        self.rec_options = {
+            'x_rec' : True,
+            'I_in_rec' : True,
+            'gain_rec' : True,
+            'var_mean_rec' : True }
 
-        self.gain_rec = np.ndarray((n_t, N_net))
+        if kwargs is not None:
+            for key, value in kwargs.items():
+                if key in self.rec_options.keys():
+                    self.rec_options[key] = value
+                else:
+                    print("Invalid keyword argument!")
+                    sys.exit()
 
-        self.var_mean_rec = np.ndarray((n_t))
+        if self.rec_options['x_rec']: self.x_net_rec = np.ndarray((n_t, N_net))
+
+        if self.rec_options['I_in_rec']: self.I_in_rec = np.ndarray((n_t, N_net))
+
+        if self.rec_options['gain_rec']: self.gain_rec = np.ndarray((n_t, N_net))
+
+        if self.rec_options['var_mean_rec']: self.var_mean_rec = np.ndarray((n_t))
 
         ### Init Weights
         self.W = np.random.normal(0., std_conn, (N_net,N_net))
         self.W *= (np.random.rand(N_net, N_net) <= cf_net) / ( N_net * cf_net )**.5
         self.W[range(N_net), range(N_net)] = 0.
 
+        ### Init state vars
+        self.x_net = np.random.normal(0., 1., (self.N_net))
+        #x_in = np.zeros((N_in))
+
+        self.gain = np.ones((self.N_net))
+
     def s(self,x):
         return np.tanh(x)
 
     def run_sim(self):
 
-        x_net = np.random.normal(0., 1., (self.N_net))
-        #x_in = np.zeros((N_in))
 
-        gain = np.ones((self.N_net))
 
         ### Main Loop
         for t in tqdm(range(self.n_t)):
@@ -57,17 +76,22 @@ class driven_net:
                 #x_in = np.zeros((N_in))
                 I_in = np.zeros((self.N_net))
 
-            I = gain * ( np.dot(self.W, x_net) + I_in )
+            I = self.gain * ( np.dot(self.W, self.x_net) + I_in )
 
             if t < self.t_ext_off:
-                gain += self.mu_gain * ( self.var_act_target - x_net**2 )
+                self.gain += self.mu_gain * ( self.var_act_target - self.x_net**2 )
 
-            x_net = self.s(I)
+            self.x_net = self.s(I)
 
-            self.x_net_rec[t,:] = x_net
-            self.I_in_rec[t,:] = I_in
-            self.gain_rec[t,:] = gain
-            self.var_mean_rec[t] = (x_net**2).mean()
+            if self.rec_options['x_rec']: self.x_net_rec[t,:] = self.x_net
+
+            if self.rec_options['I_in_rec']: self.I_in_rec[t,:] = I_in
+
+            if self.rec_options['gain_rec']: self.gain_rec[t,:] = self.gain
+
+            if self.rec_options['var_mean_rec']: self.var_mean_rec[t] = (self.x_net**2).mean()
+
+
     def save_data(self,folder):
         if not os.path.exists(folder):
             os.makedirs(folder)

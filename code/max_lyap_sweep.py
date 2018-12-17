@@ -7,24 +7,23 @@ from tqdm import tqdm
 import os
 
 ### Parameters
-N_net_def = 500
-N_in_def = 10
+N_net_def = 1000
 
 std_conn_def = 1.
 
 cf_net_def = 0.1
 
-mu_gain_def = 0.0005
+mu_gain_def = 0.001
 
-n_t_def = 100000
+n_t_def = 50000
 
-t_ext_off_def = 100000
+t_ext_off_def = 50000
 
 n_sweep_std_in = 20
 n_sweep_std_act_target = 20
 
-std_in_sweep_range = np.linspace(0.,.25,n_sweep_std_in)
-std_act_target_sweep_range = np.linspace(0.,0.72,n_sweep_std_act_target)
+std_in_sweep_range = np.linspace(0.,1.,n_sweep_std_in)
+std_act_target_sweep_range = np.linspace(0.,0.25,n_sweep_std_act_target)
 max_l_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 gain_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target,N_net_def))
 
@@ -35,7 +34,7 @@ for k in tqdm(range(n_sweep_std_in)):
                     cf_net_def,
                     std_conn_def,
                     std_in_sweep_range[k],
-                    std_act_target_sweep_range[l]**2,
+                    std_act_target_sweep_range[l],
                     mu_gain_def,
                     n_t_def,
                     t_ext_off_def,
@@ -52,7 +51,9 @@ if not os.path.exists("../data/max_lyap_sweep/"):
     os.makedirs("../data/max_lyap_sweep/")
 np.savez_compressed("../data/max_lyap_sweep/sim_results.npz",
 max_l_list = max_l_list,
-gain_list = gain_list)
+gain_list = gain_list,
+std_in_sweep_range = std_in_sweep_range,
+std_act_target_sweep_range = std_act_target_sweep_range)
 
 '''
 ### Plotting

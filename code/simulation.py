@@ -11,7 +11,7 @@ class driven_net:
                 cf_net,
                 std_conn,
                 std_in,
-                var_act_target,
+                std_act_target,
                 mu_gain,
                 n_t,
                 t_ext_off,**kwargs):
@@ -20,7 +20,7 @@ class driven_net:
         self.cf_net = cf_net
         self.std_conn = std_conn
         self.std_in = std_in
-        self.var_act_target = var_act_target
+        self.std_act_target = std_act_target
         self.mu_gain = mu_gain
         self.n_t = n_t
         self.t_ext_off = t_ext_off
@@ -79,7 +79,7 @@ class driven_net:
             I = self.gain * ( np.dot(self.W, self.x_net) + I_in )
 
             if t < self.t_ext_off:
-                self.gain += self.mu_gain * ( self.var_act_target - self.x_net**2 )
+                self.gain += self.mu_gain * ( self.std_act_target**2 - self.x_net**2 )
 
             self.x_net = self.s(I)
 
@@ -100,7 +100,7 @@ class driven_net:
         cf_net = self.cf_net,
         std_conn = self.std_conn,
         std_in = self.std_in,
-        var_act_target = self.var_act_target,
+        std_act_target = self.std_act_target,
         mu_gain = self.mu_gain,
         n_t = self.n_t,
         t_ext_off = self.t_ext_off,

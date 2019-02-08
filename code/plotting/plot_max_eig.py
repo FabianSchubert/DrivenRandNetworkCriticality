@@ -28,6 +28,7 @@ def plot_max_eig(ax_eig):
     ax_eig.plot(t_ax_eig, np.log(l_abs_max))
 
     ax_eig.set_xlabel("Time Steps")
+    ax_eig.ticklabel_format(axis='x', style='sci', scilimits=(4,4), useMathText=True)
     ax_eig.set_ylabel("${\\rm log \\left(||\\lambda_{\\rm max}^t||\\right) }$")
 
     ax_eig.grid()

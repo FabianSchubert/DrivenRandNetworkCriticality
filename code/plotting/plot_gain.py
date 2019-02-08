@@ -25,6 +25,8 @@ dpi_screen = 120
 
 fig_gain, ax_gain = plt.subplots(figsize=std_figsize,dpi=dpi_screen)
 
+plot_gain(ax_gain)
+
 fig_gain.tight_layout()
 fig_gain.savefig("../../plots/gain.png", dpi=300)
 

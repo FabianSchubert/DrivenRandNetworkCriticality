@@ -51,7 +51,7 @@ for k in range(len(images)):
 
 #print(images_pos)
 
-im_comp = Image.new('RGB', (comp_width,comp_height))
+im_comp = Image.new('RGB', (comp_width,comp_height),color=(255,255,255))
 
 for k in range(len(images)):
     for l in range(len(images[k])):

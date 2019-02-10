@@ -6,29 +6,21 @@ from simulation import driven_net
 from tqdm import tqdm
 
 # Parameters
-N_net_def = 500
+### Import standard parameters
+from standard_params import *
 
-cf_net_def = 0.1
+std_in_def = .1
+std_act_target_def = .2
 
-std_conn_def = 1.
-
-std_in_def = .125
-
-std_act_target_def = 0.25
-
-mu_gain_def = 0.0005
-mu_trail_av_error_def = 0.0005
-
-n_t_def = 125000
-
-t_ext_off_def = 100000
-
+n_t_def = 120000
 
 DN = driven_net(N_net_def,
                 cf_net_def,
                 std_conn_def,
                 std_in_def,
+                mu_act_target_def,
                 std_act_target_def,
+                mu_bias_def,
                 mu_gain_def,
                 mu_trail_av_error_def,
                 n_t_def,
@@ -36,7 +28,7 @@ DN = driven_net(N_net_def,
 
 DN.run_sim()
 
-DN.save_data("../data/")
+DN.save_data("/media/fschubert/TOSHIBA EXT/simdata/")
 
 '''
 ### Plotting

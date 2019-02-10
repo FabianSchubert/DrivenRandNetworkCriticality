@@ -26,11 +26,12 @@ ax.set_ylim([-.5,.5])
 
 ax.grid()
 
-ax.set_xlabel("x")
-ax.set_ylabel("$\\mathrm{arctanh}\\left(x\\right)\\left(1-x^2\\right)$")
+ax.set_xlabel("y")
+ax.set_ylabel("$\\mathrm{arctanh}\\left(y\\right)\\left(1-y^2\\right)$")
 
 fig.tight_layout()
 
 fig.savefig("../../plots/gain_grad_descent.png", dpi=300)
+fig.savefig("../../plots/gain_grad_descent.pdf")
 
 plt.show()

@@ -3,9 +3,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_gain(ax_gain):
+def plot_gain(ax_gain,file="../../data/sim_results.npz"):
 
-    Data = np.load("../../data/sim_results.npz")
+    Data = np.load(file)
 
     n_t = Data["n_t"]
     t_ext_off = Data["t_ext_off"]
@@ -13,21 +13,23 @@ def plot_gain(ax_gain):
     t_ax = np.array(range(n_t-100,n_t))
 
     ax_gain.plot(Data["gain_rec"][:,::10])
-    ax_gain.set_xlabel("Time Step")
+    ax_gain.set_xlabel("Time Steps")
     ax_gain.ticklabel_format(axis='x', style='sci', scilimits=(4,4), useMathText=True)
-    ax_gain.set_ylabel("$g_i$")
+    ax_gain.set_ylabel("$a_i$")
 
-    ax_gain.set_title("B",{'fontweight' : 'bold'}, loc="left")
+    #ax_gain.set_title("B",{'fontweight' : 'bold'}, loc="left")
 
-textwidth = 5.5532
-std_figsize = (textwidth/2.,2.)
-dpi_screen = 120
+if __name__=='__main__':
 
-fig_gain, ax_gain = plt.subplots(figsize=std_figsize,dpi=dpi_screen)
+    textwidth = 5.5532
+    std_figsize = (textwidth/2.,2.)
+    dpi_screen = 120
 
-plot_gain(ax_gain)
+    fig_gain, ax_gain = plt.subplots(figsize=std_figsize,dpi=dpi_screen)
 
-fig_gain.tight_layout()
-fig_gain.savefig("../../plots/gain.png", dpi=300)
+    plot_gain(ax_gain)
 
-plt.show()
+    fig_gain.tight_layout()
+    fig_gain.savefig("../../plots/gain.png", dpi=300)
+
+    plt.show()

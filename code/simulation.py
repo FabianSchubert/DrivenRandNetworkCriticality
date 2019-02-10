@@ -12,7 +12,9 @@ class driven_net:
                  cf_net,
                  std_conn,
                  std_in,
+                 mu_act_target,
                  std_act_target,
+                 mu_bias,
                  mu_gain,
                  mu_trail_av_error,
                  n_t,
@@ -23,7 +25,9 @@ class driven_net:
         self.cf_net = cf_net
         self.std_conn = std_conn
         self.std_in = std_in
+        self.mu_act_target = mu_act_target
         self.std_act_target = std_act_target
+        self.mu_bias = mu_bias
         self.mu_gain = mu_gain
         self.mu_trail_av_error = mu_trail_av_error
         self.n_t = n_t
@@ -33,6 +37,7 @@ class driven_net:
         self.rec_options = {
             'x_rec': True,
             'I_in_rec': True,
+            'bias_rec': True,
             'gain_rec': True,
             'var_mean_rec': True}
 
@@ -66,19 +71,33 @@ class driven_net:
 
         if self.rec_options['x_rec']:
             self.x_net_rec = np.ndarray((n_t, N_net))
+        else:
+            self.x_net_rec = None
 
         if self.rec_options['I_in_rec']:
             self.I_in_rec = np.ndarray((n_t, N_net))
+        else:
+            self.I_in_rec = None
+
+        if self.rec_options['bias_rec']:
+            self.bias_rec = np.ndarray((n_t, N_net))
+        else:
+            self.bias_rec = None
 
         if self.rec_options['gain_rec']:
             self.gain_rec = np.ndarray((n_t, N_net))
+        else:
+            self.gain_rec = None
 
         if self.rec_options['var_mean_rec']:
             self.var_mean_rec = np.ndarray((n_t))
+        else:
+            self.var_mean_rec = None
 
         #x_in = np.zeros((N_in))
 
-        self.gain = np.ones((self.N_net))
+        self.gain = np.ones((self.N_net))#np.random.rand(self.N_net)
+        self.bias = np.random.normal(0.,.1,(self.N_net))
 
     def s(self, x):
         return np.tanh(x)
@@ -97,11 +116,12 @@ class driven_net:
                 #x_in = np.zeros((N_in))
                 I_in = np.zeros((self.N_net))
 
-            I = self.gain * (np.dot(self.W, self.x_net) + I_in)
+            I = self.gain * (np.dot(self.W, self.x_net) + I_in - self.bias)
 
             if t < self.t_ext_off:
                 self.gain += self.mu_gain * \
                     (self.std_act_target**2 - self.x_net**2)
+                self.bias += self.mu_bias * (self.x_net - self.mu_act_target)
 
             self.trail_av_hom_error += self.mu_trail_av_error * \
                 (-self.trail_av_hom_error + ((self.std_act_target **
@@ -115,26 +135,32 @@ class driven_net:
             if self.rec_options['I_in_rec']:
                 self.I_in_rec[t, :] = I_in
 
+            if self.rec_options['bias_rec']:
+                self.bias_rec[t, :] = self.bias
+
             if self.rec_options['gain_rec']:
                 self.gain_rec[t, :] = self.gain
 
             if self.rec_options['var_mean_rec']:
                 self.var_mean_rec[t] = (self.x_net**2).mean()
 
-    def save_data(self, folder):
+    def save_data(self, folder, filename="sim_results.npz"):
         if not os.path.exists(folder):
             os.makedirs(folder)
-        np.savez_compressed(folder + "sim_results.npz",
+        np.savez_compressed(folder + filename,
                             N_net=self.N_net,
                             cf_net=self.cf_net,
                             std_conn=self.std_conn,
                             std_in=self.std_in,
+                            mu_act_target=self.mu_act_target,
                             std_act_target=self.std_act_target,
+                            mu_bias=self.mu_bias,
                             mu_gain=self.mu_gain,
                             n_t=self.n_t,
                             t_ext_off=self.t_ext_off,
                             x_net_rec=self.x_net_rec,
                             I_in_rec=self.I_in_rec,
+                            bias_rec=self.bias_rec,
                             gain_rec=self.gain_rec,
                             trail_av_hom_error=self.trail_av_hom_error,
                             var_mean_rec=self.var_mean_rec,

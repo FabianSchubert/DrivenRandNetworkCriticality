@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-def plot_max_eig(ax_eig):
+def plot_max_eig(ax_eig,file="../../data/sim_results.npz"):
 
-    Data = np.load("../../data/sim_results.npz")
+    Data = np.load(file)
 
     n_t = Data["n_t"]
     gain_rec = Data["gain_rec"]
@@ -29,21 +29,23 @@ def plot_max_eig(ax_eig):
 
     ax_eig.set_xlabel("Time Steps")
     ax_eig.ticklabel_format(axis='x', style='sci', scilimits=(4,4), useMathText=True)
-    ax_eig.set_ylabel("${\\rm log \\left(||\\lambda_{\\rm max}^t||\\right) }$")
+    ax_eig.set_ylabel("${\\rm log ||\\lambda_{\\rm max}|| }$")
 
     ax_eig.grid()
 
-    ax_eig.set_title("D",{'fontweight' : 'bold'}, loc="left")
+    #ax_eig.set_title("D",{'fontweight' : 'bold'}, loc="left")
 
-textwidth = 5.5532
-std_figsize = (textwidth/2.,2.)
-dpi_screen = 120
+if __name__=='__main__':
 
-fig_eig, ax_eig = plt.subplots(figsize=std_figsize, dpi=dpi_screen)
+    textwidth = 5.5532
+    std_figsize = (textwidth/2.,2.)
+    dpi_screen = 120
 
-plot_max_eig(ax_eig)
+    fig_eig, ax_eig = plt.subplots(figsize=std_figsize, dpi=dpi_screen)
 
-fig_eig.tight_layout()
-fig_eig.savefig("../../plots/eig.png", dpi=300)
+    plot_max_eig(ax_eig)
 
-plt.show()
+    fig_eig.tight_layout()
+    fig_eig.savefig("../../plots/eig.png", dpi=300)
+
+    plt.show()

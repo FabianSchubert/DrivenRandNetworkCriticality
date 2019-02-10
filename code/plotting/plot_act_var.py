@@ -3,32 +3,34 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_act_var(ax_var):
+def plot_act_var(ax_var,file="../../data/sim_results.npz"):
 
-    Data = np.load("../../data/sim_results.npz")
+    Data = np.load(file)
 
     n_t = Data["n_t"]
 
     t_ax = np.array(range(n_t-100,n_t))
 
-    ax_var.plot(Data["var_mean_rec"])
-    ax_var.set_xlabel("Time Step")
+    ax_var.plot(Data["var_mean_rec"]/Data["std_act_target"]**2)
+    ax_var.set_xlabel("Time Steps")
     ax_var.ticklabel_format(axis='x', style='sci', scilimits=(4,4), useMathText=True)
-    ax_var.set_ylabel("$\\langle \\left( x_i^t - \\langle x_i \\rangle \\right)^2\\rangle_{\\rm pop}$")
+    ax_var.set_ylabel("$\\langle \\left( y_i^t - \\langle y_i \\rangle \\right)^2\\rangle_{\\rm P} / \\sigma^2_{\\rm target}$")
 
     ax_var.grid()
 
-    ax_var.set_title("C",{'fontweight' : 'bold'}, loc="left")
+    #ax_var.set_title("C",{'fontweight' : 'bold'}, loc="left")
 
-textwidth = 5.5532
-std_figsize = (textwidth/2.,2.)
-dpi_screen = 120
+if __name__=='__main__':
 
-fig_var, ax_var = plt.subplots(figsize=std_figsize, dpi=dpi_screen)
+    textwidth = 5.5532
+    std_figsize = (textwidth/2.,2.)
+    dpi_screen = 120
 
-plot_act_var(ax_var)
+    fig_var, ax_var = plt.subplots(figsize=std_figsize, dpi=dpi_screen)
 
-fig_var.tight_layout()
-fig_var.savefig("../../plots/var.png", dpi=300)
+    plot_act_var(ax_var)
 
-plt.show()
+    fig_var.tight_layout()
+    fig_var.savefig("../../plots/var.png", dpi=300)
+
+    plt.show()

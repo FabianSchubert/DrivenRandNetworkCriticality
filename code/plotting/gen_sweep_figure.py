@@ -75,5 +75,6 @@ fig.tight_layout()
 fig.subplots_adjust(left=0.107, right=0.9, top=0.95,
                    bottom=0.11, hspace=0.4, wspace=0.225)
 fig.savefig("../../plots/std_in_std_target_sweep_fig.png", dpi=300)
+fig.savefig("../../plots/std_in_std_target_sweep_fig.pdf")
 
 plt.show()

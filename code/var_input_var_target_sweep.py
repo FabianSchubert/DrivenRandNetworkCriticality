@@ -11,23 +11,17 @@ import os
 def gen_input(t):
     return np.random.normal()
 
+path = "/media/fschubert/TOSHIBA EXT/simdata/"
+filename = "sim_results.npz"
 
 ### Parameters
-N_net_def = 1000
+### Import standard parameters
+from standard_params import *
 
-std_conn_def = 1.
+n_t_def = 100000
 
-cf_net_def = 0.1
-mu_gain_def = 0.01
-
-mu_trail_av_error_def = 0.001
-
-n_t_def = 50000
-
-t_ext_off_def = 50000
-
-n_sweep_std_in = 30
-n_sweep_std_act_target = 30
+n_sweep_std_in = 3
+n_sweep_std_act_target = 3
 
 std_in_sweep_range = np.linspace(0.,1.5,n_sweep_std_in)
 std_act_target_sweep_range = np.linspace(0.,.9,n_sweep_std_act_target)
@@ -49,7 +43,9 @@ for k in tqdm(range(n_sweep_std_in)):
                         cf_net_def,
                         std_conn_def,
                         std_in_sweep_range[k],
+                        mu_act_target_def,
                         std_act_target_sweep_range[l],
+                        mu_bias_def,
                         mu_gain_def,
                         mu_trail_av_error_def,
                         n_t_def,
@@ -58,12 +54,15 @@ for k in tqdm(range(n_sweep_std_in)):
                         I_in_rec = False,
                         gain_rec = True,
                         var_mean_rec = True)
+
         else:
             DN = driven_net(N_net_def,
                         cf_net_def,
                         std_conn_def,
                         std_in_sweep_range[k],
+                        mu_act_target_def,
                         std_act_target_sweep_range[l],
+                        mu_bias_def,
                         mu_gain_def,
                         mu_trail_av_error_def,
                         n_t_def,
@@ -86,7 +85,7 @@ for k in tqdm(range(n_sweep_std_in)):
 
         echo_state_prop_list[k,l] = esp_test
 
-
+        '''
         if k==ind_std_in_sample_data and l==ind_std_act_target_sample_data:
             if not os.path.exists("../data/max_lyap_sweep/"):
                 os.makedirs("../data/max_lyap_sweep/")
@@ -96,11 +95,11 @@ for k in tqdm(range(n_sweep_std_in)):
             x_rec = DN.x_net_rec,
             gain_rec = DN.gain_rec,
             var_mean_rec = DN.var_mean_rec)
+        '''
 
-
-if not os.path.exists("../data/max_lyap_sweep/"):
-    os.makedirs("../data/max_lyap_sweep/")
-np.savez_compressed("../data/max_lyap_sweep/sim_results_pretest.npz",
+if not os.path.exists(path):
+    os.makedirs(path)
+np.savez_compressed(path+filename,
 max_l_list = max_l_list,
 gain_list = gain_list,
 trail_av_hom_error_list = trail_av_hom_error_list,

@@ -33,30 +33,34 @@
 
 \subsection{Dynamics}
 \begin{align}
-x_i^{t+1} &= \mathrm{tanh}\left( g_i^t I_i^{t+1} \right) \label{eq:reserv_dynamics}\\
-I_i^{t+1} &= \sum_{j=1}^{N_{\rm net}} W_{ij} x_j^t + W^E_i E_i^{t+1} \label{eq:input_dynamics} \\
-g_i^{t+1} &= g_i^{t} + \mu_{g} \left[ \sigma_{\rm target}^2 - \left( x_i^t - \langle x_i \rangle \right)^2 \right] \label{eq:gain_dynamcis}
+y_i^{t+1} &= \mathrm{tanh}\left( a_i^t I_i^{t+1} \right) \label{eq:reserv_dynamics}\\
+I_i^{t+1} &= \sum_{j=1}^{N_{\rm net}} W_{ij} y_j^t + E_i^{t+1} \label{eq:input_dynamics} \\
+b_i^{t+1} &= b_i^t + \epsilon_{b} \left[ \avgt{y_i} - \mu_{\rm target} \right] \\
+a_i^{t+1} &= a_i^{t} + \epsilon_{a} \left[ \sigma_{\rm target}^2 - \left( y_i^t - \avgt{y_i}\right)^2 \right] \label{eq:gain_dynamcis}
 \end{align}
+
+We denote by $\avgt{\cdot}$ an average over time and by $\avgp{\cdot}$ over the population.
 
 \subsection{Parameters / Settings}
 
-$W_{ij}$ is a sparse random matrix with connection probability ${\rm cf_{net}}$. Nonzero entries were drawn from a Gaussian distribution $\mathcal{N}(\mu = 0,\sigma = \sigma_{\rm conn} / \sqrt{N_{\rm net} {\rm cf_{net}}})$. Diagonal entries were always set to zero.
+$W_{ij}$ is a sparse random matrix with connection probability ${\rm p_{net}}$. Nonzero entries were drawn from a Gaussian distribution $\mathcal{N}(\mu = 0,\sigma = \sigma_{\rm conn} / \sqrt{N_{\rm net} {\rm p_{net}}})$. Diagonal entries were always set to zero.
 
-$E^t_{i}$ are random vectors of size $N_{\rm net}$ with independent entries drawn from a Gaussian distribution $\mathcal{N}(\mu = 0,\sigma = \sigma_{\rm ext})$. Similarly, $W^E_i$ is a random vector of size $N_{\rm net}$, drawn from $\mathcal{N}(\mu = 0,\sigma = \sigma_{\rm W^E})$. External input is turned off after $t_{\rm ext.off}$.
+$E^t_{i}$ are random vectors of size $N_{\rm net}$ with independent entries drawn from a Gaussian distribution $\mathcal{N}(\mu = 0,\sigma = \sigma_{\rm ext})$. External input is turned off after $t_{\rm ext.off}$.
 
-By changing individual gain values $g_i$, the homeostatic control tries to drive the activity standard deviation of every cell to the value given by $\sigma_{\rm target}$. However, this mechanism is also switched off after $t_{\rm ext.off}$. This is done because we can assume that homeostatic processes would biologically act on much slower timescales than changes in input. Before $t_{\rm ext.off}$, we can set $\mu_{g}$ to relatively high values to let homeostasis converge under external drive.
+By changing individual gain values $a_i$, the homeostatic control tries to drive the activity standard deviation of every cell to the value given by $\sigma_{\rm target}$. However, this mechanism is also switched off after $t_{\rm ext.off}$. This is done because we can assume that homeostatic processes would biologically act on much slower timescales than changes in input. Before $t_{\rm ext.off}$, we can set $\mu_{a}$ to relatively high values to let homeostasis converge under external drive.
 
-See all parameters in Table \ref{tab:params}.
+All parameters that were unchanged throughout all simulations are shown in Table \ref{tab:params}.
 
 \begin{table}[h]
 	\caption{Model Parameters}
 	\centering
 	\vspace{5pt}
-	\begin{tabular}{ l | l | l | l | l | l | l | l | l | l}
-		\textbf{Parameter} & $N_{\rm net}$ & ${\rm cf_{net}}$ & $\sigma_{\rm conn}$ & $\sigma_{\rm ext}$ & $\sigma_{\rm W^E}$ & $\mu_{g}$ & $\sigma_{\rm target}$ & $n_t$ (Sim. Steps) & $t_{\rm ext.off}$  \\
+	\begin{tabular}{ l | l | l | l | l | l | l }
+		 $N_{\rm net}$ & ${\rm p_{net}}$ & $\sigma_{\rm conn}$ & $\epsilon_{b}$ & $\epsilon_{a}$ & $\mu_{\rm target}$ & $t_{\rm ext.off}$  \\
+		\hline
 		\hline
 		\rule{0pt}{12pt}
-		\textbf{Value} & 500 & 0.1 & 1.0 & 1.0 & 1.0 & $5\cdot10^{-4}$ & 0.33 & $2\cdot 10^5$ & $10^5$
+		1000 & 0.1 & 1.0 & $5\cdot10^{-4}$ & $5\cdot10^{-4}$ & 0 & $10^5$
 	\end{tabular}
 	\label{tab:params}
 \end{table}
@@ -64,19 +68,19 @@ See all parameters in Table \ref{tab:params}.
 \section{Derivation of Gain Dynamics from Objective Function}
 We would like to justify our choice of \eqref{eq:gain_dynamcis} by deriving an update rule from a suitable objective function $F_{\sigma}$:
 \begin{equation}
-F_{\sigma} = \left[\avgt{\left(x-\avgt{x}\right)^2} - \sigma^2_{\rm target}\right]^2
+F_{\sigma} = \left[\avgt{\left(y-\avgt{y}\right)^2} - \sigma^2_{\rm target}\right]^2
 \end{equation}
-Using $\Delta g \propto - \frac{\partial F_\sigma}{\partial g}$:
+Using $\Delta a \propto - \frac{\partial F_\sigma}{\partial a}$:
 \begin{align}
-\Delta g &\propto g^{-1} \left[\sigma^2_{\rm target} - \avgt{\left(x-\avgt{x}\right)^2}\right]\avgt{\left(x-\avgt{x}\right)\mathrm{arctanh}(x)\left(1-x^2\right)} \label{eq:gain_dynamics_obj_func1} \\
-&=g^{-1} \left[\sigma^2_{\rm target} - \avgt{\left(x-\avgt{x}\right)^2}\right]\mathrm{Cov}\left[ x,\mathrm{arctanh}(x)\left(1-x^2\right) \right]_T \label{eq:gain_dynamics_obj_func2}
+\Delta g &\propto a^{-1} \left[\sigma^2_{\rm target} - \avgt{\left(y-\avgt{y}\right)^2}\right]\avgt{\left(y-\avgt{y}\right)\mathrm{arctanh}(y)\left(1-y^2\right)} \label{eq:gain_dynamics_obj_func1} \\
+&=a^{-1} \left[\sigma^2_{\rm target} - \avgt{\left(y-\avgt{y}\right)^2}\right]\mathrm{Cov}\left[ y,\mathrm{arctanh}(y)\left(1-y^2\right) \right]_T \label{eq:gain_dynamics_obj_func2}
 \end{align}
-The sign in the covariance term in \eqref{eq:gain_dynamics_obj_func2} determines whether the dynamics given in \eqref{eq:gain_dynamcis} are recovered, or if the gain adaptation is reversed. Intuitively, it indicates if increasing $g$ broadens or narrows the output distribution. Fig.~\ref{fig:gain_cov} illustrates that a positive covariance is always ensured if the activity remains within the region highlighted in gray, which is approximately given by $(-0.648,0.648)$. For symmetry reasons, $\mathrm{Cov}\left[ x,\mathrm{arctanh}(x)\left(1-x^2\right) \right]_T \geq 0$ also holds for distributions exceeding this bound if they are symmetric around $x=0$. In our numerical simulations, this symmetry condition was fulfilled due to the Gaussian distribution of the neural input, which was centered around zero. This allowed us to reduce dynamics to the essential term $\left[\sigma^2_{\rm target} - \avgt{\left(x-\avgt{x}\right)^2}\right]$.
+The sign in the covariance term in \eqref{eq:gain_dynamics_obj_func2} determines whether the dynamics given in \eqref{eq:gain_dynamcis} are recovered, or if the gain adaptation is reversed. Intuitively, it indicates if increasing $a$ broadens or narrows the output distribution. Fig.~\ref{fig:gain_cov} illustrates that a positive covariance is always ensured if the activity remains within the region highlighted in gray, which is approximately given by $(-0.648,0.648)$. For symmetry reasons, $\mathrm{Cov}\left[ y,\mathrm{arctanh}(y)\left(1-y^2\right) \right]_T \geq 0$ also holds for distributions exceeding this bound if they are symmetric around $y=0$. In our numerical simulations, this symmetry condition was fulfilled due to the Gaussian distribution of the neural input, which was centered around zero. This allowed us to reduce dynamics to the essential term $\left[\sigma^2_{\rm target} - \avgt{\left(y-\avgt{y}\right)^2}\right]$.
 
 \begin{figure}
 	\centering
-	\includegraphics{../plots/gain_grad_descent}
-	\caption{Covariance term of \eqref{eq:gain_dynamics_obj_func2}. If $x$ is bound within the gray area, positive cov. is ensured.}
+	\includegraphics{../plots/gain_grad_descent.pdf}
+	\caption{Covariance term of \eqref{eq:gain_dynamics_obj_func2}. If $y$ is bound within the gray area, positive covariance is ensured.}
 	\label{fig:gain_cov}
 \end{figure}
 
@@ -84,8 +88,8 @@ The sign in the covariance term in \eqref{eq:gain_dynamics_obj_func2} determines
 Exemplary results are shown in Fig. \ref{fig:ex_results}.
 
 \begin{figure}[h]
-\includegraphics[width=\textwidth]{../plots/res_comp.png}
-\caption{{\bf A}: Sample of activity within $\left[ t_{\rm ext.off} - 100, t_{\rm ext.off} + 100 \right]$. {\bf B}: Gain dynamics of $N_{\rm net}/10$ exemplary neurons. {\bf C}: Population mean of squared activity. {\bf D}: Log. of largest absolute value of eigenvalues of $g_i^t W_{ij} $.}
+\includegraphics[width=\textwidth]{../plots/res_comp.pdf}
+\caption{{\bf A}: Sample of activity within $\left[ t_{\rm ext.off} - 100, t_{\rm ext.off} + 100 \right]$. {\bf B}: Bias dynamics of $N_{\rm net}/10$ exemplary neurons. {\bf C}: Gain dynamics of $N_{\rm net}/10$ exemplary neurons. {\bf D}: Population mean of squared activity, normalized by target variance. {\bf E}: Log. of largest absolute value of eigenvalues of $a_i^t W_{ij} $. Standard parameters are as given in Table~\ref{tab:params}. Furthermore, $\sigma_{\rm ext} = 0.1$, $\sigma_{\rm target} = 0.2$, total runtime $n_t = 1.2\cdot10^5$. }
 \label{fig:ex_results}
 \end{figure}
 
@@ -94,52 +98,52 @@ Exemplary results are shown in Fig. \ref{fig:ex_results}.
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=0.9\textwidth]{../plots/std_in_std_target_sweep_fig.png}
-	\caption{Parameter sweep, run on a network with $N_{\rm net}=1000$. {\bf A}: Log of largest absolute value of eigenvalues of $g_i W_{ij}$. Blue dashed line marks the zero transition. {\bf B} : $\avgp{g_i}$.  Blue dashed line marks the $\avgp{g_i} = 1$ transition. {\bf C}: $\avgp{(g_i - \avgp{g_i})^2}$ . {\bf D}: Prediction of \eqref{eq:gain_pred} (blue) and numerical result (orange) of $\avgp{g_i}$. {\bf E}: Memory Capacity (color coded), transition $\avgp{g_i} = 1$ (green line), maximal memory capacity for a given standard deviation of external drive (orange). Red line marks the loss of the echo state property (!!!!Might be wrong!!!!). {\bf F}: $\avgp{g_i}$ from the simulation matches the numerically determined solution of \eqref{eq:self-consistency_var_full}.}
+	\caption{Parameter sweep, run on a network with $N_{\rm net}=1000$. {\bf A}: Log of largest absolute value of eigenvalues of $a_i W_{ij}$. Blue dashed line marks the zero transition. {\bf B} : $\avgp{a_i}$.  Blue dashed line marks the $\avgp{a_i} = 1$ transition. {\bf C}: $\avgp{(a_i - \avgp{a_i})^2}$ . {\bf D}: Prediction of \eqref{eq:gain_pred} (blue) and numerical result (orange) of $\avgp{a_i}$. {\bf E}: Memory Capacity (color coded), transition $\avgp{a_i} = 1$ (green line), maximal memory capacity for a given standard deviation of external drive (orange). Red line marks the loss of the echo state property (!!!!Might be wrong!!!!). {\bf F}: $\avgp{a_i}$ from the simulation matches the numerically determined solution of \eqref{eq:self-consistency_var_full}.}
 	\label{fig:gain_std_in_std_targ_sweep}
 \end{figure} 
 
-We would like to find an approximate relation between the gain resulting from homeostasis and the input and target variance. In the following, we shall denote by $\avgt{\cdot}$ an average over time and by $\avgp{\cdot}$ over the population. If we linearize the neural activation function and take an average over time, we get
+We would like to find an approximate relation between the gain resulting from homeostasis and the input and target variance. If we linearize the neural activation function and take an average over time, we get
 \begin{align}
-	\avgt{x_i^2} &= g_i^2 \avgt{\left(\sum_{j=1}^{N_{\rm net}} W_{ij} x_j + E_i\right)^2} \label{eq:time_avg_act_var}\\
-	&= g_i^2 \avgt{\left( \sum_{j=1}^{N_{\rm net}} W_{ij} x_j \right)^2} + g_i^2 E_i^2 \\
-	&= g_i^2 \sum_{j,k=1}^{N_{\rm net}} W_{ij}W_{ik} \avgt{x_j x_k} + g_i^2 E_i^2 \; .
+	\avgt{y_i^2} &= a_i^2 \avgt{\left(\sum_{j=1}^{N_{\rm net}} W_{ij} y_j + E_i\right)^2} \label{eq:time_avg_act_var}\\
+	&= a_i^2 \avgt{\left( \sum_{j=1}^{N_{\rm net}} W_{ij} y_j \right)^2} + a_i^2 E_i^2 \\
+	&= a_i^2 \sum_{j,k=1}^{N_{\rm net}} W_{ij}W_{ik} \avgt{y_j x_k} + a_i^2 E_i^2 \; .
 \end{align}
-If we assume that the system is in a chaotic state we can set $\avgt{x_j x_k}=0$ for $j\neq k$. This leads to
+If we assume that the system is in a chaotic state we can set $\avgt{y_j x_k}=0$ for $j\neq k$. This leads to
 \begin{equation}
-	\avgt{x_i^2} = g_i^2 \left( \sum_{j=1}^{N_{\rm net}} W_{ij}^2 \avgt{x_j^2} + \sigma_{\rm ext}^2 \right)
+	\avgt{y_i^2} = a_i^2 \left( \sum_{j=1}^{N_{\rm net}} W_{ij}^2 \avgt{y_j^2} + \sigma_{\rm ext}^2 \right)
 \end{equation}
 where we have assumed $\avgt{E_i} = 0$ for all $i$.
 
-By design, our homeostatic mechanism fixes all $\avgt{x_i^2}$ to $\sigma_{\rm target}^2$. Thus,
+By design, our homeostatic mechanism fixes all $\avgt{y_i^2}$ to $\sigma_{\rm target}^2$. Thus,
 \begin{align}
-	\sigma_{\rm target}^2 &= g_i^2 \left( \sigma_{\rm target}^2 \sum_{j=1}^{N_{\rm net}} W_{ij}^2 + \sigma_{\rm ext}^2 \right) \\ 
-	g_i &= \left(\sum_{j=1}^{N_{\rm net}} W_{ij}^2 + \sigma_{\rm ext}^2 / \sigma_{\rm target}^2\right)^{-1/2} \; .
+	\sigma_{\rm target}^2 &= a_i^2 \left( \sigma_{\rm target}^2 \sum_{j=1}^{N_{\rm net}} W_{ij}^2 + \sigma_{\rm ext}^2 \right) \\ 
+	a_i &= \left(\sum_{j=1}^{N_{\rm net}} W_{ij}^2 + \sigma_{\rm ext}^2 / \sigma_{\rm target}^2\right)^{-1/2} \; .
 \end{align}
 
-Since $W_{ij}$ is a random Gaussian matrix with variance $\sigma_{\rm conn}^2/\left( N_{\rm net} cf_{\rm net} \right)$ , $\sum_{j=1}^{N_{\rm net}} W_{ij}^2$ follows a $\chi^2$ - distribution with variance $\frac{2N_{\rm net} cf_{\rm net} \sigma_{\rm conn}^2}{N_{\rm net}^2 cf_{\rm net}^2} = \frac{2 \sigma_{\rm conn}^2}{N_{\rm net} cf_{\rm net}}$. For $N_{\rm net} \rightarrow \infty $, its variance vanishes and consequently, all $g_i$ converge to the same value, namely 
+Since $W_{ij}$ is a random Gaussian matrix with variance $\sigma_{\rm conn}^2/\left( N_{\rm net} cf_{\rm net} \right)$ , $\sum_{j=1}^{N_{\rm net}} W_{ij}^2$ follows a $\chi^2$ - distribution with variance $\frac{2N_{\rm net} cf_{\rm net} \sigma_{\rm conn}^2}{N_{\rm net}^2 cf_{\rm net}^2} = \frac{2 \sigma_{\rm conn}^2}{N_{\rm net} cf_{\rm net}}$. For $N_{\rm net} \rightarrow \infty $, its variance vanishes and consequently, all $a_i$ converge to the same value, namely 
 \begin{equation}
-	g = \left(\sigma_{\rm conn}^2 + \sigma_{\rm ext}^2 / \sigma_{\rm target}^2\right)^{-1/2} \; . \label{eq:gain_pred}
+	a = \left(\sigma_{\rm conn}^2 + \sigma_{\rm ext}^2 / \sigma_{\rm target}^2\right)^{-1/2} \; . \label{eq:gain_pred}
 \end{equation}
-This equation predicts that $g$ should not change if the ratio between target and input variance remains constant. We ran a parameter sweep over $\sigma_{\rm ext}$ and $\sigma_{\rm target}$ with a network of $N_{\rm net} = 1000$ neurons and looked at the resulting distribution of gains and the maximal Lyapunov exponent. Importantly, this approximation suggests that the network should tune into a subcritical configuration for any non-vanishing external input. Even though this is not strictly verified in the numerical simulation, see Fig.~\ref{fig:gain_std_in_std_targ_sweep}A, it holds for the majority of $ \sigma_{\rm ext}$/$\sigma_{\rm target}$ combinations.
+This equation predicts that $a$ should not change if the ratio between target and input variance remains constant. We ran a parameter sweep over $\sigma_{\rm ext}$ and $\sigma_{\rm target}$ with a network of $N_{\rm net} = 1000$ neurons and looked at the resulting distribution of gains and the maximal Lyapunov exponent. Importantly, this approximation suggests that the network should tune into a subcritical configuration for any non-vanishing external input. Even though this is not strictly verified in the numerical simulation, see Fig.~\ref{fig:gain_std_in_std_targ_sweep}A, it holds for the majority of $ \sigma_{\rm ext}$/$\sigma_{\rm target}$ combinations.
 
 \subsection{Self-Consistency Equation with Full Activation Function}
 If we do not restrict ourself to a linearized version of the activation function, \eqref{eq:time_avg_act_var} becomes
 \begin{equation}
-	\avgt{x_i^2} = \avgt{\tanh\left(g_i\left(\sum_{j=1}^{N_{\rm net}} W_{ij} x_j + E_i\right)\right)^2} \; .
+	\avgt{y_i^2} = \avgt{\tanh\left(a_i\left(\sum_{j=1}^{N_{\rm net}} W_{ij} y_j + E_i\right)\right)^2} \; .
 \end{equation}
-Again, assuming that $\avgt{x_j x_k}=0$ for $j\neq k$ and $N_{\rm net} \rightarrow \infty$, the sum of weight and inputs follows a Gaussian distribution $\mathcal{N}\left(\mu = 0, \sigma = \sqrt{\sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext}}\right)$. Replacing the time average with an integral over the distribution of the input, we arrive at the full self-consistency equation
+Again, assuming that $\avgt{y_j x_k}=0$ for $j\neq k$ and $N_{\rm net} \rightarrow \infty$, the sum of weight and inputs follows a Gaussian distribution $\mathcal{N}\left(\mu = 0, \sigma = \sqrt{\sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext}}\right)$. Replacing the time average with an integral over the distribution of the input, we arrive at the full self-consistency equation
 \begin{equation}
-	\sigma^2_{\rm target} = \int_{-\infty}^{\infty}  \tanh^2\left(gx\right) \mathcal{N}\left(x, \mu = 0, \sigma = \sqrt{\sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext}}\right)	\mathrm{d}x \label{eq:self-consistency_var_full}
+	\sigma^2_{\rm target} = \int_{-\infty}^{\infty}  \tanh^2\left(ay\right) \mathcal{N}\left(y, \mu = 0, \sigma = \sqrt{\sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext}}\right)	\mathrm{d}y \label{eq:self-consistency_var_full}
 \end{equation}
 
-As a second order approximation with respect to $\tanh$, we can use $\tanh^2(x) \approx x^2 - \frac{2}{3} x^4$ in the integral, which gives
+As a second order approximation with respect to $\tanh$, we can use $\tanh^2(y) \approx y^2 - \frac{2}{3} y^4$ in the integral, which gives
 
 \begin{align}
-\sigma_{\rm target}^2 &\approx \frac{1}{g\sqrt{2 \pi}\sigma_{\rm total}}\int_{-\infty}^{\infty}\left( x^2 - \frac{2}{3}x^4\right)\exp\left( \frac{-x^2}{2g^2\sigma_{\rm total}^2}\right) \mathrm{d}x \\
-&= g^2\sigma_{\rm total}^2 - 2g^4\sigma_{\rm total}^4 \\
-&= g^2\left( \sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext} \right) - 2g^4 \left( \sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext} \right) \label{eq:sec_order_approx_consistency}
+\sigma_{\rm target}^2 &\approx \frac{1}{a\sqrt{2 \pi}\sigma_{\rm total}}\int_{-\infty}^{\infty}\left( y^2 - \frac{2}{3}y^4\right)\exp\left( \frac{-y^2}{2a^2\sigma_{\rm total}^2}\right) \mathrm{d}y \\
+&= a^2\sigma_{\rm total}^2 - 2a^4\sigma_{\rm total}^4 \\
+&= a^2\left( \sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext} \right) - 2a^4 \left( \sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext} \right) \label{eq:sec_order_approx_consistency}
 \end{align}
-where we have defined $\sigma_{\rm total} = \sqrt{\sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext}}$ for convenience. Note that neglecting the second term on the right hand side of \eqref{eq:sec_order_approx_consistency} reduces the equation to \eqref{eq:gain_pred}. Since this first order approximation does not explain the $g=1$ transition traced in Fig.~\ref{fig:gain_std_in_std_targ_sweep}B as a dashed blue line, we were particularly interested in the solution of \eqref{eq:sec_order_approx_consistency} for $g=1$. Moreover, we set $\sigma_{\rm conn}=1$ as in the simulations. We therefore had to solve
+where we have defined $\sigma_{\rm total} = \sqrt{\sigma^2_{\rm conn}\sigma^2_{\rm target} + \sigma^2_{\rm ext}}$ for convenience. Note that neglecting the second term on the right hand side of \eqref{eq:sec_order_approx_consistency} reduces the equation to \eqref{eq:gain_pred}. Since this first order approximation does not explain the $a=1$ transition traced in Fig.~\ref{fig:gain_std_in_std_targ_sweep}B as a dashed blue line, we were particularly interested in the solution of \eqref{eq:sec_order_approx_consistency} for $a=1$. Moreover, we set $\sigma_{\rm conn}=1$ as in the simulations. We therefore had to solve
 \begin{equation}
 	\sigma_{\rm target}^4 + \sigma_{\rm ext}^4 + 2\sigma_{\rm target}^2\sigma_{\rm ext}^2 - \frac{\sigma_{\rm ext}^2}{2} = 0 \; .
 \end{equation}
@@ -152,7 +156,7 @@ From this form we can see that the solution set consists of two circles with rad
 \begin{figure}
 	\centering
 	\includegraphics[width=0.6\textwidth]{../plots/crit_transition_2nd_order_approx.png}
-	\caption{Comparison of the $\avgp{g_i} = 1$ transition (blue) shown in Fig.~\ref{fig:gain_std_in_std_targ_sweep}B and the second order approximate solution (yellow) given by \eqref{eq:circles_solution_form}. }
+	\caption{Comparison of the $\avgp{a_i} = 1$ transition (blue) shown in Fig.~\ref{fig:gain_std_in_std_targ_sweep}B and the second order approximate solution (yellow) given by \eqref{eq:circles_solution_form}. }
 	\label{fig:crit_transition_2nd_order_approx}
 \end{figure}
 

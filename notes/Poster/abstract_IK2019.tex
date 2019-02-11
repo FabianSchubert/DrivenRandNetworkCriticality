@@ -1,0 +1,63 @@
+% to compile on Debian/Ubuntu:
+% sudo apt install latexmk biber texlive-bibtex-extra texlive-fonts-extra
+% latexmk -pdf ik-poster
+\documentclass[a4paper,fontsize=12pt]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{txfontsb}
+\usepackage{microtype}
+\usepackage[top=2.67cm, bottom=3cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{setspace}
+\usepackage{csquotes}
+\usepackage[sorting=none,citestyle=numeric-comp,bibstyle=trad-abbrv]{biblatex}
+\usepackage{units}
+\usepackage{xcolor}
+\usepackage[
+pdftitle={Local Variance Optimization for the Autonomous Regulation of Echo State Networks},
+pdfauthor={Katja Hellekes, Till Bockemühl, Jan Smeddinck, Susan Wache},
+pdflang=en,
+pdfborder={0 0 0}
+]{hyperref}
+
+\usepackage{natbib}
+
+\usepackage{filecontents}
+
+\begin{filecontents}{abstract.bib}
+@InBook{katja2013,
+  author = {Katja Hellekes and Till Bockemühl},
+  year = {2013},
+  title = {How to Format a Poster Abstract},
+  booktitle = {IK Documentation},
+  address = {Günne, Germany},
+  publisher = {IK Press},
+}
+}
+\end{filecontents}
+
+\renewcaptionname{english}{\refname}{\changefontsizes{16pt}\normalfont\textbf{References}}
+\DeclareFieldFormat{titlecase}{#1}
+\addbibresource{abstract.bib}
+
+\begin{document}
+\pagestyle{empty}
+\begin{spacing}{1.11}
+\begin{center}
+  \changefontsizes{20pt}\textbf{Local Variance Optimization for the Autonomous Regulation of Echo State Networks} \\
+  \vspace{.74cm}
+  \changefontsizes{12pt}\textbf{Fabian Schubert\textsuperscript{1,*}, Claudius Gros\textsuperscript{1}} \\
+  \vspace{.44cm}
+  \changefontsizes{10pt}\textsuperscript{1}Institute for Theoretical Physics, Goethe University Frankfurt am Main, Max-von-Laue-Straße 1, 60438 Frankfurt am Main, Germany \\
+  *Corresponding author: fschubert@itp.uni-frankfurt.de
+\end{center}
+\vspace{-.08cm}
+
+Echo state References are cited according to this example~\cite{katja2013}.
+
+\end{spacing}
+\vspace{-.35cm}
+\printbibliography
+
+\end{document}
+

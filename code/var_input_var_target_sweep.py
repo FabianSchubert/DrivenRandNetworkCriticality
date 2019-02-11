@@ -20,8 +20,8 @@ from standard_params import *
 
 n_t_def = 100000
 
-n_sweep_std_in = 3
-n_sweep_std_act_target = 3
+n_sweep_std_in = 30
+n_sweep_std_act_target = 30
 
 std_in_sweep_range = np.linspace(0.,1.5,n_sweep_std_in)
 std_act_target_sweep_range = np.linspace(0.,.9,n_sweep_std_act_target)

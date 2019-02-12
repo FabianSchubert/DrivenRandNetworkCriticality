@@ -17,9 +17,9 @@ import numpy as np
 
 plt.style.use('matplotlibrc')
 
-#file = "/media/fschubert/TOSHIBA EXT/simdata/sim_results.npz"
+file = "/media/fschubert/TOSHIBA EXT/simdata/sim_results.npz"
 
-file = "../../data/max_lyap_sweep/sim_results.npz"
+#file = "../../data/max_lyap_sweep/sim_results.npz"
 
 Data = np.load(file)
 std_e = Data["std_in_sweep_range"]

@@ -1,10 +1,10 @@
 %%
-%% This is file `IK2019_STYLE.bst',
+%% This is file `ik2019style.bst',
 %% generated with the docstrip utility.
 %%
 %% The original source files were:
 %%
-%% merlin.mbs  (with options: `seq-no,nm-rvvc,dt-beg,xmth,yrp-per,atit-u,volp-sp,jdt-vs,pp-last,num-xser,jnm-x,bkpg-x,isbn,issn,doi,ppx,xedn,and-xcom,nfss,')
+%% merlin.mbs  (with options: `seq-no,nm-rvvc,dt-beg,yr-blk,xmth,yrp-per,atit-u,vnum-x,volp-sp,pp-last,num-xser,jnm-x,btit-rm,bt-rm,bkpg-x,edpar,ppx,xedn,and-xcom,nfss,')
 %% ----------------------------------------
 %% *** ik2019 ***
 %% 
@@ -41,14 +41,11 @@ ENTRY
     author
     booktitle
     chapter
-    doi
     edition
     editor
     eid
     howpublished
     institution
-    isbn
-    issn
     journal
     key
     month
@@ -462,39 +459,10 @@ FUNCTION {get.bbl.editor}
 FUNCTION {format.editors}
 { editor "editor" format.names duplicate$ empty$ 'skip$
     {
-      "," *
       " " *
       get.bbl.editor
+   "(" swap$ * ")" *
       *
-    }
-  if$
-}
-FUNCTION {format.isbn}
-{ isbn "isbn" bibinfo.check
-  duplicate$ empty$ 'skip$
-    {
-      new.block
-      "ISBN " swap$ *
-    }
-  if$
-}
-
-FUNCTION {format.issn}
-{ issn "issn" bibinfo.check
-  duplicate$ empty$ 'skip$
-    {
-      new.block
-      "ISSN " swap$ *
-    }
-  if$
-}
-
-FUNCTION {format.doi}
-{ doi empty$
-    { "" }
-    {
-      new.block
-      "\doi{" doi * "}" *
     }
   if$
 }
@@ -580,14 +548,11 @@ FUNCTION {format.date}
       *
     }
   if$
-}
-FUNCTION{format.year}
-{ year "year" bibinfo.check duplicate$ empty$
-    {  "empty year in " cite$ *
-       warning$
-    }
+  duplicate$ empty$
+    'skip$
     {
-  " (" swap$ * ")" *
+      before.all 'output.state :=
+    " " swap$ *
     }
   if$
 }
@@ -595,7 +560,6 @@ FUNCTION {format.btitle}
 { title "title" bibinfo.check
   duplicate$ empty$ 'skip$
     {
-      emphasize
     }
   if$
 }
@@ -720,17 +684,6 @@ FUNCTION {format.vol.num.pages}
       "volume" bibinfo.check
     }
   if$
-  format.year *
-  number "number" bibinfo.check duplicate$ empty$ 'skip$
-    {
-      swap$ duplicate$ empty$
-        { "there's a number but no volume in " cite$ * warning$ }
-        'skip$
-      if$
-      swap$
-      "(" swap$ * ")" *
-    }
-  if$ *
 }
 
 FUNCTION {format.chapter.pages}
@@ -752,17 +705,15 @@ FUNCTION {format.chapter.pages}
 FUNCTION {format.booktitle}
 {
   booktitle "booktitle" bibinfo.check
-  emphasize
 }
 FUNCTION {format.in.ed.booktitle}
 { format.booktitle duplicate$ empty$ 'skip$
     {
       editor "editor" format.names.ed duplicate$ empty$ 'pop$
         {
-          "," *
           " " *
           get.bbl.editor
-          ", " *
+          "(" swap$ * "), " *
           * swap$
           * }
       if$
@@ -920,6 +871,8 @@ FUNCTION {format.organization.address}
 FUNCTION {article}
 { output.bibitem
   format.authors "author" output.check
+  format.date "year" output.check
+  date.block
   format.title "title" output.check
   new.block
   crossref missing$
@@ -938,8 +891,6 @@ FUNCTION {article}
     { format.journal.pages }
     { format.journal.eid }
   if$
-  format.issn output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -972,8 +923,6 @@ FUNCTION {book}
     }
   if$
   format.edition output
-  format.isbn output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -987,8 +936,6 @@ FUNCTION {booklet}
   new.block
   howpublished "howpublished" bibinfo.check output
   address "address" bibinfo.check output
-  format.isbn output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1025,12 +972,7 @@ FUNCTION {inbook}
     }
   if$
   format.edition output
-  crossref missing$
-    { format.isbn output }
-    'skip$
-  if$
   format.pages "pages" output.check
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1051,14 +993,12 @@ FUNCTION {incollection}
       new.sentence
       format.publisher.address output
       format.edition output
-      format.isbn output
     }
     { format.incoll.inproc.crossref output.nonnull
       format.chapter.pages output
     }
   if$
   format.pages "pages" output.check
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1081,14 +1021,11 @@ FUNCTION {inproceedings}
           format.publisher.address output
         }
       if$
-      format.isbn output
-      format.issn output
     }
     { format.incoll.inproc.crossref output.nonnull
     }
   if$
   format.pages "pages" output.check
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1125,7 +1062,6 @@ FUNCTION {manual}
     }
   if$
   format.edition output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1142,7 +1078,6 @@ FUNCTION {mastersthesis}
   bbl.mthesis format.thesis.type output.nonnull
   school "school" bibinfo.warn output
   address "address" bibinfo.check output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1156,7 +1091,6 @@ FUNCTION {misc}
   format.title output
   howpublished new.block.checka
   howpublished "howpublished" bibinfo.check output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1173,7 +1107,6 @@ FUNCTION {phdthesis}
   bbl.phdthesis format.thesis.type output.nonnull
   school "school" bibinfo.warn output
   address "address" bibinfo.check output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1212,9 +1145,6 @@ FUNCTION {proceedings}
       if$
      }
   if$
-  format.isbn output
-  format.issn output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1231,7 +1161,6 @@ FUNCTION {techreport}
   format.tr.number output.nonnull
   institution "institution" bibinfo.warn output
   address "address" bibinfo.check output
-  format.doi output
   new.block
   format.note output
   fin.entry
@@ -1243,7 +1172,6 @@ FUNCTION {unpublished}
   format.date output
   date.block
   format.title "title" output.check
-  format.doi output
   new.block
   format.note "note" output.check
   fin.entry
@@ -1277,12 +1205,6 @@ FUNCTION {begin.bib}
   if$
   "\begin{thebibliography}{"  longest.label  * "}" *
   write$ newline$
-  "\expandafter\ifx\csname urlstyle\endcsname\relax"
-  write$ newline$
-  "  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else"
-  write$ newline$
-  "  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup \urlstyle{rm}\Url}\fi"
-  write$ newline$
 }
 EXECUTE {begin.bib}
 EXECUTE {init.state.consts}
@@ -1294,4 +1216,4 @@ FUNCTION {end.bib}
 EXECUTE {end.bib}
 %% End of customized bst file
 %%
-%% End of file `IK2019_STYLE.bst'.
+%% End of file `ik2019style.bst'.

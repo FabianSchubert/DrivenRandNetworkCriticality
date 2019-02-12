@@ -1,6 +1,6 @@
-%% Driver file to produce IK2019_STYLE.bst from merlin.mbs
+%% Driver file to produce ik2019style.bst from merlin.mbs
 %% Generated with makebst, version 4.1 (2003/09/08)
-%% Produced on 2019/02/11 at 15:57
+%% Produced on 2019/02/11 at 16:29
 %% 
 \input docstrip
 
@@ -199,13 +199,13 @@ End of customized bst file
 % dt-end,%: Date at very end
 %--------------------
 %DATE FORMAT (if non author-year citations)
-    %: (def) Plain month and year
+%   %: (def) Plain month and year
 % yr-par,%: Date in parentheses
 % yr-brk,%: Date in brackets
 % yr-col,%: Date preceded by colon
 % yr-per,%: Date preceded by period
 % yr-com,%: Date preceded by comma
-% yr-blk,%: Date preceded by space
+  yr-blk,%: Date preceded by space
 %--------------------
 %SUPPRESS MONTH:
 %   %: (def) Date is month and year
@@ -301,13 +301,13 @@ End of customized bst file
 % vol-2bf,%: Volume and number bold
 %--------------------
 %JOURNAL VOL AND NUMBER:
-    %: (def) Journal vol(num)
+%   %: (def) Journal vol(num)
 % vnum-sp,%: Journal vol (num)
 % vnum-cm,%: Journal vol, num
 % vnum-nr,%: Journal vol, no. num
 % vnum-h,%: Journal vol, \# number
 % vnum-b,%: Journal vol number
-% vnum-x,%: Journal vol, without number
+  vnum-x,%: Journal vol, without number
 %--------------------
 %VOLUME PUNCTUATION:
 %   %: (def) Volume with colon
@@ -317,9 +317,9 @@ End of customized bst file
 % volp-blk,%: Volume with blank
 %--------------------
 %YEAR IN JOURNAL SPECIFICATION:
-%   %: (def) Journal year like others
+    %: (def) Journal year like others
 % jdt-v,%: Journal vol(year)
-  jdt-vs,%: Journal vol (year)
+% jdt-vs,%: Journal vol (year)
 % jdt-p,%: Year with pages
 % jdt-pc,%: Year, comma, pages
 %--------------------
@@ -366,8 +366,8 @@ End of customized bst file
   jnm-x,%: Space after journal
 %--------------------
 %BOOK TITLE:
-    %: (def) Book title italic
-% btit-rm,bt-rm,%: Book title plain
+%   %: (def) Book title italic
+  btit-rm,bt-rm,%: Book title plain
 %--------------------
 %PAGES IN BOOKS:
 %   %: (def) Pages in book plain
@@ -397,22 +397,22 @@ End of customized bst file
 % pre-edn,%: Publisher after edition
 %--------------------
 %ISBN NUMBER:
-  isbn,%: Include ISBN
-%   %: (def) No ISBN
+% isbn,%: Include ISBN
+    %: (def) No ISBN
 %--------------------
 %ISSN NUMBER:
-  issn,%: Include ISSN
-%   %: (def) No ISSN
+% issn,%: Include ISSN
+    %: (def) No ISSN
 %--------------------
 %DOI NUMBER:
-  doi,%: Include DOI
+% doi,%: Include DOI
 % url-doi,%: Format DOI as URL //dx.doi.org/doi
 % agu-doi,doi,%: Insert DOI AGU style
-%   %: (def) No DOI
+    %: (def) No DOI
 %--------------------
 %`EDITOR' AFTER NAMES (EDITED BOOKS WITHOUT AUTHORS):
-    %: (def) Word `editor' after name
-% edpar,%: `Name (editor),'
+%   %: (def) Word `editor' after name
+  edpar,%: `Name (editor),'
 % edpar,bkedcap,%: `Name (Editor),'
 % edparc,%: `Name, (editor)'
 % edparc,bkedcap,%: `Name, (Editor)'
@@ -556,5 +556,5 @@ End of customized bst file
 % plntx,%: Use only Plain TeX
 %--------------------
   }}
-\generate{\file{IK2019_STYLE.bst}{\MBopts}}
+\generate{\file{ik2019style.bst}{\MBopts}}
 \endbatchfile

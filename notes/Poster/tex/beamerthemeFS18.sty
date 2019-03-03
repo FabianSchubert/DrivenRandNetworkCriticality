@@ -1,0 +1,183 @@
+% this style was created by Horea Christian and is basted on the ETH Zürich corporate design color palette https://www.ethz.ch/services/en/service/communication/corporate-design/colour.html
+\ProvidesPackage{beamerthemeFS18}
+
+% \usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{setspace}
+
+\newcommand{\vcenteredinclude}[1]{\begingroup
+\setbox0=\hbox{\includegraphics[width=.8\textwidth, height=.06\paperheight, keepaspectratio]{#1}}%
+\parbox{\wd0}{\box0}\endgroup}
+
+
+\usepackage{calc}
+\newlength{\mylength}
+
+\mode<presentation>
+
+\definecolor{ETH1}{RGB}{31,64,122}
+%\definecolor{block_bg}{RGB}{161, 224, 145}
+\definecolor{block_bg}{RGB}{167, 191, 232}
+\definecolor{blocktitle col}{HTML}{3B528B}
+\definecolor{ETH6}{RGB}{111,111,110}
+\definecolor{ETH8}{RGB}{0,122,146}
+\definecolor{ETH10}{RGB}{130,190,30}
+\definecolor{tlg}{RGB}{230,230,230}
+
+\definecolor{grau2}{rgb}{0.89411765,  0.89019608,  0.86666667}
+
+\usefonttheme[onlymath]{serif}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%It seems many of the following entries do not control any visible Behaviour. All such entries are
+%set to red, so that they are easy to spot if they ever become visible
+
+\setbeamercolor{headline}{fg=black,bg=white} % This is the recommended color for Specialist community usage: change to ETH1 for general communication
+\setbeamercolor{footline}{fg=black, bg=white}
+\setbeamerfont{footline}{size=\large}
+\setbeamercolor{separation line}{bg=black}
+\setbeamercolor{title in headline}{fg=black}
+\setbeamercolor{author in headline}{fg=black}
+\setbeamercolor{institute in headline}{fg=black}
+
+\setbeamercolor{framesubtitle}{fg=red, bg=ta2gray}
+\setbeamercolor{author in head/foot}{fg=black, bg=white}
+\setbeamercolor{title in head/foot}{fg=red, bg=red}
+
+\setbeamercolor*{normal text}{fg=black, bg=white}
+\setbeamercolor*{block body}{fg=black, bg=white}
+\setbeamercolor*{block title}{fg=blocktitle col}
+\setbeamerfont{block title}{size=\large,series=\bf}
+\setbeamercolor{upper separation line head}{fg=black}
+
+\setbeamercolor*{example body}{fg=red,bg=red}
+\setbeamercolor*{example text}{fg=red,bg=red}
+\setbeamercolor*{example title}{bg=red,fg=red}
+
+\setbeamercolor{alerted text}{fg=red}
+\setbeamercolor{structure}{fg=ETH1}
+
+\setbeamertemplate{itemize items}{\color{black}$\blacktriangleright$}
+\setbeamertemplate{navigation symbols}{}  % no navigation on a poster
+
+\setbeamerfont*{block title}{series=\bfseries,size={\fontsize{36}{5}}}
+
+
+\setbeamerfont*{bibliography item}{size={\fontsize{26pt}{32pt}}}
+\setbeamerfont*{bibliography entry author}{size={\fontsize{26pt}{32pt}}}
+\setbeamerfont*{bibliography entry title}{size={\fontsize{26pt}{32pt}}}
+\setbeamerfont*{bibliography entry location}{size={\fontsize{26pt}{32pt}}}
+\setbeamerfont*{bibliography entry note}{size={\fontsize{26pt}{32pt}}}
+
+
+\newenvironment{myblock}[1]
+{\begin{block}{#1}
+\fontsize{26pt}{32pt}\selectfont
+\rule[10pt]{\textwidth}{2pt}
+}
+{\end{block}
+}
+
+\newenvironment{conclusions}[1]{
+\setbeamercolor{block body}{fg=black, bg=grau2}
+\begin{block}{#1}
+\fontsize{26pt}{32pt}\selectfont
+\rule[10pt]{\textwidth}{2pt}
+}
+{\end{block}
+}
+
+\newenvironment<>{emphblock}[1]{% emphasised block environment
+\setbeamercolor{block title}{fg=leitfarbe,bg=white}%
+\setbeamercolor{block body}{bg=grau2}
+\begin{block}#2{#1}}{\end{block}}
+
+
+
+%\newenvironment<>{myblock}[1]{%
+%	\begin{actionenv}#2%
+%	\def\insertblocktitle{\centering#1}%
+%	\par%
+%	\usebeamertemplate{block begin}\leftskip=14pt\rightskip=14pt\vspace{10pt}}
+%	{\par\vspace{1em}\usebeamertemplate{block end}
+%	\end{actionenv}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% !!! This environment can't both have nice margins AND display the contained text as justified:
+% We preferentially use the above but keep this one just-in-case
+%\setbeamertemplate{block begin}{
+%	\setlength{\mylength}{\textwidth+2ex}%
+%	\vskip2ex
+%	\begin{beamercolorbox}[ht=2.8ex,dp=2ex, wd=\mylength, center,rounded=false,shadow=false,leftskip=1cm,colsep*=0ex]{block title}%
+%		\usebeamerfont*{block title}\centering \insertblocktitle
+%	\end{beamercolorbox}\vskip-9pt%
+%	{\ifbeamercolorempty[bg]{block body}{}{\nointerlineskip\vskip-0.5ex}}%
+%	\usebeamerfont{block body}%
+%	\begin{beamercolorbox}[rounded=false,shadow=false,center,wd=\textwidth,]{block body}%
+%		\ifbeamercolorempty[bg]{block body}\vbox{}%
+%		\begin{minipage}{0.96\textwidth}\vbox{}%
+%		\justify
+%		}
+%\setbeamertemplate{block end}{
+%	\end{minipage}
+%	\end{beamercolorbox}
+%	}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setbeamertemplate{headline}{
+	\leavevmode
+	\begin{beamercolorbox}[wd=\paperwidth]{headline}
+		\vspace{14ex}
+		\begin{columns}[c]
+			\begin{column}{.2\paperwidth}
+			\end{column}
+			\begin{column}{.6\paperwidth}
+				\centering
+				\usebeamercolor{title in headline}{\color{fg}\textbf{\LARGE{\inserttitle}}\\[2ex]}
+				\usebeamercolor{author in headline}{\color{fg}\large{\insertauthor}\\[2ex]}
+				\usebeamercolor{institute in headline}{\color{fg}\small{\insertinstitute}\\[2ex]}
+			\end{column}
+			\begin{column}{.17\paperwidth}
+				\begin{center}
+					\includegraphics[width=.8\textwidth, height=.39\textwidth, keepaspectratio]{../GU-Logo-schwarz.pdf}
+				\end{center}
+			\end{column}
+			\begin{column}{.03\paperwidth}
+			\end{column}
+		\end{columns}
+		\vspace{2ex}
+	\end{beamercolorbox}
+	
+	\centering
+ 	\rule{0.95\textwidth}{2pt}
+	\vskip 3ex
+	}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setbeamertemplate{footline}{
+	\begin{beamercolorbox}[wd=\paperwidth]{upper separation line foot}
+		\rule{0pt}{2pt}
+	\end{beamercolorbox}
+	\leavevmode%
+	\begin{beamercolorbox}[ht=4ex,leftskip=1cm,rightskip=1cm]{author in head/foot}%
+		\href{http://www.itp.uni-frankfurt.de/}{www.itp.uni-frankfurt.de}
+		\hfill
+		\insertdate
+		\hfill
+		\href{mailto:fschubert@itp.uni-frankfurt.de}{fschubert@itp.uni-frankfurt.de}
+		\vskip1ex
+	\end{beamercolorbox}
+	\vskip0pt%
+	}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Display a grid to help align images ... and it looks nice with this color scheme
+% \beamertemplategridbackground[1cm]
+
+%Some beamer customizations:
+\setbeamertemplate{bibliography item}[text]
+\setbeamerfont*{bibliography item}{size={\fontsize{26pt}{32pt}}}
+\setbeamertemplate{caption}[numbered]{}% Number float-like environments
+
+\mode<all>

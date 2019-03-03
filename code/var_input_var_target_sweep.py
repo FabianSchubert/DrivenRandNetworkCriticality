@@ -11,8 +11,11 @@ import os
 def gen_input(t):
     return np.random.normal()
 
-path = "/media/fschubert/TOSHIBA EXT/simdata/"
+path = "/mnt/ceph/fschubert/data/"
+#filename = "sim_results.npz"
 filename = "sim_results.npz"
+
+
 
 ### Parameters
 ### Import standard parameters
@@ -31,7 +34,7 @@ mean_var_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 trail_av_hom_error_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 mem_cap_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 echo_state_prop_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
-
+W_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target,N_net_def,N_net_def))
 
 ind_std_in_sample_data = False
 ind_std_act_target_sample_data = False
@@ -48,6 +51,7 @@ for k in tqdm(range(n_sweep_std_in)):
                         mu_bias_def,
                         mu_gain_def,
                         mu_trail_av_error_def,
+                        mu_trail_av_act_def,
                         n_t_def,
                         t_ext_off_def,
                         x_rec = True,
@@ -65,6 +69,7 @@ for k in tqdm(range(n_sweep_std_in)):
                         mu_bias_def,
                         mu_gain_def,
                         mu_trail_av_error_def,
+                        mu_trail_av_act_def,
                         n_t_def,
                         t_ext_off_def,
                         x_rec = False,
@@ -74,6 +79,7 @@ for k in tqdm(range(n_sweep_std_in)):
         DN.run_sim()
         max_l_list[k,l] = np.abs(np.linalg.eigvals((DN.W.T*DN.gain).T)).max()
         gain_list[k,l,:] = DN.gain
+        W_list[k,l,:,:] = DN.W
         mean_var_list[k,l] = (DN.x_net**2).mean()
         trail_av_hom_error_list[k,l] = DN.trail_av_hom_error
 
@@ -81,7 +87,7 @@ for k in tqdm(range(n_sweep_std_in)):
         MC, MC_sum = test_memory_cap((DN.W.T*DN.gain).T,50,5000,gen_temp,0.1)
         mem_cap_list[k,l] = MC_sum
 
-        esp_test, esp_test_rec = test_echo_state_prop((DN.W.T*DN.gain).T,10000,10.**-15,0.001,gen_input)
+        esp_test, esp_test_rec = test_echo_state_prop((DN.W.T*DN.gain).T,10000,0.001,10.**-10,gen_temp,x_init=DN.x_net)
 
         echo_state_prop_list[k,l] = esp_test
 
@@ -102,6 +108,7 @@ if not os.path.exists(path):
 np.savez_compressed(path+filename,
 max_l_list = max_l_list,
 gain_list = gain_list,
+W_list = W_list,
 trail_av_hom_error_list = trail_av_hom_error_list,
 mem_cap_list = mem_cap_list,
 echo_state_prop_list = echo_state_prop_list,

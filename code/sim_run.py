@@ -23,12 +23,13 @@ DN = driven_net(N_net_def,
                 mu_bias_def,
                 mu_gain_def,
                 mu_trail_av_error_def,
+                mu_trail_av_act_def,
                 n_t_def,
                 t_ext_off_def)
 
 DN.run_sim()
 
-DN.save_data("/media/fschubert/TOSHIBA EXT/simdata/")
+DN.save_data("/mnt/ceph/fschubert/data/",filename="sim_results_single_run.npz")
 
 '''
 ### Plotting

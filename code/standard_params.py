@@ -10,7 +10,8 @@ std_conn_def = 1.
 mu_act_target_def = 0.
 
 mu_gain_def = 0.001
-mu_bias_def = 0.001
+mu_bias_def = 0.0002
 mu_trail_av_error_def = 0.001
+mu_trail_av_act_def = 0.0001
 
 t_ext_off_def = 100000

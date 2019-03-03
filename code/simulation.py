@@ -3,7 +3,9 @@ import numpy as np
 from tqdm import tqdm
 import os
 import sys
+from scipy.sparse import csr_matrix
 
+import pdb
 
 class driven_net:
 
@@ -17,8 +19,10 @@ class driven_net:
                  mu_bias,
                  mu_gain,
                  mu_trail_av_error,
+                 mu_trail_av_act,
                  n_t,
                  t_ext_off,
+                 W_gen = np.random.normal,
                  **kwargs):
 
         self.N_net = N_net
@@ -30,12 +34,14 @@ class driven_net:
         self.mu_bias = mu_bias
         self.mu_gain = mu_gain
         self.mu_trail_av_error = mu_trail_av_error
+        self.mu_trail_av_act = mu_trail_av_act
         self.n_t = n_t
         self.t_ext_off = t_ext_off
 
         # Recording
         self.rec_options = {
             'x_rec': True,
+            'x_trail_av_rec': True,
             'I_in_rec': True,
             'bias_rec': True,
             'gain_rec': True,
@@ -43,12 +49,15 @@ class driven_net:
 
         # Init state vars
         self.x_net = np.random.normal(0., 1., (self.N_net))
+        self.x_net_trail_av = np.ones((self.N_net))*self.mu_act_target
 
         # Init Weights
-        self.W = np.random.normal(0., std_conn, (N_net, N_net))
+        self.W = W_gen(0., std_conn, (N_net, N_net))
         self.W *= (np.random.rand(N_net, N_net) <=
                    cf_net) / (N_net * cf_net)**.5
         self.W[range(N_net), range(N_net)] = 0.
+
+        #self.W = csr_matrix(self.W)
 
         # Init random seed:
         self.rand_inp_seed = np.random.randint(1000000)
@@ -73,6 +82,11 @@ class driven_net:
             self.x_net_rec = np.ndarray((n_t, N_net))
         else:
             self.x_net_rec = None
+
+        if self.rec_options['x_trail_av_rec']:
+            self.x_net_trail_av_rec = np.ndarray((n_t, N_net))
+        else:
+            self.x_net_trail_av_rec = None
 
         if self.rec_options['I_in_rec']:
             self.I_in_rec = np.ndarray((n_t, N_net))
@@ -116,21 +130,30 @@ class driven_net:
                 #x_in = np.zeros((N_in))
                 I_in = np.zeros((self.N_net))
 
-            I = self.gain * (np.dot(self.W, self.x_net) + I_in - self.bias)
+
+            I = self.gain * (self.W.dot(self.x_net) + I_in - self.bias)
 
             if t < self.t_ext_off:
                 self.gain += self.mu_gain * \
-                    (self.std_act_target**2 - self.x_net**2)
+                    (self.std_act_target**2 - (self.x_net - self.x_net_trail_av)**2)
                 self.bias += self.mu_bias * (self.x_net - self.mu_act_target)
 
             self.trail_av_hom_error += self.mu_trail_av_error * \
                 (-self.trail_av_hom_error + ((self.std_act_target **
                                               2 - self.x_net**2)**2).sum()**.5 / self.N_net)
 
+
+
             self.x_net = self.s(I)
+
+            self.x_net_trail_av += self.mu_trail_av_act*(self.x_net - self.x_net_trail_av)
+
 
             if self.rec_options['x_rec']:
                 self.x_net_rec[t, :] = self.x_net
+
+            if self.rec_options['x_trail_av_rec']:
+                self.x_net_trail_av_rec[t, :] = self.x_net_trail_av
 
             if self.rec_options['I_in_rec']:
                 self.I_in_rec[t, :] = I_in
@@ -143,6 +166,8 @@ class driven_net:
 
             if self.rec_options['var_mean_rec']:
                 self.var_mean_rec[t] = (self.x_net**2).mean()
+
+        #self.W = self.W.todense()
 
     def save_data(self, folder, filename="sim_results.npz"):
         if not os.path.exists(folder):
@@ -159,6 +184,7 @@ class driven_net:
                             n_t=self.n_t,
                             t_ext_off=self.t_ext_off,
                             x_net_rec=self.x_net_rec,
+                            x_net_trail_av_rec=self.x_net_trail_av_rec,
                             I_in_rec=self.I_in_rec,
                             bias_rec=self.bias_rec,
                             gain_rec=self.gain_rec,

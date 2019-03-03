@@ -52,7 +52,7 @@ def test_memory_cap(W,t_back_max,n_learn_samples,input_gen,reg_fact):
 
     return MC,MC.sum()#, x, w_out_est, y
 
-def test_echo_state_prop(W,t_run,init_d,threshold,input_gen):
+def test_echo_state_prop(W,t_run,init_d,threshold,input_gen,**kwargs):
 
     n = W.shape[0]
 
@@ -60,7 +60,15 @@ def test_echo_state_prop(W,t_run,init_d,threshold,input_gen):
     rand_dev *= init_d/np.linalg.norm(rand_dev)
 
     x = np.ndarray((2,n))
+
     x[0,:] = np.random.normal(0.,1.,(n))
+
+    if kwargs is not None:
+        for key, value in kwargs.items():
+            if key == "x_init":
+                x[0,:] = value
+
+
     x[1,:] = x[0,:] + rand_dev
 
     d_rec = np.ndarray((t_run))

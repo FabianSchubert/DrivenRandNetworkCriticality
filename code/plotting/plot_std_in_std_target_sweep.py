@@ -8,6 +8,11 @@ from scipy.integrate import romberg
 from scipy.integrate import quadrature
 from scipy.optimize import root
 
+from scipy.interpolate import make_interp_spline, BSpline, UnivariateSpline
+
+sigm_ext_label = "$\\sigma_{\\rm ext}$ (input)"
+sigm_targ_label = "$\\sigma_{t}$ (target)"
+
 
 # ================================
 def plot_max_l_sweep(ax_max_l_sweep,file_path="../../data/max_lyap_sweep/sim_results.npz"):
@@ -23,14 +28,16 @@ def plot_max_l_sweep(ax_max_l_sweep,file_path="../../data/max_lyap_sweep/sim_res
     n_sweep_std_act_target = std_act_target_sweep_range.shape[0]
 
     pcm = ax_max_l_sweep.pcolormesh(
-        std_act_target_sweep_range, std_in_sweep_range, np.log(max_l))
-    plt.colorbar(mappable=pcm, ax=ax_max_l_sweep)
+        std_act_target_sweep_range, std_in_sweep_range, np.log(max_l),rasterized=True)
+    cb = plt.colorbar(mappable=pcm, ax=ax_max_l_sweep)
+    #cb.outline.set_visible(False)
+
     '''
     ax_max_l_sweep.contour(std_act_target_sweep_range,
                            std_in_sweep_range, np.log(max_l), [0.], linewidths=2, linestyles="dashed",colors='#0000FF')
     '''
-    ax_max_l_sweep.set_xlabel("$\\sigma$ act. target")
-    ax_max_l_sweep.set_ylabel("$\\sigma$ ext. input")
+    ax_max_l_sweep.set_xlabel(sigm_targ_label)
+    ax_max_l_sweep.set_ylabel(sigm_ext_label)
 
     #ax_max_l_sweep.set_title("Max. Lyapunov Exp.")
 
@@ -47,8 +54,8 @@ def plot_max_l_crit_trans_sweep(ax,color='#0000FF',file_path="../../data/max_lya
 
     ax.contour(std_act_target_sweep_range,
                            std_in_sweep_range, np.log(max_l), [0.], linewidths=2, linestyles="dashed",colors=color)
-    ax.set_xlabel("$\\sigma$ act. target")
-    ax.set_ylabel("$\\sigma$ ext. input")
+    ax.set_xlabel(sigm_targ_label)
+    ax.set_ylabel(sigm_ext_label)
 #################################
 
 
@@ -67,8 +74,9 @@ def plot_gain_mean_sweep(ax_gain_mean_sweep,file_path="../../data/max_lyap_sweep
     n_sweep_std_act_target = std_act_target_sweep_range.shape[0]
 
     pcm2 = ax_gain_mean_sweep.pcolormesh(
-        std_act_target_sweep_range, std_in_sweep_range, gain.mean(axis=2))
-    plt.colorbar(mappable=pcm2, ax=ax_gain_mean_sweep)
+        std_act_target_sweep_range, std_in_sweep_range, gain.mean(axis=2),rasterized=True)
+    cb=plt.colorbar(mappable=pcm2, ax=ax_gain_mean_sweep)
+    #cb.outline.set_visible(False)
     #ax_gain_mean_sweep.contour(
     #    std_act_target_sweep_range, std_in_sweep_range, gain.mean(axis=2), cmap="inferno")
 
@@ -77,8 +85,8 @@ def plot_gain_mean_sweep(ax_gain_mean_sweep,file_path="../../data/max_lyap_sweep
                            std_in_sweep_range, gain.mean(axis=2), [1.], linewidths=2, linestyles="dashed",colors='#0000FF')
 
     '''
-    ax_gain_mean_sweep.set_xlabel("$\\sigma$ act. target")
-    ax_gain_mean_sweep.set_ylabel("$\\sigma$ ext. input")
+    ax_gain_mean_sweep.set_xlabel(sigm_targ_label)
+    ax_gain_mean_sweep.set_ylabel(sigm_ext_label)
 
     #ax_gain_mean_sweep.set_title("Pop. Mean of Gain")
 
@@ -94,8 +102,8 @@ def plot_gain_mean_crit_trans_sweep(ax,critval=1.,color='#0000FF',file_path="../
     ax.contour(std_act_target_sweep_range,
                            std_in_sweep_range, gain.mean(axis=2), [critval], linewidths=2, linestyles="dashed",colors=color)
 
-    ax.set_xlabel("$\\sigma$ act. target")
-    ax.set_ylabel("$\\sigma$ ext. input")
+    ax.set_xlabel(sigm_targ_label)
+    ax.set_ylabel(sigm_ext_label)
 # ================================
 def plot_gain_std_sweep(ax_gain_std_sweep,file_path="../../data/max_lyap_sweep/sim_results.npz"):
 
@@ -110,13 +118,15 @@ def plot_gain_std_sweep(ax_gain_std_sweep,file_path="../../data/max_lyap_sweep/s
     n_sweep_std_act_target = std_act_target_sweep_range.shape[0]
 
     pcm3 = ax_gain_std_sweep.pcolormesh(
-        std_act_target_sweep_range, std_in_sweep_range, gain.std(axis=2))
-    plt.colorbar(mappable=pcm3, ax=ax_gain_std_sweep)
+        std_act_target_sweep_range, std_in_sweep_range, gain.std(axis=2),rasterized=True)
+    cb=plt.colorbar(mappable=pcm3, ax=ax_gain_std_sweep)
+    #cb.outline.set_visible(False)
+
     ax_gain_std_sweep.contour(std_act_target_sweep_range,
                               std_in_sweep_range, gain.std(axis=2), cmap="inferno")
 
-    ax_gain_std_sweep.set_xlabel("$\\sigma$ act. target")
-    ax_gain_std_sweep.set_ylabel("$\\sigma$ ext. input")
+    ax_gain_std_sweep.set_xlabel(sigm_targ_label)
+    ax_gain_std_sweep.set_ylabel(sigm_ext_label)
 
     #ax_gain_std_sweep.set_title("Pop. Std. Dev. of Gain")
 
@@ -128,7 +138,6 @@ def plot_3d_gain_mean_sweep(ax_3d,file_path="../../data/max_lyap_sweep/sim_resul
 
     Data = np.load(file_path)
 
-    max_l = Data["max_l_list"]
     gain = Data["gain_list"]
     std_in_sweep_range = Data["std_in_sweep_range"]
     std_act_target_sweep_range = Data["std_act_target_sweep_range"]
@@ -147,11 +156,40 @@ def plot_3d_gain_mean_sweep(ax_3d,file_path="../../data/max_lyap_sweep/sim_resul
     ax_3d.plot_surface(STD_TARG, STD_IN, gain.mean(
         axis=2), label="Simulation", alpha=0.5)
 
-    ax_3d.set_xlabel("$\\sigma$ act. target")
-    ax_3d.set_ylabel("$\\sigma$ ext. input")
-    ax_3d.set_zlabel("$g$")
+    ax_3d.set_xlabel(sigm_targ_label)
+    ax_3d.set_ylabel(sigm_ext_label)
+    ax_3d.set_zlabel("$\\left\\langle a_i \\right\\rangle$")
 
 #################################
+
+#================================
+def plot_2d_gain_mean_sweep(ax_2d,ind_std_ext,colorsim='#0000FF',colorpred='#FF0000',file_path="../../data/max_lyap_sweep/sim_results.npz"):
+
+    Data = np.load(file_path)
+
+    gain = Data["gain_list"]
+    std_in_sweep_range = Data["std_in_sweep_range"]
+    std_act_target_sweep_range = Data["std_act_target_sweep_range"]
+
+    n_sweep_std_in = std_in_sweep_range.shape[0]
+    n_sweep_std_act_target = std_act_target_sweep_range.shape[0]
+
+    STD_TARG, STD_IN = np.meshgrid(
+        std_act_target_sweep_range, std_in_sweep_range)
+
+    g_pred = (1. + STD_IN**2 / STD_TARG**2)**(-.5)
+
+    ax_2d.plot(STD_TARG[ind_std_ext,:], gain.mean(axis=2)[ind_std_ext,:], label="Simulation",color=colorsim)
+    ax_2d.plot(STD_TARG[ind_std_ext,:], g_pred[ind_std_ext,:], "^", markersize=5,  label="Analytic Prediction",color=colorpred)
+
+
+    ax_2d.set_xlabel(sigm_targ_label)
+    ax_2d.set_ylabel("$\\left\\langle a_i \\right\\rangle_P$")
+
+
+
+#################################
+
 
 #================================
 def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap_sweep/sim_results.npz"):
@@ -159,11 +197,50 @@ def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap
     esp = Data["echo_state_prop_list"]
     std_in_sweep_range = Data["std_in_sweep_range"]
     std_act_target_sweep_range = Data["std_act_target_sweep_range"]
-    ax.contour(std_act_target_sweep_range,
-                           std_in_sweep_range, esp, [.5], linewidths=2, linestyles="dashed",colors=color)
+    cont = ax.contour(std_act_target_sweep_range,
+                           std_in_sweep_range, esp, [.5], linewidths=0, linestyles="dashed",colors=color)
 
-    ax.set_xlabel("$\\sigma$ act. target")
-    ax.set_ylabel("$\\sigma$ ext. input")
+    p=cont.collections[0].get_paths()[0]
+    v = p.vertices
+    x_cont = v[:,0]
+    y_cont = v[:,1]
+
+    t_param = np.linspace(0.,1.,x_cont.shape[0])
+
+    t_param_smooth = np.linspace(0.,1.,1000)
+
+    #y = np.linspace(std_in_sweep_range[0],std_in_sweep_range[-1],1000)
+
+    #spl = make_interp_spline(std_e[1:],max_std_targ, k=n_deg)
+    spl_x = UnivariateSpline(t_param,x_cont,s=.002)
+    spl_y = UnivariateSpline(t_param,y_cont,s=.002)
+
+    #pfit = np.flip(np.polyfit(max_std_targ,std_e[1:],n_deg))
+
+    x = spl_x(t_param_smooth)
+    y = spl_y(t_param_smooth)
+
+
+    #x = np.linspace(0.1,std_act_target_sweep_range[-1],1000)
+
+    #n_deg = 6
+
+    #pfit = np.flip(np.polyfit(x_cont,y_cont,n_deg))
+
+    #y = np.zeros((1000))
+
+    #for k in range(n_deg+1):
+    #   y += pfit[k] * x**k
+
+    pfplot, = ax.plot(x,y,linestyle=(0.,(.4, .4)),linewidth=3,color=color)
+
+    #import pdb; pdb.set_trace()
+
+
+    #cont.collections[0].set_linestyles([(0.0,[.4,.4])])
+
+    ax.set_xlabel(sigm_targ_label)
+    ax.set_ylabel(sigm_ext_label)
 
 
 #################################
@@ -205,7 +282,6 @@ def plot_3d_gain_mean_sweep_full_tanh_pred(ax_3d,file_path="../../data/max_lyap_
 
     Data = np.load(file_path)
 
-    max_l = Data["max_l_list"]
     gain = Data["gain_list"]
     std_in_sweep_range = Data["std_in_sweep_range"]
     std_act_target_sweep_range = Data["std_act_target_sweep_range"]
@@ -231,9 +307,9 @@ def plot_3d_gain_mean_sweep_full_tanh_pred(ax_3d,file_path="../../data/max_lyap_
     ax_3d.plot_surface(STD_TARG, STD_IN, gain.mean(
         axis=2), label="Simulation", alpha=0.5)
 
-    ax_3d.set_xlabel("$\\sigma$ act. target")
-    ax_3d.set_ylabel("$\\sigma$ ext. input")
-    ax_3d.set_zlabel("$g$")
+    ax_3d.set_xlabel(sigm_targ_label)
+    ax_3d.set_ylabel(sigm_ext_label)
+    ax_3d.set_zlabel("$\\left\\langle a_i \\right\\rangle$")
     '''
     fig, ax = plt.subplots(1,1)
 
@@ -246,6 +322,40 @@ def plot_3d_gain_mean_sweep_full_tanh_pred(ax_3d,file_path="../../data/max_lyap_
 
 
 #################################
+
+#================================
+def plot_2d_gain_mean_sweep_full_tanh_pred(ax_2d,ind_std_ext,colorsim='#0000FF',colorpred='#FF0000',file_path="../../data/max_lyap_sweep/sim_results.npz"):
+
+    Data = np.load(file_path)
+
+    gain = Data["gain_list"]
+    std_in_sweep_range = Data["std_in_sweep_range"]
+    std_act_target_sweep_range = Data["std_act_target_sweep_range"]
+
+    n_sweep_std_in = std_in_sweep_range.shape[0]
+    n_sweep_std_act_target = std_act_target_sweep_range.shape[0]
+
+    STD_TARG, STD_IN = np.meshgrid(
+        std_act_target_sweep_range, std_in_sweep_range)
+
+    g_pred = np.ndarray((n_sweep_std_act_target))
+
+    for l in range(n_sweep_std_act_target):
+        g_pred[l] = find_consist_gain(
+            std_in_sweep_range[ind_std_ext], std_act_target_sweep_range[l])
+
+    ax_2d.plot(STD_TARG[ind_std_ext,:], gain.mean(axis=2)[ind_std_ext,:], label="Simulation",color=colorsim)
+    ax_2d.plot(STD_TARG[ind_std_ext,:], g_pred, "^", markersize=5, label="Numeric Prediction",color=colorpred)
+
+
+    ax_2d.set_xlabel(sigm_targ_label)
+    ax_2d.set_ylabel("$\\left\\langle a_i \\right\\rangle_P$")
+
+
+
+#################################
+
+
 
 
 # ================================
@@ -262,11 +372,12 @@ def plot_rmsqe_hom(ax,file_path="../../data/max_lyap_sweep/sim_results.npz"):
     n_sweep_std_act_target = std_act_target_sweep_range.shape[0]
 
     pcm = ax.pcolormesh(std_act_target_sweep_range,
-                        std_in_sweep_range, msqe**.5)
-    plt.colorbar(mappable=pcm, ax=ax)
+                        std_in_sweep_range, msqe**.5,rasterized=True)
+    cb=plt.colorbar(mappable=pcm, ax=ax)
+    #cb.outline.set_visible(False)
 
-    ax.set_xlabel("$\\sigma$ act. target")
-    ax.set_ylabel("$\\sigma$ ext. input")
+    ax.set_xlabel(sigm_targ_label)
+    ax.set_ylabel(sigm_ext_label)
 
 #################################
 
@@ -280,12 +391,13 @@ def plot_mem_cap(ax,file_path="../../data/max_lyap_sweep/sim_results.npz"):
     std_e = Data["std_in_sweep_range"]
     std_act_t = Data["std_act_target_sweep_range"]
 
-    pcm = ax.pcolormesh(std_act_t,std_e, mem_cap)
+    pcm = ax.pcolormesh(std_act_t,std_e, mem_cap,rasterized=True)
 
-    plt.colorbar(mappable=pcm, ax=ax)
+    cb=plt.colorbar(mappable=pcm, ax=ax)
+    #cb.outline.set_visible(False)
 
-    ax.set_xlabel("$\\sigma$ act. target")
-    ax.set_ylabel("$\\sigma$ ext. input")
+    ax.set_xlabel(sigm_targ_label)
+    ax.set_ylabel(sigm_ext_label)
 
 
 ##################################
@@ -304,11 +416,30 @@ def plot_mem_cap_max_fixed_ext(ax,color='#0000FF',file_path="../../data/max_lyap
     for k in range(1,std_e.shape[0]):
         max_std_targ[k-1] = std_act_t[np.argmax(mem_cap[k,:])]
 
-    ax.plot(max_std_targ,std_e[1:],c=color)
 
-    ax.set_xlabel("$\\sigma$ act. target")
-    ax.set_ylabel("$\\sigma$ ext. input")
 
+    y = np.linspace(std_e[1],std_e[-1],1000)
+
+    #spl = make_interp_spline(std_e[1:],max_std_targ, k=n_deg)
+    spl= UnivariateSpline(std_e[1:],max_std_targ,s=.002)
+
+    #pfit = np.flip(np.polyfit(max_std_targ,std_e[1:],n_deg))
+
+    x = spl(y)
+
+    #for k in range(n_deg+1):
+    #   y += pfit[k] * x**k
+
+    pfplot, = ax.plot(x,y,linewidth=2,color=color)
+
+
+    #ax.plot(max_std_targ,std_e[1:],c=color,linewidth=2)
+
+    ax.set_xlabel(sigm_targ_label)
+    ax.set_ylabel(sigm_ext_label)
+
+    ax.set_xlim([std_act_t[0],std_act_t[-1]])
+    ax.set_ylim([std_e[1],std_e[-1]])
 
 
 if __name__ == "__main__":

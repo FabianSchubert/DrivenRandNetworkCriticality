@@ -51,9 +51,32 @@ a_i^{t+1} &= a_i^{t} + \epsilon_{a} \left[ \sigma_{t}^2 - \left( y_i^t - \overli
 \end{align}
 By changing individual gain and bias values $a_i$ and $b_i$, the homeostatic control tries to drive the activity standard deviation and mean of every cell to the value given by $\sigma_{t}$ and $\mu_{t}$.
 \end{myblock}
+
+\begin{myblock}{Network Dynamics}
+	\begin{figure}
+		\includegraphics[width=\textwidth]{../figures/res_comp.pdf}
+		\caption{Exemplary network dynamics, where the external input was switched off after $10^5$ time steps, followed by a transient period of decaying activity.}
+		\label{fig:trans_dyn}
+	\end{figure}
+	\begin{itemize}
+		\item By controlling the output variance of the neural activity, we can tune the network into a regime that exhibits subcritical, but transiently active dynamics in the absence of external input.
+		\item This led to the question, how a homeostatic variance control could be used to tune network properties, even under changing input statistics. 
+	\end{itemize}
+\end{myblock}
+
 \end{column}
 
 \begin{column}{.5\textwidth}
+\begin{myblock}{Changing Input and Target Variance}
+	\begin{figure}
+		\includegraphics[width=\textwidth]{../figures/std_in_std_target_sweep_fig.pdf}
+	\end{figure}
+	
+	\begin{figure}
+		\includegraphics[width=\textwidth]{../figures/std_in_std_target_sweep_fig_cut.pdf}
+	\end{figure}
+\end{myblock}
+
 
 \begin{myblock}{References}
 	\bibliography{../../../../../lit_base.bib}

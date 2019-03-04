@@ -44,7 +44,8 @@ We denote by $\avgt{\cdot}$ an average over time and by $\avgp{\cdot}$ over the 
 
 \subsection{Parameters / Settings}
 
-$W_{ij}$ is a sparse random matrix with connection probability $p$. Nonzero entries were drawn from a Gaussian distribution $\mathcal{N}(\mu = 0,\sigma = \sigma_{W} / \sqrt{N p})$. Diagonal entries were always set to zero.
+$W_{ij}$ is a sparse random matrix with connection probability $p$. Nonzero entries were drawn from a Gaussian distribution $\mathcal{N}(\mu = 0,\sigma = \sigma_{W})$. Diagonal entries were always set to zero.
+
 
 $E^t_{i}$ are random vectors of size $N$ with independent entries drawn from a Gaussian distribution $\mathcal{N}(\mu = 0,\sigma = \sigma_{\rm ext})$. External input is turned off after $t_0$.
 
@@ -61,7 +62,7 @@ All parameters that were unchanged throughout all simulations are shown in Table
 		\hline
 		\hline
 		\rule{0pt}{12pt}
-		1000 & 0.1 & 1.0 & $2\cdot 10^{-4}$ & $10^{-3}$ & $10^{-4}$ & 0 & $10^5$
+		1000 & 0.1 & $ w_0 / \sqrt{N p}$ & $2\cdot 10^{-4}$ & $10^{-3}$ & $10^{-4}$ & 0 & $10^5$
 	\end{tabular}
 	\label{tab:params}
 \end{table}
@@ -133,7 +134,7 @@ By design, our homeostatic mechanism fixes all $\avgt{y_i^2}$ to $\sigma_{t}^2$.
 	a_i &= \left(\sum_{j=1}^{N} W_{ij}^2 + \sigma_{\rm ext}^2 / \sigma_{t}^2\right)^{-1/2} \; .
 \end{align}
 
-Since $W_{ij}$ is a random Gaussian matrix with variance $\sigma_{W}^2/\left( N p \right)$ , $\sum_{j=1}^{N} W_{ij}^2$ follows a $\chi^2$ - distribution with variance $\frac{2N p \sigma_{W}^2}{N^2 p^2} = \frac{2 \sigma_{W}^2}{N p}$. For $N \rightarrow \infty $, its variance vanishes and consequently, all $a_i$ converge to the same value, namely 
+Since $W_{ij}$ is a random Gaussian matrix with variance $\sigma_W^2 = w_0^2/\left( N p \right)$ , $\sum_{j=1}^{N} W_{ij}^2$ follows a $\chi^2$ - distribution with variance $\frac{2N p \sigma_{W}^2}{N^2 p^2} = \frac{2 \sigma_{W}^2}{N p}$. For $N \rightarrow \infty $, its variance vanishes and consequently, all $a_i$ converge to the same value, namely 
 \begin{equation}
 	a = \left(\sigma_{W}^2 + \sigma_{\rm ext}^2 / \sigma_{t}^2\right)^{-1/2} \; . \label{eq:gain_pred}
 \end{equation}

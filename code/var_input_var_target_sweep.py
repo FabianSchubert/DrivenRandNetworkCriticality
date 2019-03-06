@@ -6,6 +6,8 @@ from simulation import driven_net
 from echo_state_tests import test_memory_cap, test_echo_state_prop
 from tqdm import tqdm
 import os
+import sys
+import argparse
 
 # input generator for testing memory capacity
 def gen_input(t):
@@ -14,7 +16,6 @@ def gen_input(t):
 path = "/mnt/ceph/fschubert/data/"
 #filename = "sim_results.npz"
 filename = "sim_results.npz"
-
 
 
 ### Parameters
@@ -38,6 +39,16 @@ W_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target,N_net_def,N_net_def))
 
 ind_std_in_sample_data = False
 ind_std_act_target_sample_data = False
+
+parser = argparse.ArgumentParser(description='''Run a parameter sweep over sigma_ext
+and sigma_target for a driven random recurrent network.''')
+
+parser.add_argument('--sigmaw', type=float, help='specify the standard deviation of neural weights.')
+
+args = parser.parse_args()
+
+if args.sigmaw!=None:
+    std_conn_def = args.sigmaw
 
 for k in tqdm(range(n_sweep_std_in)):
     for l in tqdm(range(n_sweep_std_act_target)):

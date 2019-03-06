@@ -45,7 +45,7 @@ ax3.set_ylim([0.,2.])
 
 fig.tight_layout(pad=0.)
 
-fig.savefig("../../plots/res_comp.png",dpi=1000)
+fig.savefig("../../plots/res_comp.png",dpi=2000)
 fig.savefig("../../plots/res_comp.pdf")
 
 plt.show()

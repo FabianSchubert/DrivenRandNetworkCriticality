@@ -16,10 +16,10 @@ class driven_net:
                  std_in,
                  mu_act_target,
                  std_act_target,
-                 mu_bias,
-                 mu_gain,
-                 mu_trail_av_error,
-                 mu_trail_av_act,
+                 eps_bias,
+                 eps_gain,
+                 eps_trail_av_error,
+                 eps_trail_av_act,
                  n_t,
                  t_ext_off,
                  W_gen = np.random.normal,
@@ -31,10 +31,10 @@ class driven_net:
         self.std_in = std_in
         self.mu_act_target = mu_act_target
         self.std_act_target = std_act_target
-        self.mu_bias = mu_bias
-        self.mu_gain = mu_gain
-        self.mu_trail_av_error = mu_trail_av_error
-        self.mu_trail_av_act = mu_trail_av_act
+        self.eps_bias = eps_bias
+        self.eps_gain = eps_gain
+        self.eps_trail_av_error = eps_trail_av_error
+        self.eps_trail_av_act = eps_trail_av_act
         self.n_t = n_t
         self.t_ext_off = t_ext_off
 
@@ -134,11 +134,11 @@ class driven_net:
             I = self.gain * (self.W.dot(self.x_net) + I_in - self.bias)
 
             if t < self.t_ext_off:
-                self.gain += self.mu_gain * \
+                self.gain += self.eps_gain * \
                     (self.std_act_target**2 - (self.x_net - self.x_net_trail_av)**2)
-                self.bias += self.mu_bias * (self.x_net - self.mu_act_target)
+                self.bias += self.eps_bias * (self.x_net - self.mu_act_target)
 
-            self.trail_av_hom_error += self.mu_trail_av_error * \
+            self.trail_av_hom_error += self.eps_trail_av_error * \
                 (-self.trail_av_hom_error + ((self.std_act_target **
                                               2 - self.x_net**2)**2).sum()**.5 / self.N_net)
 
@@ -146,7 +146,7 @@ class driven_net:
 
             self.x_net = self.s(I)
 
-            self.x_net_trail_av += self.mu_trail_av_act*(self.x_net - self.x_net_trail_av)
+            self.x_net_trail_av += self.eps_trail_av_act*(self.x_net - self.x_net_trail_av)
 
 
             if self.rec_options['x_rec']:
@@ -169,6 +169,21 @@ class driven_net:
 
         #self.W = self.W.todense()
 
+    def get_params(self):
+        dict = {"N":self.N_net,
+        "cf":self.cf_net,
+        "std_conn":self.std_conn,
+        "std_in":self.std_in,
+        "mu_act_target":self.mu_act_target,
+        "std_act_target":self.std_act_target,
+        "eps_bias":self.eps_bias,
+        "eps_gain":self.eps_gain,
+        "n_t":self.n_t,
+        "t_ext_off":self.t_ext_off,
+        "rec_options":self.rec_options}
+
+        return dict
+
     def save_data(self, folder, filename="sim_results.npz"):
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -179,8 +194,8 @@ class driven_net:
                             std_in=self.std_in,
                             mu_act_target=self.mu_act_target,
                             std_act_target=self.std_act_target,
-                            mu_bias=self.mu_bias,
-                            mu_gain=self.mu_gain,
+                            eps_bias=self.eps_bias,
+                            eps_gain=self.eps_gain,
                             n_t=self.n_t,
                             t_ext_off=self.t_ext_off,
                             x_net_rec=self.x_net_rec,

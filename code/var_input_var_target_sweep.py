@@ -36,6 +36,8 @@ trail_av_hom_error_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 mem_cap_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 echo_state_prop_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 W_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target,N_net_def,N_net_def))
+params_list = [[None for l in range(n_sweep_std_act_target)] for k in range(n_sweep_std_in)]
+
 
 ind_std_in_sample_data = False
 ind_std_act_target_sample_data = False
@@ -44,11 +46,14 @@ parser = argparse.ArgumentParser(description='''Run a parameter sweep over sigma
 and sigma_target for a driven random recurrent network.''')
 
 parser.add_argument('--sigmaw', type=float, help='specify the standard deviation of neural weights.')
+parser.add_argument('--filename', help='specify filename.')
 
 args = parser.parse_args()
 
 if args.sigmaw!=None:
     std_conn_def = args.sigmaw
+if args.filename!=None:
+    filename=args.filename
 
 for k in tqdm(range(n_sweep_std_in)):
     for l in tqdm(range(n_sweep_std_act_target)):
@@ -102,6 +107,8 @@ for k in tqdm(range(n_sweep_std_in)):
 
         echo_state_prop_list[k,l] = esp_test
 
+        params_list[k][l] = DN.get_params()
+
         '''
         if k==ind_std_in_sample_data and l==ind_std_act_target_sample_data:
             if not os.path.exists("../data/max_lyap_sweep/"):
@@ -124,7 +131,8 @@ trail_av_hom_error_list = trail_av_hom_error_list,
 mem_cap_list = mem_cap_list,
 echo_state_prop_list = echo_state_prop_list,
 std_in_sweep_range = std_in_sweep_range,
-std_act_target_sweep_range = std_act_target_sweep_range)
+std_act_target_sweep_range = std_act_target_sweep_range,
+params_list = params_list)
 
 '''
 ### Plotting

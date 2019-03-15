@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
 
+import argparse
 
 import seaborn as sns
 sns.set()
@@ -32,6 +33,26 @@ color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 file = "../../data/max_lyap_sweep/sim_results.npz"
 
 file_std_conv = "../../data/gain_conv_sweep.npz"
+
+figure_file = "../../plots/std_in_std_target_sweep"
+figure_file_cut = "../../plots/std_in_std_target_sweep_fig_cut"
+
+output_formats = ['pdf','png']
+
+parser = argparse.ArgumentParser(description='''Plot the results of the parameter sweep simulation.''')
+
+parser.add_argument('--file', help='specify file location (full path).')
+parser.add_argument('--output', help='specify output file (full path without data type ending)')
+parser.add_argument('--output_cut', help='specify output file for sweep cut (full path without data type ending)')
+
+args = parser.parse_args()
+
+if args.file!=None:
+    file = args.file
+if args.output!=None:
+    figure_file = args.output
+if args.output_cut!=None:
+    figure_file_cut = args.output_cut
 
 #file = "../../data/max_lyap_sweep/sim_results.npz"
 
@@ -107,8 +128,14 @@ ax[3].set_yticks([0.,0.5,1.,1.5])
 fig.tight_layout(pad=0.)
 #fig.subplots_adjust(left=0.15, right=0.956, top=0.95,
 #                   bottom=0.11, hspace=0.6, wspace=0.405)
-fig.savefig("../../plots/std_in_std_target_sweep_fig.png", dpi=1000)
-fig.savefig("../../plots/std_in_std_target_sweep_fig.pdf")
+for format in output_formats:
+    if format=="png":
+        fig.savefig(figure_file+"."+format, dpi=1000)
+    else:
+        fig.savefig(figure_file+"."+format)
+
+#fig.savefig("../../plots/std_in_std_target_sweep_fig.png", dpi=1000)
+#fig.savefig("../../plots/std_in_std_target_sweep_fig.pdf")
 
 
 
@@ -146,8 +173,13 @@ fig_cut.tight_layout(pad=0.)
 
 #fig.subplots_adjust(left=0.15, right=0.956, top=0.95,
 #                   bottom=0.11, hspace=0.6, wspace=0.405)
-fig_cut.savefig("../../plots/std_in_std_target_sweep_fig_cut.png", dpi=1000)
-fig_cut.savefig("../../plots/std_in_std_target_sweep_fig_cut.pdf")
+
+for format in output_formats:
+    if format=="png":
+        fig_cut.savefig(figure_file_cut+"."+format, dpi=1000)
+    else:
+        fig_cut.savefig(figure_file_cut+"."+format)
+
 
 
 

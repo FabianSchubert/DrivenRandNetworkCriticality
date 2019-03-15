@@ -155,7 +155,7 @@ As a second order approximation with respect to $\tanh$, we can use $\tanh^2(y) 
 \begin{align}
 \sigma_{t}^2 &\approx \frac{1}{a\sqrt{2 \pi}\sigma_{\rm total}}\int_{-\infty}^{\infty}\left( y^2 - \frac{2}{3}y^4\right)\exp\left( \frac{-y^2}{2a^2\sigma_{\rm total}^2}\right) \mathrm{d}y \\
 &= a^2\sigma_{\rm total}^2 - 2a^4\sigma_{\rm total}^4 \\
-&= a^2\left( \sigma^2_{W}\sigma^2_{t} + \sigma^2_{\rm ext} \right) - 2a^4 \left( \sigma^2_{W}\sigma^2_{t} + \sigma^2_{\rm ext} \right) \label{eq:sec_order_approx_consistency}
+&= a^2\left( \sigma^2_{W}\sigma^2_{t} + \sigma^2_{\rm ext} \right) - 2a^4 \left( \sigma^2_{W}\sigma^2_{t} + \sigma^2_{\rm ext} \right)^2 \label{eq:sec_order_approx_consistency}
 \end{align}
 where we have defined $\sigma_{\rm total} = \sqrt{\sigma^2_{W}\sigma^2_{t} + \sigma^2_{\rm ext}}$ for convenience. Note that neglecting the second term on the right hand side of \eqref{eq:sec_order_approx_consistency} reduces the equation to \eqref{eq:gain_pred}. Since this first order approximation does not explain the $a=1$ transition traced in Fig.~\ref{fig:gain_std_in_std_targ_sweep}B as a dashed blue line, we were particularly interested in the solution of \eqref{eq:sec_order_approx_consistency} for $a=1$. Moreover, we set $\sigma_{W}=1$ as in the simulations. We therefore had to solve
 \begin{equation}

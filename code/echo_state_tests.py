@@ -15,6 +15,43 @@ def test_memory_cap(W,t_back_max,n_learn_samples,input_gen,reg_fact):
 
         w_in = np.random.normal(0.,1.,(n))
 
+
+
+        ###### Fitting
+
+        # input signal u
+        u = np.ndarray((n_learn_samples+t_back))
+        # echo state
+        x = np.ndarray((n_learn_samples,n+1))# use n+1 to add a bias
+        # target readout
+        y = np.ndarray((n_learn_samples,1))
+
+        t = 0
+
+
+        u[t] = input_gen(t)
+        x_prerun = np.tanh(u[t]*w_in)
+
+        for t in range(1,t_back):
+            u[t] = input_gen(t)
+            x_prerun = np.tanh(np.dot(W,x_prerun)+u[t]*w_in)
+
+        for t in range(n_learn_samples):
+            u[t+t_back] = input_gen(t+t_back)
+            y[t] = u[t]
+            if t == 0:
+                x[t,1:] = np.tanh(np.dot(W,x_prerun) + u[t+t_back]*w_in)
+            else:
+                x[t,1:] = np.tanh(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in)
+
+        x[:,0] = 1. #for bias
+        #pdb.set_trace()
+        ################# ridge regression
+        w_out_est = np.linalg.inv(x.T @ x + reg_fact*np.eye(n+1)) @ x.T @ y
+        #w_out_est = np.dot(np.dot(np.linalg.inv(np.dot(x.T,x) + reg_fact*np.eye(n+1)),x.T),y)
+
+        ###### Testing
+
         # input signal u
         u = np.ndarray((n_learn_samples+t_back))
         # echo state
@@ -40,15 +77,12 @@ def test_memory_cap(W,t_back_max,n_learn_samples,input_gen,reg_fact):
                 x[t,1:] = np.tanh(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in)
 
         x[:,0] = 1. #for bias
-        #pdb.set_trace()
-        ################# ridge regression
-        w_out_est = np.linalg.inv(x.T @ x + reg_fact*np.eye(n+1)) @ x.T @ y
-        #w_out_est = np.dot(np.dot(np.linalg.inv(np.dot(x.T,x) + reg_fact*np.eye(n+1)),x.T),y)
+
 
         y_est = x @ w_out_est
 
         #pdb.set_trace()
-        MC[t_back] = np.cov(y_est[:,0],y[:,0])[1,0]**2/(y_est.var()*u[t_back:].var())
+        MC[t_back] = np.cov(y_est[:,0],y[:,0])[1,0]**2/(y_est.var()*y.var())
 
     return MC,MC.sum()#, x, w_out_est, y
 

@@ -55,7 +55,7 @@ if det_esp:
 else:
     echo_state_prop_list = None
 
-W_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target,N_net_def,N_net_def))
+#W_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target,N_net_def,N_net_def))
 
 params_list = [[None for l in range(n_sweep_std_act_target)] for k in range(n_sweep_std_in)]
 
@@ -77,6 +77,11 @@ if args.filename!=None:
     filename=args.filename
 
 
+# Init Weights
+W = np.random.normal(0., std_conn_def, (N_net_def, N_net_def))
+W *= (np.random.rand(N_net_def, N_net_def) <=
+           cf_net_def) / (N_net_def * cf_net_def)**.5
+W[range(N_net_def), range(N_net_def)] = 0.
 
 
 for k in tqdm(range(n_sweep_std_in)):
@@ -101,6 +106,7 @@ for k in tqdm(range(n_sweep_std_in)):
                         gain_rec = False,
                         var_mean_rec = False)
 
+
         else:
             DN = driven_net(N_net_def,
                         cf_net_def,
@@ -121,18 +127,22 @@ for k in tqdm(range(n_sweep_std_in)):
                         gain_rec = False,
                         var_mean_rec = False)
 
+        DN.W = W
         DN.run_sim()
 
         if det_max_l:
             max_l_list[k,l] = np.abs(np.linalg.eigvals((DN.W.T*DN.gain).T)).max()
         gain_list[k,l,:] = DN.gain
-        W_list[k,l,:,:] = DN.W
+        #W_list[k,l,:,:] = DN.W
         mean_var_list[k,l] = (DN.x_net**2).mean()
         trail_av_hom_error_list[k,l] = DN.trail_av_hom_error
 
+        #(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact)
+
         if det_mc:
             gen_temp = lambda t: gen_input(t)*std_in_sweep_range[k]
-            MC, MC_sum = test_memory_cap((DN.W.T*DN.gain).T,50,1000,gen_temp,0.1)
+            #test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact)
+            MC, MC_sum = test_memory_cap((DN.W.T*DN.gain).T,120,1000,0.01,10,gen_temp,0.1)
             mem_cap_list[k,l] = MC_sum
 
         if det_esp:
@@ -159,7 +169,7 @@ if not os.path.exists(path):
 np.savez_compressed(path+filename,
 max_l_list = max_l_list,
 gain_list = gain_list,
-W_list = W_list,
+W = W,
 trail_av_hom_error_list = trail_av_hom_error_list,
 mem_cap_list = mem_cap_list,
 echo_state_prop_list = echo_state_prop_list,

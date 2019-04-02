@@ -5,11 +5,13 @@ from scipy.stats import linregress
 from tqdm import tqdm
 import pdb
 
-def test_memory_cap(W,t_back_max,n_learn_samples,input_gen,reg_fact):
+def test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact):
 
     n = W.shape[0]
 
     MC = np.ndarray((t_back_max))
+
+    length_t = t_back_max
 
     for t_back in tqdm(range(t_back_max)):
 
@@ -84,7 +86,12 @@ def test_memory_cap(W,t_back_max,n_learn_samples,input_gen,reg_fact):
         #pdb.set_trace()
         MC[t_back] = np.cov(y_est[:,0],y[:,0])[1,0]**2/(y_est.var()*y.var())
 
-    return MC,MC.sum()#, x, w_out_est, y
+        if t_back > tresh_av_wind:
+            if MC[t_back-tresh_av_wind:t_back].mean() <= break_low_threshold:
+                length_t = t_back+1
+                break
+
+    return MC[:length_t],MC[:length_t].sum()#, x, w_out_est, y
 
 def test_echo_state_prop(W,t_run,init_d,threshold,input_gen,**kwargs):
 

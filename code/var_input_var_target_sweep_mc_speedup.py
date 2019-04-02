@@ -9,6 +9,8 @@ import os
 import sys
 import argparse
 
+import pdb
+
 from scipy.integrate import quad
 from scipy.integrate import romberg
 from scipy.integrate import quadrature
@@ -49,8 +51,8 @@ def gen_input(t):
 
 from standard_params import *
 
-n_sweep_std_in = 30
-n_sweep_std_act_target = 30
+n_sweep_std_in = 10
+n_sweep_std_act_target = 10
 
 std_in_sweep_range = np.linspace(0.001,1.5,n_sweep_std_in)
 std_act_target_sweep_range = np.linspace(0.001,.9,n_sweep_std_act_target)
@@ -60,16 +62,20 @@ mc = np.ndarray((n_sweep_std_in, n_sweep_std_act_target))
 
 sigm_w = 1.
 
-for k in range(n_sweep_std_in):
-    for l in range(n_sweep_std_act_target):
+for k in tqdm(range(n_sweep_std_in)):
+    for l in tqdm(range(n_sweep_std_act_target)):
         g_pred[k, l] = find_consist_gain(
             std_in_sweep_range[k], std_act_target_sweep_range[l], sigm_w)
 
-        W = np.random.normal(0.,sigm_w/(N_net_def*cf_net_def)**.5,(N_net_def))
+        W = np.random.normal(0.,sigm_w/(N_net_def*cf_net_def)**.5,(N_net_def)) * (np.random.rand(N_net_def,N_net_def) <= cf_net_def)
+        W[range(N_net_def),range(N_net_def)] = 0.
         gen_temp = lambda t: gen_input(t)*std_in_sweep_range[k]
-        MC, MC_sum = test_memory_cap((DN.W.T*DN.gain).T,50,5000,gen_temp,0.1)
-
+        #test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact)
+        MC, MC_sum = test_memory_cap(W*g_pred[k,l],120,1000,0.01,10,gen_temp,0.1)
+        mc[k,l] = MC_sum
 
 plt.pcolormesh(g_pred)
 plt.colorbar()
 plt.show()
+
+pdb.set_trace()

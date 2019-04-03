@@ -256,7 +256,7 @@ where $N$ is the number of reservoir neurons. Time
 is discrete and indexed by $t\!=\!0,1,..\,$. For 
 the external input $E_i(t)$ we use normal
 distributed white noise, with zero mean
-and standard deviation $\sigma^E$.
+and standard deviation $\sigma_{\rm ext}$.
 
 In (\ref{y_t_plus_one}) we have refrained from 
 introducing a separate set of input units 
@@ -268,11 +268,11 @@ selected a connection probability $p\!=\!0.1$.
 The magnitude of the non-zero elements of
 $w_{ij}$ are drawn then from a normal distribution
 with zero mean and standard deviation
-$\sigma_w/\sqrt{pN}$, a scaling that ensures
+$\sigma_{\rm w}/\sqrt{pN}$, a scaling that ensures
 that the variance of the two contributions
 a neuron receives, external and recurrent,
 are of the same order of magnitude \citep{sompolinsky1988chaos}. 
-Typically we use $\sigma_w\!=\!1.0$.
+Typically we use $\sigma_{\rm w}\!=\!1.0$.
 
 The value of internal neural parameters needs to be regulated 
 on the basis of homeostatic principles 
@@ -290,17 +290,17 @@ $b_i(t\!+\!1)\!=\!b_i(t)\!+\!\Delta b_i(t)$
 implementing this principle are
 %
 \begin{equation}
-\Delta a_i = \epsilon_a\left(\sigma_t^2-(y_i(t)-\bar{y}_i)^2\right),
+\Delta a_i = \epsilon_{\rm a}\left(\sigma_t^2-(y_i(t)-\bar{y}_i)^2\right),
 \qquad\quad
-\Delta b_i = \epsilon_b\big(y_i(t)-y_t\big)\,
+\Delta b_i = \epsilon_{\rm b}\big(y_i(t)-y_t\big)\,
 \label{dot_a_b}
 \end{equation}
 %
 where we have denoted the target values for the average and 
 for the variance of the neural activity $y_i(t)$ respective
-by $y_t$ and $\sigma_t^2$. An average over extended time scales
+by $y_{\rm t}$ and $\sigma_{\rm t}^2$. An average over extended time scales
 are implicitly performed when the update rates 
-$\epsilon_a$ and $\epsilon_b$ are small. 
+$\epsilon_{\rm a}$ and $\epsilon_{\rm b}$ are small. 
 The trailing average $\bar{y}_i$ showing up in (\ref{dot_a_b}) 
 is defined here via
 %
@@ -357,18 +357,18 @@ as it will be the case for large network sizes $N\!\to\!\infty$.
 \begin{table}[b]
 \caption{The parameters used, where $N$ is the network size, 
 $p$ is the connection probability of the recurrent weight 
-matrix and $\sigma_w$ the scale of the standard deviation 
-$\sigma_w/\sqrt{pN}$, of the $w_{ij}$, compare (\ref{dot_a_b}). 
-Further listed are $\epsilon_a$, $\epsilon_b$ $\bar{\epsilon}$, 
+matrix and $\sigma_{\rm w}$ the scale of the standard deviation 
+$\sigma_{\rm w}/\sqrt{pN}$, of the $w_{ij}$, compare (\ref{dot_a_b}). 
+Further listed are $\epsilon_{\rm a}$, $\epsilon_{\rm b}$ $\bar{\epsilon}$, 
 the update rates for the gain, the threshold and the trailing 
-average, and the target neural activity, $y_t$.
+average, and the target neural activity, $y_{\rm t}$.
 }
 \centering
 \def\arraystretch{1.3}
 \vspace{5pt}
 \begin{tabular}{ c | c | c | c | c | c | c }
-$N$ & $p$ & $\sigma_w$ & $\epsilon_{b}$ & $\epsilon_{a}$ & 
-$\bar{\epsilon}$ & $y_t$ \\
+$N$ & $p$ & $\sigma_{\rm w}$ & $\epsilon_{\rm b}$ & $\epsilon_{\rm a}$ & 
+$\bar{\epsilon}$ & $y_{\rm t}$ \\
 \hline
 \hline
 1000 & 0.1 & 1.0 & $2\cdot 10^{-4}$ & $10^{-3}$ & $10^{-4}$ & 0 
@@ -411,7 +411,7 @@ N_{\mu,\sigma}(y)=\frac{1}{\sqrt{2\pi\sigma^2}}
 \includegraphics[width=1.0\textwidth]{timeSeries_01.png}
 \end{center}
 \caption{{\bf Time series.} For $N=1000$ neurons, 
-$\sigma_t=0.2$, $\sigma_{ext}=0.1$ and the parameters 
+$\sigma_{\rm t}=0.2$, $\sigma_{\rm ext}=0.1$ and the parameters 
 given in Table~\ref{tableParameters}, the evolution of 
 selected quantities. At $t^E_{\mathrm{off}}=10^5$
 the external input is turned off.
@@ -422,9 +422,9 @@ is absent.
 gains $a_i=a_i(t)$. The individual gains collapse
 for large networks, compare Fig.~\ref{Fig:sigma_target_external}.
 {\bf C:} The population average of the ratio 
-$\sigma^2(y)/\sigma_t^2$ between the actual variance 
-$\sigma^2(y)=\langle (y_i-\bar{y}_i)^2\rangle/\sigma_t^2$
-of the neural activity and the target variance $\sigma_t^2$.
+$\sigma^2(y)/\sigma_{\rm t}^2$ between the actual variance 
+$\sigma^2(y)=\langle (y_i-\bar{y}_i)^2\rangle/\sigma_{\rm t}^2$
+of the neural activity and the target variance $\sigma_{\rm t}^2$.
 {\bf D:} The largest Lyapunov exponent
 $\log|\Lambda_{max}|$, where $|\Lambda_{max}|$
 is the spectral radius and $\Lambda_{max}$
@@ -443,9 +443,9 @@ the adaption rules
 %
 \begin{equation}
 \begin{array}{rcll}
-\Delta a &=& \epsilon_a
+\Delta a &=& \epsilon_{\rm a}
     \left(1/a-(x-b)\,\Theta\right)& \\[0.5ex]
-\Delta b &=& \epsilon_b\, a\,\Theta, &
+\Delta b &=& \epsilon_{\rm b}\, a\,\Theta, &
 \Theta= 2y+ (1-y^2)(y-\mu)/\sigma^2
 \end{array}\,.
 \label{gaussian_Delta_a_b}
@@ -469,15 +469,15 @@ There are several distinct differences between
       the influence of (\ref{gaussian_Delta_a_b}). This
       is in contrast to (\ref{dot_a_b}), which regulates 
       the moments of $\rho(y)$ closely to their target 
-      values, $y_t$ and $\sigma_t^2$.
+      values, $y_{\rm t}$ and $\sigma_{\rm t}^2$.
 
 \item The adaption rule (\ref{gaussian_Delta_a_b}) are
       inherently stable, due to the fact that they result 
       from minimizing an objective function. The variance
       optimization rules (\ref{dot_a_b}) can however not
-      converge when the target values $y_t$ and/or 
-      $\sigma_t$ do not respect that the neural activity 
-      $y\!\in\![-1,1]$ is bounded. A $\mu_t\!>\!1$ would lead 
+      converge when the target values $y_{\rm t}$ and/or 
+      $\sigma_{\rm t}$ do not respect that the neural activity 
+      $y\!\in\![-1,1]$ is bounded. A $\mu\!>\!1$ would lead 
       f.i.\ to an ever decreasing threshold $b$.
    
 \end{itemize}
@@ -492,7 +492,7 @@ external input is turned off together with the adaption
 of the the gain and the threshold.
 {\bf A:} The trailing average $\bar{y}_i$ of a random selection 
 of $N/10$ neurons. The average activity approaches the target 
-value $y_t=0$, recovering slightly once the external input and 
+value $y_{\rm t}=0$, recovering slightly once the external input and 
 the adaption of the threshold and the gain is turned off. This
 happens because the individual $b_i$ are small but non-zero.
 {\bf B:} The evolution of the individual bias $b_i$. The 
@@ -504,19 +504,19 @@ fluctuations.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %
-Rescaling $y_t$ and $\sigma_t$ to realizable
-values, f.i.\ via $y_t\!\to\!\tanh(\tilde{a}y_t)$,
+Rescaling $y_{\rm t}$ and $\sigma_{\rm t}$ to realizable
+values, f.i.\ via $y_{\rm t}\!\to\!\tanh(\tilde{a}y_{\rm t})$,
 is a route to ensure convergence of (\ref{dot_a_b}). 
 The actual target activity would then be 
-$\tilde{y}_t\!=\!\tanh(\tilde{a}y_t)$, with
+$\tilde{y}_{\rm t}\!=\!\tanh(\tilde{a}y_{\rm t})$, with
 $\tilde{a}$ being an appropriate scale.
 An alternative is to limit unbounded growth 
 dynamically, via
 %
 \begin{equation}
-\epsilon_a\to (1-\bar{y}^2)\epsilon_a,
+\epsilon_{\rm a}\to (1-\bar{y}^2)\epsilon_{\rm a},
 \qquad\quad
-\epsilon_b\to (1-\bar{y}^2)\epsilon_b\,.
+\epsilon_{\rm b}\to (1-\bar{y}^2)\epsilon_{\rm b}\,.
 \label{epsilon_1_yy}
 \end{equation}
 %
@@ -537,23 +537,23 @@ as it will be detailed out in the appendix.
 \caption{{\bf Parameter sweep.} For a range of 
 $\sigma(\mathrm{target})\!=\!\sigma_{tar}$, the target 
 for the neuronal activity fluctuations, and
-$\sigma(\mathrm{input})\!=\!\sigma_{ext}$, the 
+$\sigma(\mathrm{input})\!=\!\sigma_{\rm ext}$, the 
 standard deviation of the input.
 {\bf A:} On a log-scale, the spectral radius $R$
 of the locally rescaled weight matrix (color coded),
 as defined by (\ref{R_widehat_W}).
 Marked is $\log(R)\!=\!0$ (blue dashed line).
-{\bf B:} The population average $\langle a_i\rangle_P$ of 
-the gain $a_i$ (color coded). Marked is $\langle a_i\rangle_P\!=\!1$ 
+{\bf B:} The population average $\langle a_i\rangle_{\rm P}$ of 
+the gain $a_i$ (color coded). Marked is $\langle a_i\rangle_{\rm P}\!=\!1$ 
 (white dashed line), which is numerically identical 
 to $\log(R)\!=\!0$.
 {\bf C:} The variance 
-$\mathrm{Var}[a_i]\!=\!\langle(a_i\!-\!\langle a_i\rangle_P)^2\rangle_P$ 
+$\mathrm{Var}[a_i]\!=\!\langle(a_i\!-\!\langle a_i\rangle_{\rm P})^2\rangle_{\rm P}$ 
 of the gain as a function of system size $N$, as log-log plot.
 The falloff is $\sim1/N$.
 {\bf D:} The memory capacity (color coded). Highlighted is
-the maximal memory capacity for a given $\sigma_{ext}$ 
-(orange line). Also shown is $\langle a_i\rangle_P\!=\!1$ 
+the maximal memory capacity for a given $\sigma_{\rm ext}$ 
+(orange line). Also shown is $\langle a_i\rangle_{\rm P}\!=\!1$ 
 (dashed green line) and the onset of the echo state 
 property (striped red line). 
 }
@@ -570,7 +570,7 @@ property (striped red line).
 {\bf A:} Prediction of
 (triangles) and numerical result (lines) of ${a_i}$. 
 {\bf B:} ${a_i}$
-from the simulation matches the numerically determined solution of
+from the simulation matches the numerically determined solution of \eqref{self_consistency_z}. Dashed lines are approximations given by \eqref{eq:gain_gaussian_approx}.
 }
 \label{Fig:theory_simulation_1}
 \end{figure}
@@ -579,10 +579,9 @@ from the simulation matches the numerically determined solution of
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[t!]
 \begin{center}
-\includegraphics[width=1.0\textwidth]{theory_simulation_2.png}
+\includegraphics{theory_simulation_2.png}
 \end{center}
-\caption{{\bf Theory and simulations -- 2.} 
-}
+\caption{{\bf Critical Transition Approximation} White dashed lines denotes $\langle a_i\rangle_{\rm P}\!=\!1$. Yellow is given by \eqref{eq:circles_solution_form}, green line by \eqref{eq:crit_transition_gaussian_approx}.}
 \label{Fig:theory_simulation_2}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -600,7 +599,7 @@ which occurs at $t_{\mathrm{off}}=10^5$.
 
 The characteristic time scale of the evolution of 
 the gains $a_i$ shown in Figure~\ref{Fig:timeSeries_01} 
-is $1/\epsilon_b=0.5\cdot10^4$. For longer times
+is $1/\epsilon_{\rm b}=0.5\cdot10^4$. For longer times
 the individual $a_i$ become quasi stationary, with 
 the residual fluctuations being due to the influence 
 of the stochastic input on the network activity. The 
@@ -609,11 +608,11 @@ as shown further below. Also included in
 Figure~\ref{Fig:timeSeries_01} is a comparison 
 between the actual variance of the neural activity
 $\sigma^2(y)=\langle (y_i-\bar{y}_i)^2\rangle$,
-with the target variance $\sigma_t^2$. One finds that the 
+with the target variance $\sigma_{\rm t}^2$. One finds that the 
 adaption rule (\ref{dot_a_b}) does in indeed lead to
-$\sigma(y)\to\sigma_t$.
-For the parameters selected, $\sigma_t=0.2$ and 
-$\sigma_{ext}=0.1$, spectral radius $R=|\Lambda_{max}|$
+$\sigma(y)\to\sigma_{\rm t}$.
+For the parameters selected, $\sigma_{\rm t}=0.2$ and 
+$\sigma_{\rm ext}=0.1$, spectral radius $R=|\Lambda_{max}|$
 adapts to a subcritical value, $R<1$, as shown
 in Figure~\ref{Fig:timeSeries_01}, which explains
 the decay of the neural activity once the input
@@ -625,7 +624,7 @@ evolution of the bias $b_i$ and the trailing
 averages $\bar{y}_i$, as defined by (\ref{y_trailing}).
 The adaption rule (\ref{dot_a_b}) for the bias ensures 
 that the the average activity approaches the target, namely
-$y_t=0$. Note that the stochastic input induces 
+$y_{\rm t}=0$. Note that the stochastic input induces 
 barely-visible amplitude fluctuations for the 
 thresholds $b_i$.
 
@@ -639,10 +638,10 @@ The optimizing the variance of the neural
 activity then consists of solving
 %
 \begin{equation}
-\sigma_t^2=\int_{-\infty}^{\infty}
-dx\tanh(ax) N_{\mu,\sigma}(x),
+\sigma_{\rm t}^2=\int_{-\infty}^{\infty}
+{\rm dx}\tanh^2(ax) N_{\mu,\sigma}(x),
 \qquad\quad
-\sigma^2=\sigma_w^2\sigma_t^2+\sigma_{ext}^2\,,
+\sigma^2=\sigma_{\rm w}^2\sigma_{\rm t}^2+\sigma_{\rm ext}^2\,,
 \label{self_consistency_x}
 \end{equation}
 %
@@ -653,44 +652,74 @@ and variance $\sigma^2$.
 A variable transformation $ax=z$ leads to
 %
 \begin{equation}
-\sigma_t^2=\int_{-\infty}^{\infty}
-dz\tanh(z) \frac{1}{\sqrt{2\pi\sigma_a^2}}
-\mathrm{e}^{-z^2/2\sigma_a^2}
+\sigma_{\rm t}^2=\int_{-\infty}^{\infty}
+{\rm dz}\tanh^2(z) \frac{1}{\sqrt{2\pi\sigma_{\rm a}^2}}
+\mathrm{e}^{-z^2/2\sigma_{\rm a}^2}
 \qquad\quad
-\sigma_a^2=a^2\big(\sigma_w^2\sigma_t^2+\sigma_{ext}^2\big)\,,
+\sigma_{\rm a}^2=a^2\big(\sigma_{\rm w}^2\sigma_{\rm t}^2+\sigma_{\rm ext}^2\big)\,,
 \label{self_consistency_z}
 \end{equation}
 %
-where the renormalized variance $\sigma_a^2$ can
+where the renormalized variance $\sigma_{\rm a}^2$ can
 be written as
 %
 \begin{equation}
-\sigma_a^2=
-a^2\sigma_w^2\big(\sigma_t^2+\sigma_{ext}^2/\sigma_w^2\big)\,.
+\sigma_{\rm a}^2=
+a^2\sigma_{\rm w}^2\big(\sigma_{\rm t}^2+\sigma_{\rm ext}^2/\sigma_{\rm w}^2\big)\,.
 \label{sigma_a_renormalized}
 \end{equation}
 %
 The gain $a$ is adapted such that (\ref{self_consistency_z})
-is fullfilled, which implies the scaling $a\sim 1/\sigma_w$.
-The relation (\ref{sigma_a_renormalized}) shows furthermore
-that the solution of (\ref{self_consistency_z}) depends
-only on $\sigma_t$ and on the ratio $\sigma_{ext}/\sigma_w$,
-which measures the relevance of the external driving with
-respect the reccurent synaptic connections.
+is fulfilled, defining a 2d-manifold in the $(\sigma_{\rm t},\sigma_{\rm ext},a)$ space. The relation (\ref{sigma_a_renormalized}) shows furthermore
+that the solution of (\ref{self_consistency_z}) depends on the ratio $\sigma_{\rm ext}/\sigma_{\rm w}$, which measures the relevance of the external driving with respect the recurrent synaptic connections. For convenience, we thus introduce $\sigma^\prime_{\rm ext} \equiv \sigma_{\rm ext}/\sigma_{\rm w}$
 
+\subsection{Polynomial Approximation}
 Approximating the transfer function with
 $\tanh^2(z)\approx z^2-2 z^4/3$ one may carry out
-the gaussian integral occuring on the right-hand
+the Gaussian integral occurring on the right-hand
 side of (\ref{self_consistency_z}), with the result
 %
+%\begin{equation}
+%\sigma_{\rm t}^2 +\frac{\sigma_{\rm ext}^4}{\sigma_{\rm w}^4}
+%+2\frac{\sigma_{\rm t}^2\sigma_{\rm ext}^2}{\sigma_{\rm w}^2}
+%=\frac{\sigma_{\rm ext}^2}{2\sigma_{\rm w}^2},
+%\qquad\quad a=\frac{1}{\sigma_{\rm w}}\,.
+%\label{analytic_solution}
+%\end{equation}
+
 \begin{equation}
-\sigma_t^2 +\frac{\sigma_{ext}^4}{\sigma_w^4}
-+2\frac{\sigma_t^2\sigma_{ext}^2}{\sigma_w^2}
-=\frac{\sigma_{ext}^2}{2\sigma_w^2},
-\qquad\quad a=\frac{1}{\sigma_w}\,.
-\label{analytic_solution}
+\sigma_{\rm t}^2 \approx a^2 \sigma^2_{\rm w}\left( \sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right) - 2a^4  \sigma^4_{\rm w} \left(\sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right)^2 = \sigma^2_{\rm a} - 2\sigma^4_{\rm a} \label{eq:sec_order_approx_consistency}
 \end{equation}
-%
+
+We can use this equation to find an approximate solution of the critical transition of the autonomous network, denoted by the line in Fig.~\ref{Fig:sigma_target_external}. This transition is generally given by $a = 1/\sigma_{\rm w}$. This leads to the equation
+
+\begin{equation}
+\left[\left(\sigma_{\rm ext} - \frac{1}{\sqrt{8}}\right)^2 + \sigma_{\rm t}^2 - \frac{1}{8}\right]\left[\left(\sigma_{\rm ext} + \frac{1}{\sqrt{8}}\right)^2 + \sigma_{\rm t}^2 - \frac{1}{8}\right] = 0 \; . \label{eq:circles_solution_form}
+\end{equation}
+
+From this form we can see that the solution set consists of two circles with radius $1/\sqrt{8}$ in the $\sigma_{\rm t}$, $\sigma_{\rm ext}$ space, centered around $\sigma_{\rm t} = 0$, $\sigma_{\rm ext} = \pm 1/\sqrt{8}$. Fig.~\ref{Fig:theory_simulation_2} shows a comparison between this approximation (yellow line) and the simulation (white line).
+
+\subsection{Gaussian Approximation}
+A polynomial approximation of $\tanh^2$ to fourth order captures the right behavior close to the origin, but does not account for the fact that $\tanh^2$ converges to $1$ for large absolute values of the membrane potential. Alternatively, an approximation with the correct scaling to second order as well as the right convergence is
+\begin{equation}
+	\tanh^2(x) \approx 1 - \exp\left(-x^2 \right) \; .
+\end{equation}
+
+Using this approximation in \eqref{self_consistency_z} and solving the integral yields
+\begin{equation}
+	\sigma^2_{\rm t} = 1 - \sqrt{1+2a^2\sigma^2_{\rm w}\left( \sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right)} \; . \label{eq:gaussian_approx}
+\end{equation}
+Solving this equation for $a$ gives
+\begin{equation}
+	a = \sigma^{-1}_{\rm w} \sqrt{\frac{1-\left(1-\sigma^2_{\rm t}\right)^2}{2\left(1-\sigma^2_{\rm t}\right)^2\left(\sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right)}} \; . \label{eq:gain_gaussian_approx}
+\end{equation}
+As shown in Fig.~\ref{Fig:theory_simulation_1}B, this approximation matches the exact solution to a high accuracy.
+
+As in the previous section, we can also derive an approximation for the critical transition from \eqref{eq:gaussian_approx}, which is given by
+\begin{equation}
+	\sigma^\prime_{\rm ext} = \sqrt{\frac{1}{2\left(1-\sigma^2_{\rm t}\right)^2} -\sigma^2_{\rm t} - \frac{1}{2}} \; . \label{eq:crit_transition_gaussian_approx}
+\end{equation} 
+See Fig.~\ref{Fig:theory_simulation_2} for a comparison.
 
 
 %----------------------------------------

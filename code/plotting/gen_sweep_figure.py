@@ -160,6 +160,16 @@ plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[1],9,colorsim=cmap(0.),colorpred=c
 plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[1],19,colorsim=cmap(.4),colorpred=cmap(.4),file_path=file)
 plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[1],29,colorsim=cmap(.8),colorpred=cmap(.8),file_path=file)
 
+
+
+SIGM_T, SIGM_E = np.meshgrid(std_act_t,std_e)
+
+a_exp_pred = ((1.-(1.-SIGM_T**2.)**2.)/(2.*(1.-SIGM_T**2.)**2.*(SIGM_E**2.+SIGM_T**2.)))**.5
+
+ax_cut[1].plot(std_act_t,a_exp_pred[9,:],'--',color=cmap(0.))
+ax_cut[1].plot(std_act_t,a_exp_pred[19,:],'--',color=cmap(0.4))
+ax_cut[1].plot(std_act_t,a_exp_pred[29,:],'--',color=cmap(0.8))
+
 ax_cut[1].legend(custom_lines_labels, ['$\\sigma_{\\rm ext} = 0.5$', '$\\sigma_{\\rm ext} = 1.0$', '$\\sigma_{\\rm ext} = 1.5$'])
 #ax[5].set_ylabel("")
 #plot_3d_gain_mean_sweep_full_tanh_pred(ax[5],file_path=file)

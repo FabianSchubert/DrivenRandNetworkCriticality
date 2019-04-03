@@ -11,6 +11,11 @@ plt.style.use('matplotlibrc')
 
 file = "../../data/max_lyap_sweep/sim_results.npz"
 
+Data = np.load(file)
+
+sigm_t = Data["std_act_target_sweep_range"]
+sigm_e = Data["std_in_sweep_range"]
+
 textwidth = 5.5532
 std_figsize = (textwidth * 0.7, textwidth * 0.6)
 
@@ -26,7 +31,16 @@ ax.set_yticks([0.,0.5,1.,1.5])
 
 y = np.linspace(0.,0.8,1000)
 
+x = np.linspace(sigm_t[0],sigm_t[-1],1000)
+
+### Polynomial approx
 ax.plot((1./8. - (y-1./8.**.5)**2)**.5,y,'--',c='#FFFF00',lw=2)
+
+### Gaussian approx
+ax.plot(x,(1./(2.*(1.-x**2.)**2.) - 0.5 - x**2.)**.5,'--',c='#00FF00',lw=2)
+
+ax.set_ylim([sigm_e[0],sigm_e[-1]])
+ax.set_xlim([sigm_t[0],sigm_t[-1]])
 
 fig.tight_layout(pad=0.)
 

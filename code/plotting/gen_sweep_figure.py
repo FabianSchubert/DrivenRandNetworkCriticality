@@ -21,6 +21,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
 
+import pdb
+
 import argparse
 
 import seaborn as sns
@@ -30,7 +32,11 @@ plt.style.use('matplotlibrc')
 
 color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-file = "../../data/max_lyap_sweep/sim_results.npz"
+file = ["../../data/max_lyap_sweep/sim_results_mc_sigmaw_1p0_1.npz",
+        "../../data/max_lyap_sweep/sim_results_mc_sigmaw_1p0_2.npz",
+        "../../data/max_lyap_sweep/sim_results_mc_sigmaw_1p0_3.npz"]
+
+file_single_example = "../../data/max_lyap_sweep/sim_results.npz"
 
 file_std_conv = "../../data/gain_conv_sweep.npz"
 
@@ -56,9 +62,21 @@ if args.output_cut!=None:
 
 #file = "../../data/max_lyap_sweep/sim_results.npz"
 
-Data = np.load(file)
-std_e = Data["std_in_sweep_range"]
-std_act_t = Data["std_act_target_sweep_range"]
+if isinstance(file, list):
+    Data = [np.load(fl) for fl in file]
+else:
+    Data = [np.load(file)]
+
+std_in_sweep_range = [Dat["std_in_sweep_range"] for Dat in Data]
+std_act_target_sweep_range = [Dat["std_act_target_sweep_range"] for Dat in Data]
+
+for k in range(1,len(Data)):
+    if not(np.array_equal(std_in_sweep_range[k],std_in_sweep_range[k-1]) and np.array_equal(std_act_target_sweep_range[k],std_act_target_sweep_range[k-1])):
+        print("Data dimensions do not fit!")
+        sys.exit()
+
+std_e = std_in_sweep_range[0]
+std_t = std_act_target_sweep_range[0]
 
 
 textwidth = 5.5532
@@ -83,8 +101,8 @@ labels = ["${\\bf A}\\ $   Spectral Radius",
 "${\\bf C}\\ $   Gain Variance",
 "${\\bf D}\\ $   Memory Capacity"]
 
-labels_cut = ["${\\bf A}\\ $   Gain Linear Prediction",
-"${\\bf B}\\ $   Gain Full Prediction"
+labels_cut = ["${\\bf A}\\ $   Gain Quadratic Prediction",
+"${\\bf B}\\ $   Gain Full/Gaussian Prediction"
 ]
 
 for k in range(4):
@@ -93,17 +111,18 @@ for k in range(4):
 for k in range(2):
     ax_cut[k].set_title(labels_cut[k], loc="left")
 
-plot_max_l_sweep(ax[0],file_path=file)
-plot_max_l_crit_trans_sweep(ax[0],color='#00FFFF',file_path=file)
+
+plot_max_l_sweep(ax[0],file_path=file_single_example)
+plot_max_l_crit_trans_sweep(ax[0],color='#00FFFF',file_path=file_single_example)
 ax[0].set_xticks([0.,0.5])
 ax[0].set_yticks([0.,0.5,1.,1.5])
 
 
 #ax[0].set_xlabel("")
 
-plot_gain_mean_sweep(ax[1],file_path=file)
-plot_max_l_crit_trans_sweep(ax[1],color='#00FFFF',file_path=file)
-plot_gain_mean_crit_trans_sweep(ax[1],color='#FFFFFF',file_path=file)
+plot_gain_mean_sweep(ax[1],file_path=file_single_example)
+plot_max_l_crit_trans_sweep(ax[1],color='#00FFFF',file_path=file_single_example)
+plot_gain_mean_crit_trans_sweep(ax[1],color='#FFFFFF',file_path=file_single_example)
 #ax[1].set_ylabel("")
 #ax[1].set_xlabel("")
 
@@ -114,7 +133,7 @@ plot_gain_std_conv(ax[2],file=file_std_conv)
 
 plot_mem_cap(ax[3],file_path=file)
 plot_echo_state_prop_trans(ax[3],color='#FF0000',file_path=file)
-plot_max_l_crit_trans_sweep(ax[3],color='#00FFFF',file_path=file)
+plot_max_l_crit_trans_sweep(ax[3],color='#00FFFF',file_path=file_single_example)
 plot_mem_cap_max_fixed_ext(ax[3],color='#FFCC00',file_path=file)
 
 ax[3].set_ylim([std_e[1],std_e[-1]])
@@ -162,13 +181,13 @@ plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[1],29,colorsim=cmap(.8),colorpred=
 
 
 
-SIGM_T, SIGM_E = np.meshgrid(std_act_t,std_e)
+SIGM_T, SIGM_E = np.meshgrid(std_t,std_e)
 
 a_exp_pred = ((1.-(1.-SIGM_T**2.)**2.)/(2.*(1.-SIGM_T**2.)**2.*(SIGM_E**2.+SIGM_T**2.)))**.5
 
-ax_cut[1].plot(std_act_t,a_exp_pred[9,:],'--',color=cmap(0.))
-ax_cut[1].plot(std_act_t,a_exp_pred[19,:],'--',color=cmap(0.4))
-ax_cut[1].plot(std_act_t,a_exp_pred[29,:],'--',color=cmap(0.8))
+ax_cut[1].plot(std_t,a_exp_pred[9,:],'--',color=cmap(0.))
+ax_cut[1].plot(std_t,a_exp_pred[19,:],'--',color=cmap(0.4))
+ax_cut[1].plot(std_t,a_exp_pred[29,:],'--',color=cmap(0.8))
 
 ax_cut[1].legend(custom_lines_labels, ['$\\sigma_{\\rm ext} = 0.5$', '$\\sigma_{\\rm ext} = 1.0$', '$\\sigma_{\\rm ext} = 1.5$'])
 #ax[5].set_ylabel("")

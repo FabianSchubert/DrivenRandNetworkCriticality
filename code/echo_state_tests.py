@@ -5,7 +5,7 @@ from scipy.stats import linregress
 from tqdm import tqdm
 import pdb
 
-def test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact):
+def test_memory_cap(W,gain,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact):
 
     n = W.shape[0]
 
@@ -36,15 +36,15 @@ def test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wi
 
         for t in range(1,t_back):
             u[t] = input_gen(t)
-            x_prerun = np.tanh(np.dot(W,x_prerun)+u[t]*w_in)
+            x_prerun = np.tanh(gain*(np.dot(W,x_prerun)+u[t]*w_in))
 
         for t in range(n_learn_samples):
             u[t+t_back] = input_gen(t+t_back)
             y[t] = u[t]
             if t == 0:
-                x[t,1:] = np.tanh(np.dot(W,x_prerun) + u[t+t_back]*w_in)
+                x[t,1:] = np.tanh(gain*(np.dot(W,x_prerun) + u[t+t_back]*w_in))
             else:
-                x[t,1:] = np.tanh(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in)
+                x[t,1:] = np.tanh(gain*(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in))
 
         x[:,0] = 1. #for bias
         #pdb.set_trace()
@@ -68,15 +68,15 @@ def test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wi
 
         for t in range(1,t_back):
             u[t] = input_gen(t)
-            x_prerun = np.tanh(np.dot(W,x_prerun)+u[t]*w_in)
+            x_prerun = np.tanh(gain*(np.dot(W,x_prerun)+u[t]*w_in))
 
         for t in range(n_learn_samples):
             u[t+t_back] = input_gen(t+t_back)
             y[t] = u[t]
             if t == 0:
-                x[t,1:] = np.tanh(np.dot(W,x_prerun) + u[t+t_back]*w_in)
+                x[t,1:] = np.tanh(gain*(np.dot(W,x_prerun) + u[t+t_back]*w_in))
             else:
-                x[t,1:] = np.tanh(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in)
+                x[t,1:] = np.tanh(gain*(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in))
 
         x[:,0] = 1. #for bias
 
@@ -93,7 +93,7 @@ def test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wi
 
     return MC[:length_t],MC[:length_t].sum()#, x, w_out_est, y
 
-def test_echo_state_prop(W,t_run,init_d,threshold,input_gen,**kwargs):
+def test_echo_state_prop(W,gain,t_run,init_d,threshold,input_gen,**kwargs):
 
     n = W.shape[0]
 
@@ -120,8 +120,8 @@ def test_echo_state_prop(W,t_run,init_d,threshold,input_gen,**kwargs):
 
         u = input_gen(t)
 
-        x[0,:] = np.tanh(np.dot(W,x[0,:]) + u)
-        x[1,:] = np.tanh(np.dot(W,x[1,:]) + u)
+        x[0,:] = np.tanh(gain*(np.dot(W,x[0,:]) + u))
+        x[1,:] = np.tanh(gain*(np.dot(W,x[1,:]) + u))
 
     #for t in range(10,t_run):
     #   slope, intercept, r, p, stderr = linregress(np.array(range(t)),np.log(d_rec[:t]))

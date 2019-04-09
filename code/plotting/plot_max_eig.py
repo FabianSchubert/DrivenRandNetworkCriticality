@@ -29,7 +29,7 @@ def plot_max_eig(ax_eig,file="../../data/sim_results.npz"):
 
     ax_eig.set_xlabel("Time Steps")
     ax_eig.ticklabel_format(axis='x', style='sci', scilimits=(4,4), useMathText=True)
-    ax_eig.set_ylabel("${\\rm log |\\lambda_{\\rm max}| }$")
+    ax_eig.set_ylabel("${\\rm log R\\left( \\hat{W}_{\\rm a}\\right) }$")
 
     #ax_eig.grid()
 

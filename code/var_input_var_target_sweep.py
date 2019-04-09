@@ -9,9 +9,11 @@ import os
 import sys
 import argparse
 
+import time
+
 # input generator for testing memory capacity
-def gen_input(t):
-    return np.random.normal()
+#def gen_input(t):
+#   return np.random.normal()
 
 path = "/mnt/ceph/fschubert/data/max_lyap_sweep/"
 #filename = "sim_results.npz"
@@ -83,9 +85,28 @@ W *= (np.random.rand(N_net_def, N_net_def) <=
            cf_net_def) / (N_net_def * cf_net_def)**.5
 W[range(N_net_def), range(N_net_def)] = 0.
 
+t0 = time.time()
 
-for k in tqdm(range(n_sweep_std_in)):
-    for l in tqdm(range(n_sweep_std_act_target)):
+f = open("sim_text_output.txt","a")
+
+for k in range(n_sweep_std_in):#tqdm(range(n_sweep_std_in)):
+    for l in range(n_sweep_std_act_target):#tqdm(range(n_sweep_std_act_target)):
+
+        t_el = (time.time()-t0)/60.
+        n_el = l+k*n_sweep_std_act_target
+        if k==0 and l==0:
+            print(str(n_el)+"/"+str(n_sweep_std_act_target*n_sweep_std_in) + " " + '{:.2f}'.format(t_el) +  " minutes elapsed")
+            f.write(str(n_el)+"/"+str(n_sweep_std_act_target*n_sweep_std_in) + " " + '{:.2f}'.format(t_el) +  " minutes elapsed\n")
+        else:
+            t_rest = (n_sweep_std_act_target*n_sweep_std_in - n_el)*t_el/n_el
+
+            if t_rest >= 60.:
+                str_t_rest = str(int(t_rest/60.)) +  ":" + str(int(t_rest%60.)) + " h"
+            else:
+                str_t_rest = '{:.2f}'.format(t_rest) + " min"
+            print(str(l+k*n_sweep_std_act_target)+"/"+str(n_sweep_std_act_target*n_sweep_std_in) + " " + '{:.2f}'.format((time.time()-t0)/60.) +  " minutes elapsed, approx. " + str_t_rest + " to go")
+            f.write(str(l+k*n_sweep_std_act_target)+"/"+str(n_sweep_std_act_target*n_sweep_std_in) + " " + '{:.2f}'.format((time.time()-t0)/60.) +  " minutes elapsed, approx. " + str_t_rest + " to go\n")
+        f.flush()
         if k==ind_std_in_sample_data and l==ind_std_act_target_sample_data:
             DN = driven_net(N_net_def,
                         cf_net_def,
@@ -140,17 +161,20 @@ for k in tqdm(range(n_sweep_std_in)):
         #(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact)
 
         if det_mc:
-            gen_temp = lambda t: gen_input(t)*std_in_sweep_range[k]
+            gen_temp = lambda t: np.random.normal()*std_in_sweep_range[k]
             #test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact)
-            MC, MC_sum = test_memory_cap((DN.W.T*DN.gain).T,120,1000,0.01,10,gen_temp,0.1)
+            MC, MC_sum = test_memory_cap(W,DN.gain,120,1000,0.01,10,gen_temp,0.1)
             mem_cap_list[k,l] = MC_sum
 
         if det_esp:
-            gen_temp = lambda t: gen_input(t)*std_in_sweep_range[k]
-            esp_test, esp_test_rec = test_echo_state_prop((DN.W.T*DN.gain).T,10000,0.001,10.**-10,gen_temp,x_init=DN.x_net)
+            gen_temp = lambda t: np.random.normal(0.,1.,(N_net_def))*std_in_sweep_range[k]
+            esp_test, esp_test_rec = test_echo_state_prop(W,DN.gain,10000,0.001,10.**-10,gen_temp,x_init=DN.x_net)
             echo_state_prop_list[k,l] = esp_test
 
+
         params_list[k][l] = DN.get_params()
+
+
 
         '''
         if k==ind_std_in_sample_data and l==ind_std_act_target_sample_data:
@@ -176,6 +200,10 @@ echo_state_prop_list = echo_state_prop_list,
 std_in_sweep_range = std_in_sweep_range,
 std_act_target_sweep_range = std_act_target_sweep_range,
 params_list = params_list)
+
+f.write("done\n")
+
+f.close()
 
 '''
 ### Plotting

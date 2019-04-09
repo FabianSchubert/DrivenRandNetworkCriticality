@@ -43,7 +43,7 @@ ax4.set_title(labels[3], loc="left")
 
 ax3.set_ylim([0.,2.])
 
-fig.tight_layout(pad=0.)
+fig.tight_layout(pad=0.8)
 
 fig.savefig("../../plots/res_comp.png",dpi=2000)
 fig.savefig("../../plots/res_comp.pdf")

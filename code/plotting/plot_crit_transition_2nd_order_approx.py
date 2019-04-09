@@ -37,7 +37,7 @@ x = np.linspace(sigm_t[0],sigm_t[-1],1000)
 ax.plot((1./8. - (y-1./8.**.5)**2)**.5,y,'--',c='#FFFF00',lw=2)
 
 ### Gaussian approx
-ax.plot(x,(1./(2.*(1.-x**2.)**2.) - 0.5 - x**2.)**.5,'--',c='#00FF00',lw=2)
+ax.plot(x,(1./(2.*(1.-x**2.)**2.) - 0.5 - x**2.)**.5,':',c='#FFFF00',lw=2)
 
 ax.set_ylim([sigm_e[0],sigm_e[-1]])
 ax.set_xlim([sigm_t[0],sigm_t[-1]])

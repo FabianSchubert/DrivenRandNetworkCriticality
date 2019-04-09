@@ -15,7 +15,7 @@ def plot_act_var(ax_var,file="../../data/sim_results.npz"):
     ax_var.set_xlabel("Time Steps")
     ax_var.ticklabel_format(axis='x', style='sci', scilimits=(4,4), useMathText=True)
 
-    ax_var.set_ylabel("$\\mathrm{Var}\\left[ y_i \\right] / \\sigma^2_{t}$")
+    ax_var.set_ylabel("$\\mathrm{Var}\\left[ y_i \\right] / \\sigma^2_{\\rm t}$")
     #ax_var.grid()
 
     #ax_var.set_title("C",{'fontweight' : 'bold'}, loc="left")

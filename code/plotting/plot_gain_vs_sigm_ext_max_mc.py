@@ -7,6 +7,7 @@ import seaborn as sns
 sns.set()
 plt.style.use('matplotlibrc')
 
+import matplotlib as mpl
 
 
 def plot_gain_vs_sigm_ext_max_mc(ax,color="#0000FF",sigmw=1.,file="../../data/max_lyap_sweep/sim_results.npz"):
@@ -24,7 +25,7 @@ def plot_gain_vs_sigm_ext_max_mc(ax,color="#0000FF",sigmw=1.,file="../../data/ma
             print("Data dimensions do not fit!")
             sys.exit()
 
-    
+
     sigma_ext = std_in_sweep_range[0]
     sigma_t = std_act_target_sweep_range[0]
 
@@ -56,11 +57,11 @@ def plot_gain_vs_sigm_ext_max_mc(ax,color="#0000FF",sigmw=1.,file="../../data/ma
 
     #ax.set_xlabel(r'$\sigma_{\rm ext}$')
 
-    ax.plot(sigma_ext[1:],gain_max_mc_mean[1:],color=color,label='$\\sigma_{\\rm w} = $'+str(sigmw))
-    ax.fill_between(sigma_ext[1:],gain_max_mc_mean[1:]-gain_max_mc_err[1:],gain_max_mc_mean[1:]+gain_max_mc_err[1:],color=color,alpha=0.3)
+    ax.plot(sigma_ext[1:]/sigmw,sigmw*gain_max_mc_mean[1:],color=color,label='$\\sigma_{\\rm w} = $'+str(sigmw))
+    ax.fill_between(sigma_ext[1:]/sigmw,sigmw*(gain_max_mc_mean[1:]-gain_max_mc_err[1:]),sigmw*(gain_max_mc_mean[1:]+gain_max_mc_err[1:]),color=color,alpha=0.3)
 
-    ax.set_ylabel(r'$\left< a_i\right>_P\left\{ {\arg\, \max}_{\sigma_t} {\rm MC}\left( \sigma_t, \sigma_{\rm ext}\right), \sigma_{\rm ext} \right\}$')
-    ax.set_xlabel(r'$\sigma_{\rm e} / \sigma_{\rm w}$')
+    ax.set_ylabel(r'(gain for max. MC) $\cdot\, \sigma_{\rm w}$')
+    ax.set_xlabel(r'$\sigma_{\rm ext}$ (input) / $\sigma_{\rm w}$')
 
 def plot_fit_gain_vs_sigm_ext_max_mc(ax,file="../../data/max_lyap_sweep/sim_results.npz"):
 
@@ -94,16 +95,36 @@ if __name__ == '__main__':
 
     textwidth = 5.5532
 
+    figure_file = "../../plots/gain_vs_sigm_ext_max_mc"
+
+    output_formats = ['pdf','png']
+
+    files1p0 = ["../../data/max_lyap_sweep/sim_results_mc_sigmaw_1p0_1.npz",
+            "../../data/max_lyap_sweep/sim_results_mc_sigmaw_1p0_2.npz",
+            "../../data/max_lyap_sweep/sim_results_mc_sigmaw_1p0_3.npz"]
+    files2p0 = ["../../data/max_lyap_sweep/sim_results_mc_sigmaw_2p0_1.npz",
+                "../../data/max_lyap_sweep/sim_results_mc_sigmaw_2p0_2.npz",
+                "../../data/max_lyap_sweep/sim_results_mc_sigmaw_2p0_3.npz"]
+    files0p5 = ["../../data/max_lyap_sweep/sim_results_mc_sigmaw_0p5_1.npz",
+                "../../data/max_lyap_sweep/sim_results_mc_sigmaw_0p5_2.npz",
+                "../../data/max_lyap_sweep/sim_results_mc_sigmaw_0p5_3.npz"]
+
+    cmap = mpl.cm.get_cmap('viridis')
+
     fig, ax = plt.subplots(1,figsize=(textwidth,0.6*textwidth))
 
-    plot_gain_vs_sigm_ext_max_mc(ax)
-    plot_fit_gain_vs_sigm_ext_max_mc(ax)
+    plot_gain_vs_sigm_ext_max_mc(ax,color=cmap(0.),sigmw=.5,file=files0p5)
+    plot_gain_vs_sigm_ext_max_mc(ax,color=cmap(0.5),sigmw=1.,file=files1p0)
+    plot_gain_vs_sigm_ext_max_mc(ax,color=cmap(1.),sigmw=2.,file=files2p0)
 
     ax.legend()
 
-    fig.tight_layout()
+    fig.tight_layout(pad=0.1)
+
+    for format in output_formats:
+        if format=="png":
+            fig.savefig(figure_file+"."+format, dpi=1000)
+        else:
+            fig.savefig(figure_file+"."+format)
 
     plt.show()
-
-
-file = "../../data/max_lyap_sweep/sim_results.npz"

@@ -313,7 +313,7 @@ def plot_2d_gain_mean_sweep(ax_2d,ind_std_ext,colorsim='#0000FF',colorpred='#FF0
 
 
 #================================
-def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap_sweep/sim_results.npz"):
+def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap_sweep/sim_results.npz",sigmw=1.):
 
     if isinstance(file_path, list):
         Data = [np.load(file) for file in file_path]
@@ -339,7 +339,7 @@ def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap
     esp_mean = np.array(esp).mean(axis=0)
 
     cont = ax.contour(std_act_target_sweep_range,
-                           std_in_sweep_range, esp_mean, [.5], linewidths=0, linestyles="dashed",colors=color)
+                           std_in_sweep_range, esp_mean, [.5], linewidths=0, linestyles="dashed")
 
     p=cont.collections[0].get_paths()[0]
     v = p.vertices
@@ -373,7 +373,7 @@ def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap
     #for k in range(n_deg+1):
     #   y += pfit[k] * x**k
 
-    pfplot, = ax.plot(x,y,linestyle=(0.,(.4, .4)),linewidth=3,color=color)
+    pfplot, = ax.plot(x,y/sigmw,linestyle=(0.,(.4, .4)),linewidth=3,color=color,label='$\\sigma_{\\rm w} = $'+str(sigmw))
 
     #import pdb; pdb.set_trace()
 
@@ -381,7 +381,10 @@ def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap
     #cont.collections[0].set_linestyles([(0.0,[.4,.4])])
 
     ax.set_xlabel(sigm_targ_label)
-    ax.set_ylabel(sigm_ext_label)
+    if sigmw==1.:
+        ax.set_ylabel(sigm_ext_label)
+    else:
+        ax.set_ylabel(sigm_ext_label + "$/\\sigma_{\\rm w}$")
 
 
 #################################

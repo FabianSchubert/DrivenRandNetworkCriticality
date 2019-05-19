@@ -65,7 +65,7 @@ def plot_max_l_sweep(ax_max_l_sweep,file_path="../../data/max_lyap_sweep/sim_res
 #################################
 
 #================================
-def plot_max_l_crit_trans_sweep(ax,color='#0000FF',file_path="../../data/max_lyap_sweep/sim_results.npz"):
+def plot_max_l_crit_trans_sweep(ax,color='#0000FF',lw=2,file_path="../../data/max_lyap_sweep/sim_results.npz"):
 
     if isinstance(file_path, list):
         Data = [np.load(file) for file in file_path]
@@ -95,7 +95,7 @@ def plot_max_l_crit_trans_sweep(ax,color='#0000FF',file_path="../../data/max_lya
     max_l_mean = np.array(max_l).mean(axis=0)
 
     ax.contour(std_act_target_sweep_range,
-                           std_in_sweep_range, np.log(max_l_mean), [0.], linewidths=2, linestyles="dashed",colors=color)
+                           std_in_sweep_range, np.log(max_l_mean), [0.], linewidths=lw, linestyles="dashed",colors=color)
     ax.set_xlabel(sigm_targ_label)
     ax.set_ylabel(sigm_ext_label)
 #################################
@@ -338,6 +338,10 @@ def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap
 
     esp_mean = np.array(esp).mean(axis=0)
 
+
+    cont = ax.contour(std_act_target_sweep_range,
+                           std_in_sweep_range, esp_mean, [.5], linewidths=[3],linestyles=[(0.,(.4, .4))],colors=[color])
+    '''
     cont = ax.contour(std_act_target_sweep_range,
                            std_in_sweep_range, esp_mean, [.5], linewidths=0, linestyles="dashed")
 
@@ -345,6 +349,8 @@ def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap
     v = p.vertices
     x_cont = v[:,0]
     y_cont = v[:,1]
+
+
 
     t_param = np.linspace(0.,1.,x_cont.shape[0])
 
@@ -373,7 +379,11 @@ def plot_echo_state_prop_trans(ax,color='#0000FF',file_path="../../data/max_lyap
     #for k in range(n_deg+1):
     #   y += pfit[k] * x**k
 
-    pfplot, = ax.plot(x,y/sigmw,linestyle=(0.,(.4, .4)),linewidth=3,color=color,label='$\\sigma_{\\rm w} = $'+str(sigmw))
+    pfplot, = ax.plot(x,y/sigmw,linewidth=3,color=color,label='$\\sigma_{\\rm w} = $'+str(sigmw))
+    '''
+
+    #pfplot, = ax.plot(x_cont,y_cont/sigmw,linestyle=(0.,(.4, .4)),linewidth=3,color=color,label='$\\sigma_{\\rm w} = $'+str(sigmw))
+
 
     #import pdb; pdb.set_trace()
 
@@ -584,6 +594,43 @@ def plot_mem_cap(ax,file_path="../../data/max_lyap_sweep/sim_results.npz"):
 
 ##################################
 
+# ================================
+def plot_scalar_mesh(ax,file_path="../../data/max_lyap_sweep/sim_results.npz",key='mem_cap_list'):
+
+    if isinstance(file_path, list):
+        Data = [np.load(file) for file in file_path]
+    else:
+        Data = [np.load(file_path)]
+
+    std_in_sweep_range = [Dat["std_in_sweep_range"] for Dat in Data]
+    std_act_target_sweep_range = [Dat["std_act_target_sweep_range"] for Dat in Data]
+
+    for k in range(1,len(Data)):
+        if not(np.array_equal(std_in_sweep_range[k],std_in_sweep_range[k-1]) and np.array_equal(std_act_target_sweep_range[k],std_act_target_sweep_range[k-1])):
+            print("Data dimensions do not fit!")
+            sys.exit()
+
+    std_e = std_in_sweep_range[0]
+    std_act_t = std_act_target_sweep_range[0]
+
+    n_sweep_std_in = std_e.shape[0]
+    n_sweep_std_act_target = std_e.shape[0]
+
+    scalar = np.array([Dat[key] for Dat in Data])
+
+    pcm = ax.pcolormesh(std_act_t,std_e, scalar.mean(axis=0),rasterized=True)
+
+    cb=plt.colorbar(mappable=pcm, ax=ax)
+    #cb.outline.set_visible(False)
+
+    ax.set_xlabel(sigm_targ_label)
+    ax.set_ylabel(sigm_ext_label)
+
+
+##################################
+
+
+
 def plot_mem_cap_max_fixed_ext(ax,color='#0000FF',file_path="../../data/max_lyap_sweep/sim_results.npz"):
 
     if isinstance(file_path, list):
@@ -645,6 +692,80 @@ def plot_mem_cap_max_fixed_ext(ax,color='#0000FF',file_path="../../data/max_lyap
 
     ax.set_xlim([std_act_t[0],std_act_t[-1]])
     ax.set_ylim([std_e[1],std_e[-1]])
+
+
+def plot_scalar_max_fixed_ext(ax,color='#0000FF',lw=1,file_path="../../data/max_lyap_sweep/sim_results.npz",key='mem_cap_list',range_x=None,range_y=None):
+
+    if isinstance(file_path, list):
+        Data = [np.load(file) for file in file_path]
+    else:
+        Data = [np.load(file_path)]
+
+    std_in_sweep_range = [Dat["std_in_sweep_range"] for Dat in Data]
+    std_act_target_sweep_range = [Dat["std_act_target_sweep_range"] for Dat in Data]
+
+    for k in range(1,len(Data)):
+        if not(np.array_equal(std_in_sweep_range[k],std_in_sweep_range[k-1]) and np.array_equal(std_act_target_sweep_range[k],std_act_target_sweep_range[k-1])):
+            print("Data dimensions do not fit!")
+            sys.exit()
+
+    std_e = std_in_sweep_range[0]
+    std_act_t = std_act_target_sweep_range[0]
+
+    if range_x !=None:
+        std_act_t = std_e[range_x[0]:range_x[1]]
+    if range_y !=None:
+        std_e = std_e[range_y[0]:range_y[1]]
+
+    n_sweep_std_in = std_e.shape[0]
+    n_sweep_std_act_target = std_act_t.shape[0]
+
+    scalar = np.array([Dat[key] for Dat in Data])
+
+    if range_x !=None:
+        scalar = scalar[:,:,range_x[0]:range_x[1]]
+    if range_y !=None:
+        scalar = scalar[:,range_y[0]:range_y[1],:]
+
+    #max_std_targ = np.ndarray((std_e.shape[0]-1))
+
+    max_std_targ = np.ndarray((scalar.shape[0],scalar.shape[1]))
+
+    for k in range(scalar.shape[0]):
+        max_std_targ[k,:] = std_act_t[np.argmax(scalar[k,:,:],axis=1)]
+
+    max_std_targ_mean = max_std_targ.mean(axis=0)
+    max_std_targ_err = max_std_targ.std(axis=0)/max_std_targ.shape[0]**.5
+
+    #for k in range(1,std_e.shape[0]):
+    #    max_std_targ[k-1] = std_act_t[np.argmax(mem_cap[k,:])]
+
+    y = np.linspace(std_e[0],std_e[-1],1000)
+
+    #spl = make_interp_spline(std_e[1:],max_std_targ, k=n_deg)
+    spl_mean = UnivariateSpline(std_e,max_std_targ_mean,s=.002)
+    spl_err_low = UnivariateSpline(std_e,max_std_targ_mean-max_std_targ_err,s=.002)
+    spl_err_high = UnivariateSpline(std_e,max_std_targ_mean+max_std_targ_err,s=.002)
+    #pfit = np.flip(np.polyfit(max_std_targ,std_e[1:],n_deg))
+
+    x_m = spl_mean(y)
+    x_err_low = spl_err_low(y)
+    x_err_high = spl_err_high(y)
+
+    #for k in range(n_deg+1):
+    #   y += pfit[k] * x**k
+
+    pfplot, = ax.plot(x_m,y,linewidth=lw,color=color)
+    ax.fill_betweenx(y,x_err_low,x_err_high,color=color,alpha=0.5)
+
+    #ax.plot(max_std_targ,std_e[1:],c=color,linewidth=2)
+
+    ax.set_xlabel(sigm_targ_label)
+    ax.set_ylabel(sigm_ext_label)
+
+    #ax.set_xlim([std_act_t[0],std_act_t[-1]])
+    #ax.set_ylim([std_e[0],std_e[-1]])
+
 
 
 if __name__ == "__main__":

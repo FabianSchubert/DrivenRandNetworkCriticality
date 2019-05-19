@@ -22,7 +22,7 @@ std_figsize = (textwidth * 0.7, textwidth * 0.6)
 
 fig, ax = plt.subplots(1,1,figsize=std_figsize)
 
-ax.set_title("${\\bf A}\\ $   Gain", loc="left")
+ax.set_title("Gain", loc="left")
 
 plot_gain_mean_sweep(ax,file)
 plot_gain_mean_crit_trans_sweep(ax,critval=1.,color='#FFFFFF',file_path=file)
@@ -34,10 +34,14 @@ y = np.linspace(0.,0.8,1000)
 x = np.linspace(sigm_t[0],sigm_t[-1],1000)
 
 ### Polynomial approx
-ax.plot((1./8. - (y-1./8.**.5)**2)**.5,y,'--',c='#FFFF00',lw=2)
+#ax.plot((1./8. - (y-1./8.**.5)**2)**.5,y,'--',c='#FFFF00',lw=2)
 
 ### Gaussian approx
 ax.plot(x,(1./(2.*(1.-x**2.)**2.) - 0.5 - x**2.)**.5,':',c='#FFFF00',lw=2)
+
+#### Approx. of Gauss. approx...
+ax.plot(x,(3./2.)**.5 * x**2./(1.-x**2.),'--',c='#FFFF00',lw=2)
+
 
 ax.set_ylim([sigm_e[0],sigm_e[-1]])
 ax.set_xlim([sigm_t[0],sigm_t[-1]])

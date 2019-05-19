@@ -1,5 +1,7 @@
+%\documentclass[12pt,draft]{article}
 \documentclass[12pt]{article}
 \usepackage{amsmath}
+\usepackage{amsfonts}
 \usepackage{times}
 \usepackage{graphicx}
 \usepackage{color}
@@ -296,9 +298,9 @@ $b_i(t\!+\!1)\!=\!b_i(t)\!+\!\Delta b_i(t)$
 implementing this principle are
 %
 \begin{equation}
-\Delta a_i = \epsilon_{\rm a}\left(\sigma_t^2-(y_i(t)-\bar{y}_i)^2\right),
+\Delta a_i = \epsilon_{\rm a}\left(\sigma_{\rm t}^2-(y_i(t)-\bar{y}_i)^2\right),
 \qquad\quad
-\Delta b_i = \epsilon_{\rm b}\big(y_i(t)-y_t\big)\,
+\Delta b_i = \epsilon_{\rm b}\big(y_i(t)-y_{\rm t}\big)\,
 \label{dot_a_b}
 \end{equation}
 %
@@ -570,11 +572,12 @@ property (striped red line).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[t!]
 \begin{center}
-\includegraphics[width=1.0\textwidth]{theory_simulation_1.png}
+\includegraphics{theory_simulation_1.png}
 \end{center}
 \caption{{\bf Theory and simulations compared.} 
-{\bf A:} Prediction (lines) of and simulation result (triangles) of ${a_i}$. 
-{\bf B:} ${a_i}$
+%{\bf A:} Prediction (lines) of and simulation result (triangles) of ${a_i}$. 
+%{\bf B:}
+${a_i}$
 from the simulation (triangles) matches the numerically determined solution (lines) of \eqref{self_consistency_z}. Dashed lines are approximations given by \eqref{eq:gain_gaussian_approx}.
 }
 \label{Fig:theory_simulation_1}
@@ -586,7 +589,7 @@ from the simulation (triangles) matches the numerically determined solution (lin
 \begin{center}
 \includegraphics{theory_simulation_2.png}
 \end{center}
-\caption{{\bf Spectral Radius Transition Approximation} White dashed lines denotes $\langle a_i\rangle_{\rm P}\!=\!1/\sigma_{\rm w}$. Yellow dashed line is given by \eqref{eq:circles_solution_form}, dotted line by \eqref{eq:crit_transition_gaussian_approx}.}
+\caption{{\bf Spectral Radius Transition Approximation} White dashed lines denotes $\langle a_i\rangle_{\rm P}\!=\!1/\sigma_{\rm w}$. Yellow dashed line is given by \eqref{eq:gauss_approx_approx}, dotted line by \eqref{eq:crit_transition_gaussian_approx}.}
 \label{Fig:theory_simulation_2}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -633,6 +636,43 @@ $y_{\rm t}=0$. Note that the stochastic input induces
 barely-visible amplitude fluctuations for the 
 thresholds $b_i$.
 
+\subsection{Optimal Memory Capacity}
+The total memory capacity $\mathrm{MC}$ was introduced in \cite{Jaeger_2002} as the sum over $\mathrm{MC}_k$ and delays $k \in \mathbb{N}$, where $\mathrm{MC}_k$ is the squared correlation between input $u(t)$ and optimal readout $y_{\rm out}$ for a delay $k$:
+\begin{align}
+	\mathrm{MC} &\defeq \sum_{k=1}^\infty \mathrm{MC}_k \label{eq:MC}\\
+	\mathrm{MC}_k &\defeq \max\limits_{w_{\rm out}} \frac{\mathrm{Cov}^2\left[u(t-k),y_{\rm out}(t)\right]_t}{\mathrm{Var}^2\left[u(t)\right]_t \mathrm{Var}^2\left[y_{\rm out}(t)\right]_t} \label{eq:MC_k}
+\end{align}
+
+We measured this quantity for pairs of $\sigma_{\rm t}$ and $\sigma_{\rm ext}$, using a single input sequence, $u(t)$, which was drawn randomly from a Gaussian distribution with zero mean and a variance given by $\sigma^2_{\rm ext}$. This signal was fed into a network via a fully connected input weight vector $w_{\rm in}$, which was drawn from a Gaussian distribution with zero mean and unit variance. This implied that, though individual units received Gaussian input with variance $\sigma^2_{\rm ext} w^2_{{\rm in},i}$, the entire ensemble of inputs would be distributed with a Gaussian of the correct variance $\sigma^2_{\rm ext}$.
+
+The resulting performances are shown in Fig.~\ref{Fig:sigma_target_external}D, where we also plotted the curve that traces the $\sigma_{\rm t}$ values for which the memory capacity is optimal, given $\sigma_{\rm ext}$. We see that this curve closely follows the line denoting the stability transition of the zero-activity fixed point (characterized by the spectral radius being one). This is in line with the general ``rule of thumb" stating that learning tasks requiring long memory spans perform better with spectral radii close to unity \cite{Jaeger_2001}. However, we would like to point out that the simple task of memory recall is highly artificial in the sense that it does not require any nonlinear computation on the input. Furthermore, very long memory spans are reached for small values of $\sigma_{\rm t}$ and $\sigma_{\rm ext}$. Since small $\sigma_{\rm t}$ implies that the network is acting mostly in a linear regime, this is corresponding to the known property that optimal memory capacity is reached in linear reservoirs \cite{Jaeger_2002}. 
+
+\section{Memory Recall with XOR Operation}
+As stated in the previous section, a simple memory recall task does not require any nonlinear transformation on the input, which means that it performs best for small input and activity variances. We wanted to see how the network performs under different $\sigma_{\rm t}$ and $\sigma_{\rm ext}$ if given a task that cannot be solved without nonlinear transformations on the input. For this purpose, we defined a XOR-recall task with delay $\tau$ by
+\begin{align}
+	f(t) &= \mathrm{XOR}\left[u(t-\tau),u(t-\tau-1)\right] \\
+	\mathrm{XOR}\left[x,y\right] &\defeq \begin{cases}
+	0 & x=y\\
+	1 & \text{else}
+	\end{cases} \; .
+\end{align}
+
+In correspondence to \eqref{eq:MC} and \eqref{eq:MC_k}, we define the total XOR memory capacity by
+\begin{align}
+	\mathrm{MC}_{\rm XOR} &\defeq \sum_{k=1}^\infty \mathrm{MC}_{{\rm XOR},k} \label{eq:MC_XOR}\\
+	\mathrm{MC}_{{\rm XOR},k} &\defeq \max\limits_{w_{\rm out}} \frac{\mathrm{Cov}^2\left[\mathrm{XOR}\left[u(t-k),u(t-k-1)\right],y_{\rm out}(t)\right]_t}{\mathrm{Var}^2\left[\mathrm{XOR}\left[u(t),u(t-1)\right]\right]_t \mathrm{Var}^2\left[y_{\rm out}(t)\right]_t} \; .\label{eq:MC_XOR_k}
+\end{align}
+
+The results are shown in Fig.~\ref{fig:xor_mc}. In contrast to the simple recall task, the maximally achievable performance remains relatively constant over a wide range of $\sigma_{\rm ext}$. This local maximum as a function of $\sigma_{\rm ext}$ is well described by the condition $R(\widehat{W}_{\rm a})=1$.
+
+\begin{figure}
+	\centering
+	\includegraphics{xor.png}
+	\caption{{\bf Memory Capacity for the XOR Task} Colormap encodes $\mathrm{MC}_{\rm XOR}$ as defined in \eqref{eq:MC_XOR}. As in Fig.~\ref{Fig:sigma_target_external}, the blue dashed line marks $\log(R)=0$ where $R$ is the spectral radius of the rescaled weight matrix. The orange line plots the position of maximal $\mathrm{MC}_{\rm XOR}$ for a given $\sigma_{\rm ext}$. Red striped line marks the loss of the ESP.}
+	\label{fig:xor_mc}
+\end{figure}
+
+
 %----------------------------------------
 \section{Theory}
 %----------------------------------------
@@ -678,11 +718,12 @@ The gain $a$ is adapted such that (\ref{self_consistency_z})
 is fulfilled, defining a 2d-manifold in the $(\sigma_{\rm t},\sigma_{\rm ext},a)$ space. The relation (\ref{sigma_a_renormalized}) shows furthermore
 that the solution of (\ref{self_consistency_z}) depends on the ratio $\sigma_{\rm ext}/\sigma_{\rm w}$, which measures the relevance of the external driving with respect the recurrent synaptic connections. For convenience, we thus introduce $\sigma^\prime_{\rm ext} \equiv \sigma_{\rm ext}/\sigma_{\rm w}$
 
-\subsection{Polynomial Approximation}
-Approximating the transfer function with
-$\tanh^2(z)\approx z^2-2 z^4/3$ one may carry out
-the Gaussian integral occurring on the right-hand
-side of (\ref{self_consistency_z}), with the result
+%
+%\subsection{Polynomial Approximation}
+%Approximating the transfer function with
+%$\tanh^2(z)\approx z^2-2 z^4/3$ one may carry out
+%the Gaussian integral occurring on the right-hand
+%side of (\ref{self_consistency_z}), with the result
 %
 %\begin{equation}
 %\sigma_{\rm t}^2 +\frac{\sigma_{\rm ext}^4}{\sigma_{\rm w}^4}
@@ -691,18 +732,18 @@ side of (\ref{self_consistency_z}), with the result
 %\qquad\quad a=\frac{1}{\sigma_{\rm w}}\,.
 %\label{analytic_solution}
 %\end{equation}
-
-\begin{equation}
-\sigma_{\rm t}^2 \approx a^2 \sigma^2_{\rm w}\left( \sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right) - 2a^4  \sigma^4_{\rm w} \left(\sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right)^2 = \sigma^2_{\rm a} - 2\sigma^4_{\rm a} \label{eq:sec_order_approx_consistency}
-\end{equation}
-
-We can use this equation to find an approximate solution of the critical transition of the autonomous network, denoted by the line in Fig.~\ref{Fig:sigma_target_external}. This transition is generally given by $a = 1/\sigma_{\rm w}$. This leads to the equation
-
-\begin{equation}
-\left[\left(\sigma_{\rm ext} - \frac{1}{\sqrt{8}}\right)^2 + \sigma_{\rm t}^2 - \frac{1}{8}\right]\left[\left(\sigma_{\rm ext} + \frac{1}{\sqrt{8}}\right)^2 + \sigma_{\rm t}^2 - \frac{1}{8}\right] = 0 \; . \label{eq:circles_solution_form}
-\end{equation}
-
-From this form we can see that the solution set consists of two circles with radius $1/\sqrt{8}$ in the $\sigma_{\rm t}$, $\sigma_{\rm ext}$ space, centered around $\sigma_{\rm t} = 0$, $\sigma_{\rm ext} = \pm 1/\sqrt{8}$. Fig.~\ref{Fig:theory_simulation_2} shows a comparison between this approximation (yellow line) and the simulation (white line).
+%
+%\begin{equation}
+%\sigma_{\rm t}^2 \approx a^2 \sigma^2_{\rm w}\left( \sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right) - 2a^4  \sigma^4_{\rm w} \left(\sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right)^2 = \sigma^2_{\rm a} - 2\sigma^4_{\rm a} \label{eq:sec_order_approx_consistency}
+%\end{equation}
+%
+%We can use this equation to find an approximate solution of the critical transition of the autonomous network, denoted by the line in Fig.~\ref{Fig:sigma_target_external}. This transition is generally given by $a = 1/\sigma_{\rm w}$. This leads to the equation
+%
+%\begin{equation}
+%\left[\left(\sigma_{\rm ext} - \frac{1}{\sqrt{8}}\right)^2 + \sigma_{\rm t}^2 - \frac{1}{8}\right]\left[\left(\sigma_{\rm ext} + \frac{1}{\sqrt{8}}\right)^2 + \sigma_{\rm t}^2 - \frac{1}{8}\right] = 0 \; . \label{eq:circles_solution_form}
+%\end{equation}
+%
+%From this form we can see that the solution set consists of two circles with radius $1/\sqrt{8}$ in the $\sigma_{\rm t}$, $\sigma_{\rm ext}$ space, centered around $\sigma_{\rm t} = 0$, $\sigma_{\rm ext} = \pm 1/\sqrt{8}$. Fig.~\ref{Fig:theory_simulation_2} shows a comparison between this approximation (yellow line) and the simulation (white line).
 
 \subsection{Gaussian Approximation}
 A polynomial approximation of $\tanh^2$ to fourth order captures the right behavior close to the origin, but does not account for the fact that $\tanh^2$ converges to $1$ for large absolute values of the membrane potential. Alternatively, an approximation with the correct scaling to second order as well as the right convergence is
@@ -712,7 +753,7 @@ A polynomial approximation of $\tanh^2$ to fourth order captures the right behav
 
 Using this approximation in \eqref{self_consistency_z} and solving the integral yields
 \begin{equation}
-	\sigma^2_{\rm t} = 1 - \sqrt{1+2a^2\sigma^2_{\rm w}\left( \sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right)} \; . \label{eq:gaussian_approx}
+	\sigma^2_{\rm t} = 1 - \sqrt{1+2a^2\sigma^2_{\rm w}\left( \sigma^2_{\rm t} + {\sigma^\prime}^2_{\rm ext} \right)}^{-1} \; . \label{eq:gaussian_approx}
 \end{equation}
 Solving this equation for $a$ gives
 \begin{equation}
@@ -720,24 +761,34 @@ Solving this equation for $a$ gives
 \end{equation}
 As shown in Fig.~\ref{Fig:theory_simulation_1}B, this approximation matches the exact solution to a high accuracy.
 
-As in the previous section, we can also derive an approximation for the critical transition from \eqref{eq:gaussian_approx}, which is given by
+We can also derive an approximation for the critical transition from \eqref{eq:gaussian_approx}, which is given by
 \begin{equation}
 	\sigma^\prime_{\rm ext} = \sqrt{\frac{1}{2\left(1-\sigma^2_{\rm t}\right)^2} -\sigma^2_{\rm t} - \frac{1}{2}} \; . \label{eq:crit_transition_gaussian_approx}
 \end{equation} 
-See Fig.~\ref{Fig:theory_simulation_2} for a comparison.
+See Fig.~\ref{Fig:theory_simulation_2} for a comparison. One can obtain an even simpler approximation by
+\begin{align}
+	\sigma^\prime_{\rm ext} &= \sqrt{\frac{1}{2\left(1-\sigma^2_{\rm t}\right)^2} -\sigma^2_{\rm t} - \frac{1}{2}} \label{eq:crit_transition_gaussian_approx_2} \\
+	&= \sqrt{2}^{-1}\sqrt{\frac{1}{\left(1-\sigma_{\rm t}^2\right)^2} - 2\sigma_{\rm t}^2 - 1} \\
+	&= \sqrt{2}^{-1}\frac{\sqrt{3\sigma_{\rm t}^4-2\sigma_{\rm t}^6}}{1-\sigma_{\rm t}^2} \\
+	&\approx \sqrt{\frac{3}{2}}\frac{\sigma_{\rm t}^2}{1-\sigma_{\rm t}^2} \label{eq:gauss_approx_approx}
+\end{align}
+where we ignored the sixth order term. \eqref{eq:gauss_approx_approx} is also shown in Fig.~\ref{Fig:theory_simulation_2} for comparison. This simple form also allows us conveniently state the inverse relation, which is what is required for tuning the network activity into an optimal state:
+\begin{equation}
+	\sigma_{\rm t} \approx \left[\sqrt{\frac{3}{2}} \frac{\sigma_{\rm w}}{\sigma_{\rm ext}} +1\right]^{-1/2} \; .
+\end{equation}
 
 
 \subsection{ESP Transition}
 The so called \textit{echo state property} was formally described in \cite{Jaeger_2001}. In short, it states that there exists at least one left-infinity input sequence for which the state sequence of the recurrent network is uniquely determined by this input sequence. In particular, this means that the effect of different initial conditions of the recurrent network will decay. The transition shown in Fig.~\ref{Fig:sigma_target_external}D by the red striped line was determined using this effect by initializing two copies of a network with a small perturbation in the initial conditions and then observing the euclidean distance between both network states while feeding in the same quenched random input.
 
-Assuming that the perturbation is sufficiently small, we modeled the evolution of this initial offset $\delta_i$ by a linear approximation:
+Assuming that the perturbation is sufficiently small, we model the evolution of this initial offset $\delta_i$ by a linear approximation:
 
 \begin{align}
 	\delta_i(t+1) &\approx a y_i^\prime(t+1) \sum_j w_{ij} \delta_j(t) \label{eq:esp_dist_evolution1} \\
 	&= a \left( 1 - \tanh\left( a \left( x_i(t+1) - b_i\right)\right)^2\right) \sum_j w_{ij} \delta_j(t) \label{eq:esp_dist_evolution2}
 \end{align}
 
-Furthermore, we make the assumption that the trajectory of the recurrent network state is sampling from phase space in a quasi-random way. More specifically, we again assume that neural activity is essentially uncorrelated in time and across the population, which was also the assumption made for \eqref{self_consistency_x}. With respect to simplifying \eqref{eq:esp_dist_evolution2}, this assumption allows us to interpret $\left( 1 - \tanh\left( a \left( x_i - b_i\right)\right)^2\right)$ as an independent random vector drawn from $\left( 1 - \tanh\left( a x \right)^2\right)$, where $x$ is Gaussian distributed with the usual $\mu_{\rm x} = 0$, $\sigma^2_{\rm x} = \sigma^2_{\rm w}\sigma^2_{\rm t} + \sigma^2_{\rm ext}$.
+Furthermore, we make the assumption that the trajectory of the recurrent network state is sampling from phase space in a quasi-random way. This means that we assume neural activity to be essentially uncorrelated in time and across the population, which was also the assumption made for \eqref{self_consistency_x}. With respect to simplifying \eqref{eq:esp_dist_evolution2}, this assumption allows us to interpret $\left( 1 - \tanh\left( a \left( x_i - b_i\right)\right)^2\right)$ as an independent random vector drawn from $\left( 1 - \tanh\left( a x \right)^2\right)$, where $x$ is Gaussian distributed with the usual $\mu_{\rm x} = 0$, $\sigma^2_{\rm x} = \sigma^2_{\rm w}\sigma^2_{\rm t} + \sigma^2_{\rm ext}$.
 
 We can write \eqref{eq:esp_dist_evolution1} as
 \begin{align}
@@ -779,7 +830,7 @@ The empirical variance of $\delta^\prime$ is
 \begin{equation}
 	\sigma^2_{\delta^\prime} = \frac{1}{N T} \sum_{i,t} {\delta^\prime_i}(t)^2 - \mu_{\delta^\prime}^2 \; .
 \end{equation}
-For all $t$, the sum over $i$ is one by definition. $\delta^\prime(t)$ is a sequence of points on a $N$-dimensional unit sphere. A non-zero mean value would imply that there is a ´´preferred direction" in the sequence distribution. However, since we have assumed that the mapping $\widehat{A}(t)$ is randomly drawn from statistics that are the same for each coordinate (symmetric under exchange of coordinates), this mapping will generate a distribution with the same symmetrical property (VERY BOLD STATEMENT), thus giving zero mean.
+For all $t$, the sum over $i$ is one by definition. $\delta^\prime(t)$ is a sequence of points on a $N$-dimensional unit sphere. A non-zero mean value would imply that there is a ``preferred direction" in the sequence distribution. However, since we have assumed that the mapping $\widehat{A}(t)$ is randomly drawn from statistics that are the same for each coordinate (symmetric under exchange of coordinates), this mapping will generate a distribution with the same symmetrical property (VERY BOLD STATEMENT), thus giving zero mean.
 
 We now find for $\gamma$
 \begin{align}
@@ -795,13 +846,14 @@ Similar to the approximation used to find an explicit equation for $a(\sigma_{\r
 \begin{equation}
 	\gamma \approx a \sigma_{\rm w} \left( 1 + 4a^2\sigma^2 \right)^{-1/4} \; . \label{eq:esp_trans_approx}
 \end{equation}
-
+As Fig.~\ref{fig:esp_trans_prediction} shows, numerically evaluating the exact solution of \eqref{eq:esp_trans_exact} and \eqref{self_consistency_x} for $\gamma=1$ accurately describes the ESP-transition found in the simulations. However, using the aforementioned approximations leads to a significant mismatch. In particular, it does not correctly describe the transition for external inputs going to zero.
 
 
 \begin{figure}
 	\centering
 	\includegraphics[width=\textwidth]{esp_prediction.png}
 	\caption{Striped lines: ESP-transition for full simulations. Dashed lines: approximation given by \eqref{eq:esp_trans_approx}. Full lines: Exact solution defined by \eqref{eq:esp_trans_exact} and \eqref{self_consistency_x}.}
+	\label{fig:esp_trans_prediction}
 \end{figure}
 
 

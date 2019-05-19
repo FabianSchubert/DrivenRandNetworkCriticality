@@ -81,7 +81,7 @@ std_t = std_act_target_sweep_range[0]
 
 textwidth = 5.5532
 std_figsize = (textwidth, textwidth * .9)
-cut_figsize = (textwidth, textwidth * .5)
+cut_figsize = (textwidth*0.6, textwidth * .5)
 
 fig = plt.figure(figsize=std_figsize)
 
@@ -91,8 +91,8 @@ ax.append(fig.add_subplot(223))
 ax.append(fig.add_subplot(224))
 
 fig_cut = plt.figure(figsize=cut_figsize)
-ax_cut = [fig_cut.add_subplot(121)]
-ax_cut.append(fig_cut.add_subplot(122))
+ax_cut = [fig_cut.add_subplot(111)]
+#ax_cut.append(fig_cut.add_subplot(122))
 #ax.append(fig.add_subplot(326))
 #ax.append(fig.add_subplot(326))
 
@@ -101,19 +101,21 @@ labels = ["${\\bf A}\\ $   Spectral Radius",
 "${\\bf C}\\ $   Gain Variance",
 "${\\bf D}\\ $   Memory Capacity"]
 
-labels_cut = ["${\\bf A}\\ $   Gain Quadratic Prediction",
-"${\\bf B}\\ $   Gain Full/Gaussian Prediction"
-]
+
+#labels_cut = ["${\\bf A}\\ $   Gain Quadratic Prediction",
+#"${\\bf B}\\ $   Gain Full/Gaussian Prediction"
+#]
+labels_cut = ["Gain Full/Gaussian Prediction"]
 
 for k in range(4):
     ax[k].set_title(labels[k], loc="left")#, fontweight="bold")
 
-for k in range(2):
+for k in range(1):
     ax_cut[k].set_title(labels_cut[k], loc="left")
 
 
 plot_max_l_sweep(ax[0],file_path=file_single_example)
-plot_max_l_crit_trans_sweep(ax[0],color='#00FFFF',file_path=file_single_example)
+plot_max_l_crit_trans_sweep(ax[0],color='#00AAFF',file_path=file_single_example)
 ax[0].set_xticks([0.,0.5])
 ax[0].set_yticks([0.,0.5,1.,1.5])
 
@@ -121,7 +123,7 @@ ax[0].set_yticks([0.,0.5,1.,1.5])
 #ax[0].set_xlabel("")
 
 plot_gain_mean_sweep(ax[1],file_path=file_single_example)
-plot_max_l_crit_trans_sweep(ax[1],color='#00FFFF',file_path=file_single_example)
+plot_max_l_crit_trans_sweep(ax[1],color='#00AAFF',file_path=file_single_example)
 plot_gain_mean_crit_trans_sweep(ax[1],color='#FFFFFF',file_path=file_single_example)
 #ax[1].set_ylabel("")
 #ax[1].set_xlabel("")
@@ -133,7 +135,7 @@ plot_gain_std_conv(ax[2],file=file_std_conv)
 
 plot_mem_cap(ax[3],file_path=file)
 plot_echo_state_prop_trans(ax[3],color='#FF0000',file_path=file)
-plot_max_l_crit_trans_sweep(ax[3],color='#00FFFF',file_path=file_single_example)
+plot_max_l_crit_trans_sweep(ax[3],color='#00AAFF',file_path=file_single_example)
 plot_mem_cap_max_fixed_ext(ax[3],color='#FFCC00',file_path=file)
 
 ax[3].set_ylim([std_e[1],std_e[-1]])
@@ -162,7 +164,7 @@ cmap = plt.cm.viridis
 custom_lines_labels = [Line2D([0], [0], color=cmap(0.), lw=4),
                 Line2D([0], [0], color=cmap(.4), lw=4),
                 Line2D([0], [0], color=cmap(.8), lw=4)]
-
+'''
 plot_2d_gain_mean_sweep(ax_cut[0],9,colorsim=cmap(0.),colorpred=cmap(0.),file_path=file)
 plot_2d_gain_mean_sweep(ax_cut[0],19,colorsim=cmap(.4),colorpred=cmap(.4),file_path=file)
 plot_2d_gain_mean_sweep(ax_cut[0],29,colorsim=cmap(.8),colorpred=cmap(.8),file_path=file)
@@ -173,11 +175,11 @@ ax_cut[0].legend(custom_lines_labels, ['$\\sigma_{\\rm ext} =$ 0.5', '$\\sigma_{
 #ax[3].set_xticks([std_act_t[0], std_act_t[[0,-1]].mean() , std_act_t[-1]])
 #ax[3].set_yticks([std_e[0], std_e[[0,-1]].mean() , std_e[-1]])
 #ax[3].set_zticks([0., 0.5*Data["gain_list"].mean(axis=2).max(), Data["gain_list"].mean(axis=2).max()])
+'''
 
-
-plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[1],9,colorsim=cmap(0.),colorpred=cmap(0.),file_path=file)
-plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[1],19,colorsim=cmap(.4),colorpred=cmap(.4),file_path=file)
-plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[1],29,colorsim=cmap(.8),colorpred=cmap(.8),file_path=file)
+plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[0],9,colorsim=cmap(0.),colorpred=cmap(0.),file_path=file)
+plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[0],19,colorsim=cmap(.4),colorpred=cmap(.4),file_path=file)
+plot_2d_gain_mean_sweep_full_tanh_pred(ax_cut[0],29,colorsim=cmap(.8),colorpred=cmap(.8),file_path=file)
 
 
 
@@ -185,11 +187,11 @@ SIGM_T, SIGM_E = np.meshgrid(std_t,std_e)
 
 a_exp_pred = ((1.-(1.-SIGM_T**2.)**2.)/(2.*(1.-SIGM_T**2.)**2.*(SIGM_E**2.+SIGM_T**2.)))**.5
 
-ax_cut[1].plot(std_t,a_exp_pred[9,:],'--',color=cmap(0.))
-ax_cut[1].plot(std_t,a_exp_pred[19,:],'--',color=cmap(0.4))
-ax_cut[1].plot(std_t,a_exp_pred[29,:],'--',color=cmap(0.8))
+ax_cut[0].plot(std_t,a_exp_pred[9,:],'--',color=cmap(0.))
+ax_cut[0].plot(std_t,a_exp_pred[19,:],'--',color=cmap(0.4))
+ax_cut[0].plot(std_t,a_exp_pred[29,:],'--',color=cmap(0.8))
 
-ax_cut[1].legend(custom_lines_labels, ['$\\sigma_{\\rm ext} = 0.5$', '$\\sigma_{\\rm ext} = 1.0$', '$\\sigma_{\\rm ext} = 1.5$'])
+ax_cut[0].legend(custom_lines_labels, ['$\\sigma_{\\rm ext} = 0.5$', '$\\sigma_{\\rm ext} = 1.0$', '$\\sigma_{\\rm ext} = 1.5$'])
 #ax[5].set_ylabel("")
 #plot_3d_gain_mean_sweep_full_tanh_pred(ax[5],file_path=file)
 #ax[5].set_xticks([std_act_t[0], std_act_t[[0,-1]].mean() , std_act_t[-1]])

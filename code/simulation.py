@@ -12,6 +12,7 @@ class driven_net:
     def __init__(self,
                  N_net,
                  cf_net,
+                 cf_in,
                  std_conn,
                  std_in,
                  mu_act_target,
@@ -27,6 +28,7 @@ class driven_net:
 
         self.N_net = N_net
         self.cf_net = cf_net
+        self.cf_in = cf_in
         self.std_conn = std_conn
         self.std_in = std_in
         self.mu_act_target = mu_act_target

@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from simulation import driven_net
-from echo_state_tests import test_memory_cap, test_echo_state_prop
+from echo_state_tests import test_memory_cap, test_echo_state_prop, test_XOR
 from tqdm import tqdm
 import os
 import sys
@@ -26,12 +26,16 @@ from standard_params import *
 
 n_t_def = 100000
 
+mu_act_target_def = (np.random.rand(N_net_def)-.5)*2.*0.1
+
 n_sweep_std_in = 30
 n_sweep_std_act_target = 30
 
-det_max_l = False
+det_max_l = True
 det_mc = True
 det_esp = True
+
+det_mc_xor = True
 
 std_in_sweep_range = np.linspace(0.,1.5,n_sweep_std_in)
 std_act_target_sweep_range = np.linspace(0.,.9,n_sweep_std_act_target)
@@ -56,6 +60,11 @@ if det_esp:
     echo_state_prop_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 else:
     echo_state_prop_list = None
+
+if det_mc_xor:
+    mc_xor_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
+else:
+    mc_xor_list = None
 
 #W_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target,N_net_def,N_net_def))
 
@@ -163,14 +172,18 @@ for k in range(n_sweep_std_in):#tqdm(range(n_sweep_std_in)):
         if det_mc:
             gen_temp = lambda t: np.random.normal()*std_in_sweep_range[k]
             #test_memory_cap(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact)
-            MC, MC_sum = test_memory_cap(W,DN.gain,120,1000,0.01,10,gen_temp,0.1)
+            MC, MC_sum = test_memory_cap(W,DN.gain,DN.bias,120,1000,0.01,10,gen_temp,0.1)
             mem_cap_list[k,l] = MC_sum
 
         if det_esp:
-            gen_temp = lambda t: np.random.normal(0.,1.,(N_net_def))*std_in_sweep_range[k]
-            esp_test, esp_test_rec = test_echo_state_prop(W,DN.gain,10000,0.001,10.**-10,gen_temp,x_init=DN.x_net)
+            #gen_temp = lambda t: np.random.normal(0.,1.,(N_net_def))*std_in_sweep_range[k]
+            gen_tenp = lambda t: ((np.random.rand()<=0.5)*2.*std_in_sweep_range[k])
+            esp_test, esp_test_rec = test_echo_state_prop(W,DN.gain,DN.bias,10000,0.001,10.**-10,gen_temp,x_init=DN.x_net)
             echo_state_prop_list[k,l] = esp_test
 
+        if det_mc_xor:
+            MC_XOR, MC_XOR_sum = test_XOR(W,DN.gain,DN.bias,25,1000,0.01,10,std_in_sweep_range[k],0.1)
+            mc_xor_list[k,l] = MC_XOR_sum
 
         params_list[k][l] = DN.get_params()
 
@@ -196,6 +209,7 @@ gain_list = gain_list,
 W = W,
 trail_av_hom_error_list = trail_av_hom_error_list,
 mem_cap_list = mem_cap_list,
+mem_cap_xor_list = mc_xor_list,
 echo_state_prop_list = echo_state_prop_list,
 std_in_sweep_range = std_in_sweep_range,
 std_act_target_sweep_range = std_act_target_sweep_range,

@@ -5,7 +5,48 @@ from scipy.stats import linregress
 from tqdm import tqdm
 import pdb
 
-def test_memory_cap(W,gain,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact):
+from esn_module import esn
+
+
+def test_memory_cap(ESN,t_back_max,n_learn_samples,break_low_threshold,thresh_av_wind,input_gen):
+
+    MC = np.ndarray((t_back_max))
+
+    for t_back in tqdm(range(t_back_max)):
+
+        u_in = input_gen(n_learn_samples)
+        u_in_test = input_gen(n_learn_samples)
+
+        u_out = np.ndarray((n_learn_samples))
+        u_out_test= np.ndarray((n_learn_samples))
+
+        if t_back==0:
+            u_out[:] = u_in[:]
+            u_out_test[:] = u_in_test[:]
+        else:
+            u_out[t_back:] = u_in[:-t_back]
+            u_out[:t_back] = input_gen(t_back)
+
+            u_out_test[t_back:] = u_in_test[:-t_back]
+            u_out_test[:t_back] = input_gen(t_back)
+
+        ESN.learn_w_out(u_in,u_out)
+
+
+
+        u_out_test_predict = ESN.predict_data(u_in_test)
+
+        MC[t_back-1] = np.corrcoef(u_out_test,u_out_test_predict)[0,1]**2.
+
+        if t_back > thresh_av_wind:
+            if MC[t_back-thresh_av_wind:t_back].mean() <= break_low_threshold:
+                length_t = t_back+1
+                break
+
+    return MC[:length_t],MC[:length_t].sum()
+
+'''
+def test_memory_cap(W,gain,bias,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact):
 
     n = W.shape[0]
 
@@ -36,15 +77,15 @@ def test_memory_cap(W,gain,t_back_max,n_learn_samples,break_low_threshold,tresh_
 
         for t in range(1,t_back):
             u[t] = input_gen(t)
-            x_prerun = np.tanh(gain*(np.dot(W,x_prerun)+u[t]*w_in))
+            x_prerun = np.tanh(gain*(np.dot(W,x_prerun)+u[t]*w_in - bias))
 
         for t in range(n_learn_samples):
             u[t+t_back] = input_gen(t+t_back)
             y[t] = u[t]
             if t == 0:
-                x[t,1:] = np.tanh(gain*(np.dot(W,x_prerun) + u[t+t_back]*w_in))
+                x[t,1:] = np.tanh(gain*(np.dot(W,x_prerun) + u[t+t_back]*w_in - bias))
             else:
-                x[t,1:] = np.tanh(gain*(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in))
+                x[t,1:] = np.tanh(gain*(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in - bias))
 
         x[:,0] = 1. #for bias
         #pdb.set_trace()
@@ -68,15 +109,15 @@ def test_memory_cap(W,gain,t_back_max,n_learn_samples,break_low_threshold,tresh_
 
         for t in range(1,t_back):
             u[t] = input_gen(t)
-            x_prerun = np.tanh(gain*(np.dot(W,x_prerun)+u[t]*w_in))
+            x_prerun = np.tanh(gain*(np.dot(W,x_prerun)+u[t]*w_in - bias))
 
         for t in range(n_learn_samples):
             u[t+t_back] = input_gen(t+t_back)
             y[t] = u[t]
             if t == 0:
-                x[t,1:] = np.tanh(gain*(np.dot(W,x_prerun) + u[t+t_back]*w_in))
+                x[t,1:] = np.tanh(gain*(np.dot(W,x_prerun) + u[t+t_back]*w_in - bias))
             else:
-                x[t,1:] = np.tanh(gain*(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in))
+                x[t,1:] = np.tanh(gain*(np.dot(W,x[t-1,1:]) + u[t+t_back]*w_in - bias))
 
         x[:,0] = 1. #for bias
 
@@ -92,8 +133,10 @@ def test_memory_cap(W,gain,t_back_max,n_learn_samples,break_low_threshold,tresh_
                 break
 
     return MC[:length_t],MC[:length_t].sum()#, x, w_out_est, y
+'''
 
-def test_echo_state_prop(W,gain,t_run,init_d,threshold,input_gen,**kwargs):
+
+def test_echo_state_prop(W,gain,bias,t_run,init_d,threshold,input_gen,**kwargs):
 
     n = W.shape[0]
 
@@ -120,8 +163,8 @@ def test_echo_state_prop(W,gain,t_run,init_d,threshold,input_gen,**kwargs):
 
         u = input_gen(t)
 
-        x[0,:] = np.tanh(gain*(np.dot(W,x[0,:]) + u))
-        x[1,:] = np.tanh(gain*(np.dot(W,x[1,:]) + u))
+        x[0,:] = np.tanh(gain*(np.dot(W,x[0,:]) + u - bias))
+        x[1,:] = np.tanh(gain*(np.dot(W,x[1,:]) + u - bias))
 
     #for t in range(10,t_run):
     #   slope, intercept, r, p, stderr = linregress(np.array(range(t)),np.log(d_rec[:t]))
@@ -131,6 +174,92 @@ def test_echo_state_prop(W,gain,t_run,init_d,threshold,input_gen,**kwargs):
     return 1.*(d_rec[-1]<threshold), d_rec
 
 
+def gen_in_out_one_in_subs(T,tau):
+    inp = np.ndarray((T))
+
+    inp = (np.random.rand(T) < .5)*1.
+
+    outp = np.ndarray((T))
+
+    for k in range(T):
+
+        if k - tau - 1 < 0:
+            outp[k] = (np.random.rand() < .5)*1.
+        else:
+            outp[k] = (inp[k-tau] != inp[k-tau-1])*1.
+
+    return inp, outp
+
+'''
+def test_XOR(W,gain,bias,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,sigm_in,reg_fact):
+
+    MC = np.zeros((t_back_max))
+
+    length_t = t_back_max
+
+    for t_back in range(t_back_max):
+
+        inp_xor, out_xor = gen_in_out_one_in_subs(n_learn_samples,t_back)
+        inp_xor_test, out_xor_test = gen_in_out_one_in_subs(n_learn_samples,t_back)
+
+        inp_xor = (inp_xor -.5)*2.*sigm_in
+        inp_xor_test = (inp_xor_test -.5)*2.*sigm_in
+
+        N = W.shape[0]
+
+        ESN = esn(N=N,
+              data_dim_in=1,
+              data_dim_out=1,
+              cf_w_in=1.,
+              cf=1.,
+              reg_fact=reg_fact,
+              spec_rad=1.,
+              alpha=1.,
+              bias = bias,
+              gain = gain)
+
+        ESN.W = W
+
+        ESN.learn_w_out(inp_xor,out_xor,t_prerun=200,show_progress=False)
+
+        out_xor_test_pr = ESN.predict_data(inp_xor_test,return_reservoir_rec=False,show_progress=False)
+
+        MC[t_back] = np.corrcoef(out_xor_test,out_xor_test_pr)[0,1]**2.
+
+        if t_back > tresh_av_wind:
+            if MC[t_back-tresh_av_wind:t_back].mean() <= break_low_threshold:
+                length_t = t_back+1
+                break
+
+    return MC[:length_t],MC[:length_t].sum()
+'''
+
+def test_XOR(ESN,t_back_max,n_learn_samples,break_low_threshold,thresh_av_wind,sigm_in):
+
+    MC = np.zeros((t_back_max))
+
+    length_t = t_back_max
+
+    for t_back in range(t_back_max):
+
+        inp_xor, out_xor = gen_in_out_one_in_subs(n_learn_samples,t_back)
+        inp_xor_test, out_xor_test = gen_in_out_one_in_subs(n_learn_samples,t_back)
+
+        inp_xor = (inp_xor -.5)*2.*sigm_in
+        inp_xor_test = (inp_xor_test -.5)*2.*sigm_in
+
+        ESN.learn_w_out(inp_xor,out_xor,show_progress=False)
+
+        out_xor_test_pr = ESN.predict_data(inp_xor_test,return_reservoir_rec=False,show_progress=False)
+
+        MC[t_back] = np.corrcoef(out_xor_test,out_xor_test_pr)[0,1]**2.
+
+        if t_back > thresh_av_wind:
+            if MC[t_back-thresh_av_wind:t_back].mean() <= break_low_threshold:
+                length_t = t_back+1
+                break
+
+    return MC[:length_t],MC[:length_t].sum()
 
 
 

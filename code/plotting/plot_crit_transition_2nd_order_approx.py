@@ -25,7 +25,7 @@ fig, ax = plt.subplots(1,1,figsize=std_figsize)
 ax.set_title("Gain", loc="left")
 
 plot_gain_mean_sweep(ax,file)
-plot_gain_mean_crit_trans_sweep(ax,critval=1.,color='#FFFFFF',file_path=file)
+plot_gain_mean_crit_trans_sweep(ax,critval=1.,color='#00AAFF',file_path=file)
 ax.set_xticks([0.,0.5])
 ax.set_yticks([0.,0.5,1.,1.5])
 

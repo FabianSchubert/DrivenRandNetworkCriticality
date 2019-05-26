@@ -135,6 +135,14 @@ def test_memory_cap(W,gain,bias,t_back_max,n_learn_samples,break_low_threshold,t
     return MC[:length_t],MC[:length_t].sum()#, x, w_out_est, y
 '''
 
+def test_echo_state_prop(ESN,t_run,init_d,threshold,input_gen):
+
+    rand_dev = np.random.normal(0.,1.,(ESN.N))
+
+    rand_dev *= init_d/np.linalg.norm(rand_dev)
+
+
+
 
 def test_echo_state_prop(W,gain,bias,t_run,init_d,threshold,input_gen,**kwargs):
 
@@ -234,13 +242,13 @@ def test_XOR(W,gain,bias,t_back_max,n_learn_samples,break_low_threshold,tresh_av
     return MC[:length_t],MC[:length_t].sum()
 '''
 
-def test_XOR(ESN,t_back_max,n_learn_samples,break_low_threshold,thresh_av_wind,sigm_in):
+def test_XOR(ESN,t_back_max,n_learn_samples,break_low_threshold,thresh_av_wind,sigm_in,show_progress=True):
 
     MC = np.zeros((t_back_max))
 
     length_t = t_back_max
 
-    for t_back in range(t_back_max):
+    for t_back in tqdm(range(t_back_max),disable=not(show_progress)):
 
         inp_xor, out_xor = gen_in_out_one_in_subs(n_learn_samples,t_back)
         inp_xor_test, out_xor_test = gen_in_out_one_in_subs(n_learn_samples,t_back)

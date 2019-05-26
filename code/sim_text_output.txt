@@ -1840,3 +1840,10 @@ done
 898/900 684.02 minutes elapsed, approx. 1.52 min to go
 899/900 684.73 minutes elapsed, approx. 0.76 min to go
 done
+0/900 0.00 minutes elapsed
+0/9 0.00 minutes elapsed
+0/9 0.00 minutes elapsed
+0/9 0.00 minutes elapsed
+1/9 4.68 minutes elapsed, approx. 37.42 min to go
+2/9 8.14 minutes elapsed, approx. 28.47 min to go
+3/9 12.53 minutes elapsed, approx. 25.07 min to go

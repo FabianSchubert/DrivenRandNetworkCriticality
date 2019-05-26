@@ -19,6 +19,7 @@ import time
 #   return np.random.normal()
 
 path = "/mnt/ceph/fschubert/data/max_lyap_sweep/"
+path = "/home/fabian/work/"
 #filename = "sim_results.npz"
 filename = "sim_results_test.npz"
 
@@ -36,6 +37,7 @@ n_sweep_std_act_target = 30
 
 det_max_l = True
 det_esp = True
+det_mc_xor = True
 
 std_in_sweep_range = np.linspace(0.,1.5,n_sweep_std_in)
 std_act_target_sweep_range = np.linspace(0.,.9,n_sweep_std_act_target)
@@ -82,6 +84,8 @@ t0 = time.time()
 
 f = open("sim_text_output.txt","a")
 
+ESN = esn(N=N_net_def,cf=cf_net_def)
+
 for k in range(n_sweep_std_in):#tqdm(range(n_sweep_std_in)):
     for l in range(n_sweep_std_act_target):#tqdm(range(n_sweep_std_act_target)):
 
@@ -101,14 +105,15 @@ for k in range(n_sweep_std_in):#tqdm(range(n_sweep_std_in)):
             f.write(str(l+k*n_sweep_std_act_target)+"/"+str(n_sweep_std_act_target*n_sweep_std_in) + " " + '{:.2f}'.format((time.time()-t0)/60.) +  " minutes elapsed, approx. " + str_t_rest + " to go\n")
         f.flush()
 
-        ESN = esn(N=N_net_def,cf=cf_net_def,sigm_act_target=std_act_target_sweep_range[l])
+        ESN.sigm_act_target=std_act_target_sweep_range[l]
 
-        u_in = (np.random.rand(100000) < .5)*1.*2.*std_in_sweep_range[k]
+        u_in = (np.random.rand(n_t_def) < .5)*1.*2.*std_in_sweep_range[k]
 
         ESN.run_hom_adapt(u_in)
 
         if det_max_l:
-            max_l_list[k,l] = np.abs(np.linalg.eigvals(ESN.W_gain()).max()
+            max_l_list[k,l] = np.abs(np.linalg.eigvals(ESN.W_gain())).max()
+
         gain_list[k,l,:] = ESN.gain
 
         #(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact)
@@ -143,8 +148,7 @@ if not os.path.exists(path):
 np.savez_compressed(path+filename,
 max_l_list = max_l_list,
 gain_list = gain_list,
-W = W,
-trail_av_hom_error_list = trail_av_hom_error_list,
+W = ESN.W,
 mem_cap_list = mem_cap_list,
 mem_cap_xor_list = mc_xor_list,
 echo_state_prop_list = echo_state_prop_list,

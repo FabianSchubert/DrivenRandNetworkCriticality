@@ -135,14 +135,6 @@ def test_memory_cap(W,gain,bias,t_back_max,n_learn_samples,break_low_threshold,t
     return MC[:length_t],MC[:length_t].sum()#, x, w_out_est, y
 '''
 
-def test_echo_state_prop(ESN,t_run,init_d,threshold,input_gen):
-
-    rand_dev = np.random.normal(0.,1.,(ESN.N))
-
-    rand_dev *= init_d/np.linalg.norm(rand_dev)
-
-
-
 
 def test_echo_state_prop(W,gain,bias,t_run,init_d,threshold,input_gen,**kwargs):
 

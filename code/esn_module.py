@@ -6,6 +6,7 @@ import pdb
 
 import sys
 
+import pdb
 
 def in_ipynb():
     try:
@@ -24,15 +25,17 @@ from tqdm import tqdm
 
 from scipy.optimize import curve_fit
 
+from scipy.sparse import csr_matrix
+
 class esn:
 
     def __init__(self,
         N=1000,
-        cf=1.,
+        cf=.1,
         sigm_w=1.,
         sigm_w_in=1.,
         alpha=1.,
-        cf_w_in=0.1,
+        cf_w_in=1.,
         data_dim_in=1,
         data_dim_out=1,
         reg_fact=0.01,
@@ -48,6 +51,8 @@ class esn:
         eps_trail_av_sigm_ext=0.001,
         eps_trail_av_mu_recurr=0.0001,
         eps_trail_av_sigm_recurr=0.001,
+        eps_LMS_out=0.001,
+        eps_LMS_gain=0.0001,
         W_gen=np.random.normal,
         w_in_gen=np.random.normal,
         noise_level=0.):
@@ -56,8 +61,16 @@ class esn:
 
         self.sigm_w = sigm_w
 
+
+
         self.W = W_gen(0.,sigm_w/(N*cf)**.5,(N,N))*(np.random.rand(N,N) <= cf)
         self.W[range(N),range(N)] = 0.
+
+        if cf < .5:
+            self.W = csr_matrix(self.W)
+            self.sparse_W = True
+        else:
+            self.sparse_W = False
 
         self.data_dim_in = data_dim_in
         self.data_dim_out = data_dim_out
@@ -91,6 +104,9 @@ class esn:
 
         self.mu_act_target = mu_act_target
         self.sigm_act_target = sigm_act_target
+
+        self.eps_LMS_out = eps_LMS_out
+        self.eps_LMS_gain = eps_LMS_gain
 
         self.noise_level = noise_level
 
@@ -157,6 +173,89 @@ class esn:
         self.w_out[:,:] = (np.linalg.inv(y[t_prerun:,:].T @ y[t_prerun:,:] + self.reg_fact*np.eye(self.N+1)) @ y[t_prerun:,:].T @ u_target[t_prerun:,:]).T
 
 
+    def learn_w_out_online_LMS(self,u_in,u_target,t_prerun=0,show_progress=True,return_w_out=False):
+
+        u_in = self.check_data_in_comp(u_in)
+        u_target = self.check_data_out_comp(u_target)
+
+        n_t = u_in.shape[0]
+
+        if return_w_out:
+            w_out_rec = np.ndarray((n_t,self.data_dim_out,self.N+1))
+
+        y = np.ndarray((n_t,self.N+1))
+        y[:,0] = 1.
+
+        y[0,1:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+
+        for t in tqdm(range(1,n_t),disable=not(show_progress)):
+
+            y[t,1:] = y[t-1,1:]*(1.-self.alpha) + self.alpha*np.tanh(self.gain*(self.W @ y[t-1,1:] + self.w_in @ u_in[t,:] - self.bias))
+
+            u_out = self.w_out @ y[t,:]
+
+            self.w_out += self.eps_LMS_out * np.tensordot((u_target[t] - u_out),y[t,:],axes=0)
+
+            if return_w_out:
+                w_out_rec[t,:,:] = self.w_out
+
+        if return_w_out:
+            return w_out_rec
+
+    def learn_w_out_gains_online_LMS(self,u_in,u_target,t_prerun=0,show_progress=True,return_w_out=False,return_gain=False,subsample_rec=1):
+
+        u_in = self.check_data_in_comp(u_in)
+        u_target = self.check_data_out_comp(u_target)
+
+        n_t = u_in.shape[0]
+
+        n_rec = int(n_t/subsample_rec)
+
+        if return_w_out:
+            w_out_rec = np.ndarray((n_rec,self.data_dim_out,self.N+1))
+
+        if return_gain:
+            gain_rec = np.ndarray((n_rec,self.N))
+
+        y = np.ndarray((n_t,self.N+1))
+        y[:,0] = 1.
+
+        y[0,1:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+
+        for t in tqdm(range(1,n_t),disable=not(show_progress)):
+
+            X = self.W @ y[t-1,1:] + self.w_in @ u_in[t,:] - self.bias
+
+            y[t,1:] = y[t-1,1:]*(1.-self.alpha) + self.alpha*np.tanh(self.gain*X)
+
+            u_out = self.w_out @ y[t,:]
+
+            self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*(1.-y[t,1:]**2.)*X
+
+            self.w_out += self.eps_LMS_out * np.tensordot((u_target[t] - u_out),y[t,:],axes=0)
+
+            if t%subsample_rec == 0:
+                t_rec = int(t/subsample_rec)
+                if return_gain:
+                    gain_rec[t_rec,:] = self.gain
+
+                if return_w_out:
+                    w_out_rec[t_rec,:,:] = self.w_out
+
+        returndat = []
+
+        if return_gain:
+            returndat.append(gain_rec)
+
+        if return_w_out:
+            returndat.append(w_out_rec)
+
+        if len(returndat) == 1:
+            return returndat[0]
+        elif len(returndat) > 1:
+            return returndat
+
+
     def predict_data(self,data,return_reservoir_rec=False,show_progress=True):
 
         data = self.check_data_in_comp(data)
@@ -184,7 +283,10 @@ class esn:
             return out
 
     def W_gain(self):
-        return (self.W.T*self.gain).T
+        if self.sparse_W:
+            return (self.W.todense().T*self.gain).T
+        else:
+            return (self.W.T*self.gain).T
 
     def esp_fit_func(self,x,f0,a,x1):
 
@@ -215,6 +317,10 @@ class esn:
             dist[t] = np.linalg.norm(y0-y1)
 
         logd = np.log(dist)
+
+        logd = logd[np.where(logd!=-np.inf)]
+
+        n_t = logd.shape[0]
 
         p,pc = curve_fit(self.esp_fit_func,np.array(range(n_t)),logd,[np.log(d_init),1.,100.])
 
@@ -280,6 +386,31 @@ class esn:
             return returndat[0]
         elif len(returndat)>1:
             return returndat
+
+    def run_sample(self,u_in,show_progress=True,subsample_rec=1):
+
+        u_in = self.check_data_in_comp(u_in)
+
+        n_t = u_in.shape[0]
+
+        n_rec = int(n_t/subsample_rec)
+
+        y_rec = np.ndarray((n_rec,self.N))
+        y_rec[0,:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+        y = y_rec[0,:]
+
+        for t in tqdm(range(1,n_t),disable=not(show_progress)):
+
+            y = y*(1.-self.alpha) + self.alpha*np.tanh(self.gain*(self.W @ y + self.w_in @ u_in[t,:] - self.bias))
+
+            if t%subsample_rec == 0:
+                t_rec = int(t/subsample_rec)
+
+                y_rec[t_rec,:] = y
+
+        return y_rec
+
+
 
     def run_hom_adapt_auto_target(self,
                                 u_in,
@@ -426,7 +557,7 @@ class esn:
 
         elif len(returndat)>1:
             return returndat
-
+    '''
     def run_hom_adapt_auto(self,
                             u_in,
                             return_reservoir_rec=False,
@@ -571,7 +702,7 @@ class esn:
 
         elif len(returndat)>1:
             return returndat
-
+    '''
     def get_params(self):
 
         dict = {"":self.N,

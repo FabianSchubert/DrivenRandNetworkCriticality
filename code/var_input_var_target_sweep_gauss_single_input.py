@@ -13,8 +13,6 @@ from esn_module import esn
 
 import time
 
-import pdb
-
 # input generator for testing memory capacity
 #def gen_input(t):
 #   return np.random.normal()
@@ -22,14 +20,14 @@ import pdb
 path = "/mnt/ceph/fschubert/data/max_lyap_sweep/"
 #path = "/home/fabian/work/"
 #filename = "sim_results.npz"
-filename = "xor_lyap_esp_2.npz"
+filename = "gauss_single_lyap_esp.npz"
 
 
 ### Parameters
 ### Import standard parameters
 from standard_params import *
 
-n_t_def = 150000
+n_t_def = 50000
 
 mu_act_target_def = (np.random.rand(N_net_def)-.5)*2.*0.1
 
@@ -38,7 +36,6 @@ n_sweep_std_act_target = 30
 
 det_max_l = True
 det_esp = True
-det_mc_xor = True
 
 std_in_sweep_range = np.linspace(0.,1.5,n_sweep_std_in)
 std_act_target_sweep_range = np.linspace(0.,.9,n_sweep_std_act_target)
@@ -58,10 +55,7 @@ if det_esp:
     echo_state_prop_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
 else:
     echo_state_prop_list = None
-if det_mc_xor:
-    mc_xor_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target))
-else:
-    mc_xor_list = None
+
 
 #W_list = np.ndarray((n_sweep_std_in,n_sweep_std_act_target,N_net_def,N_net_def))
 
@@ -130,9 +124,9 @@ def run_simulation(parameters):
 
     #k,l = indices
 
-    ESN = esn(sigm_act_target=std_act_target_sweep_range[l],mu_act_target=np.random.normal(0.,0.01,(1000)))
+    ESN = esn(N=N_net_def,cf=cf_net_def,sigm_act_target=std_act_target_sweep_range[l])
 
-    u_in = (np.random.rand(n_t_def) < .5)*1.*2.*std_in_sweep_range[k]
+    u_in = np.random.normal(0.,1.,(n_t_def))*std_in_sweep_range[k]
 
     ESN.run_hom_adapt(u_in,show_progress=False)
 
@@ -142,22 +136,15 @@ def run_simulation(parameters):
 
     #(W,t_back_max,n_learn_samples,break_low_threshold,tresh_av_wind,input_gen,reg_fact)
 
-    u_in = (np.random.rand(5000) < .5)*1.*2.*std_in_sweep_range[k]
-
+    u_in = np.random.normal(0.,1.,(5000))*std_in_sweep_range[k]
     dist,p,esp_test = ESN.test_ESP(u_in,10.**-10.,show_progress=False)
     echo_state_prop = esp_test
 
-
-    MC_XOR, MC_XOR_sum = test_XOR(ESN,20,5000,0.01,10,std_in_sweep_range[k],show_progress=False)
-    mc_xor = MC_XOR_sum
-
     params = ESN.get_params()
 
+    return [max_l,gain,echo_state_prop,params]
 
-
-    return [max_l,gain,echo_state_prop,mc_xor,params]
-
-f = open("sim_text_output_2.txt","a")
+f = open("sim_text_output_gauss_single.txt","a")
 
 results = pool.map(run_simulation,parallel_it)
 
@@ -177,9 +164,7 @@ for i,p in enumerate(parallel_it):
 
     echo_state_prop_list[k,l] = results[i][2]
 
-    mc_xor_list[k,l] = results[i][3]
-
-    params_list[k][l] = results[i][4]
+    params_list[k][l] = results[i][3]
 
 
 '''
@@ -243,15 +228,23 @@ for k in range(n_sweep_std_in):#tqdm(range(n_sweep_std_in)):
 
 if not os.path.exists(path):
     os.makedirs(path)
-np.savez_compressed(path+filename,
+
+np.savez(path+filename,
 max_l_list = max_l_list,
 gain_list = gain_list,
-mem_cap_xor_list = mc_xor_list,
 echo_state_prop_list = echo_state_prop_list,
 std_in_sweep_range = std_in_sweep_range,
 std_act_target_sweep_range = std_act_target_sweep_range,
 params_list = params_list)
-
+'''
+np.savez_compressed(path+filename,
+max_l_list = max_l_list,
+gain_list = gain_list,
+echo_state_prop_list = echo_state_prop_list,
+std_in_sweep_range = std_in_sweep_range,
+std_act_target_sweep_range = std_act_target_sweep_range,
+params_list = params_list)
+'''
 
 
 '''

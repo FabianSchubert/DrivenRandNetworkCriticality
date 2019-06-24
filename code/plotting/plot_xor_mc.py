@@ -17,9 +17,9 @@ color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 textwidth = 5.5532
 
-file = '../../data/max_lyap_sweep/xor_mc_esp_lyap.npz'
+file = '../../data/max_lyap_sweep/xor_lyap_esp_2.npz'
 
-figfile = '../../plots/xor'
+figfile = '../../plots/xor_2'
 
 formats = ['png','pdf']
 

@@ -217,24 +217,25 @@ class esn:
         if return_gain:
             gain_rec = np.ndarray((n_rec,self.N))
 
-        y = np.ndarray((n_t,self.N+1))
-        y[:,0] = 1.
+        y = np.ndarray((self.N+1))
+        y[0] = 1.
 
-        y[0,1:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+        y[1:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
 
         for t in tqdm(range(1,n_t),disable=not(show_progress)):
 
-            X = self.W @ y[t-1,1:] + self.w_in @ u_in[t,:] - self.bias
+            X = self.W.dot(y[1:]) + self.w_in @ u_in[t,:] - self.bias
 
-            y[t,1:] = y[t-1,1:]*(1.-self.alpha) + self.alpha*np.tanh(self.gain*X)
+            y[1:] = y[1:]*(1.-self.alpha) + self.alpha*np.tanh(self.gain*X)
 
-            u_out = self.w_out @ y[t,:]
+            u_out = self.w_out @ y[:]
 
-            self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*(1.-y[t,1:]**2.)*X
-            self.gain = np.maximum(0.,self.gain)
-            #self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*X
+            if t > t_prerun:
+                self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*(1.-y[1:]**2.)*X
+                self.gain = np.maximum(0.,self.gain)
+                #self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*X
 
-            self.w_out += self.eps_LMS_out * np.tensordot((u_target[t] - u_out),y[t,:],axes=0)
+                self.w_out += self.eps_LMS_out * np.tensordot((u_target[t] - u_out),y[:],axes=0)
 
             if t%subsample_rec == 0:
                 t_rec = int(t/subsample_rec)
@@ -286,7 +287,7 @@ class esn:
 
     def W_gain(self):
         if self.sparse_W:
-            return (self.W.todense().T*self.gain).T
+            return (np.array(self.W.todense()).T*self.gain).T
         else:
             return (self.W.T*self.gain).T
 
@@ -398,7 +399,7 @@ class esn:
         n_rec = int(n_t/subsample_rec)
 
         y_rec = np.ndarray((n_rec,self.N))
-        y_rec[0,:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+        y_rec[0,:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] + self.w_in @ np.random.rand(self.data_dim_in) - self.bias))
         y = y_rec[0,:]
 
         for t in tqdm(range(1,n_t),disable=not(show_progress)):
@@ -412,6 +413,163 @@ class esn:
 
         return y_rec
 
+
+    def run_hom_adapt_fisher(self,
+                            u_in,
+                            return_reservoir_rec=False,
+                            return_mu_reservoir=False,
+                            return_sigm_reservoir=False,
+                            return_gain_rec=False,
+                            return_bias_rec=False,
+                            return_mu_ext=False,
+                            return_sigm_ext=False,
+                            return_mu_recurr=False,
+                            return_sigm_recurr=False,
+                            show_progress=True,
+                            subsample_rec=1):
+
+        u_in = self.check_data_in_comp(u_in)
+
+        n_t = u_in.shape[0]
+
+        n_rec = int(n_t/subsample_rec)
+
+        if return_reservoir_rec:
+            y_rec = np.ndarray((n_rec,self.N))
+            y_rec[0,:] = np.tanh(self.gain*(self.W @ (np.random.rand(self.N)*2.-.5) + self.w_in @ u_in[0,:] - self.bias))
+            y = y_rec[0,:]
+            y_trail_av = y_rec[0,:]
+        else:
+            y = np.tanh(self.gain*(self.W @ (np.random.rand(self.N)*2.-.5) + self.w_in @ u_in[0,:] - self.bias))
+            y_trail_av = np.array(y)
+
+        if return_mu_reservoir:
+            mu_y_rec = np.ndarray((n_rec,self.N))
+            mu_y_rec[0,:] = y_rec[0,:]
+
+        sigm_y_squ=np.ones((self.N))*10.**-3.
+        if return_sigm_reservoir:
+            sigm_y_rec = np.ndarray((n_rec,self.N))
+            sigm_y_rec[0,:] = np.ones((self.N))*10.**-6.
+
+        if return_gain_rec:
+            gain_rec = np.ndarray((n_rec,self.N))
+            gain_rec[0,:] = self.gain
+
+        if return_bias_rec:
+            bias_rec = np.ndarray((n_rec,self.N))
+            bias_rec[0,:] = self.bias
+
+        mu_ext = self.w_in @ u_in[0,:]
+        if return_mu_ext:
+            mu_ext_rec = np.ndarray((n_rec,self.N))
+            mu_ext_rec[0,:] = mu_ext
+
+        sigm_ext_squ = np.ones((self.N))*10.**-3.
+        if return_sigm_ext:
+            sigm_ext_rec = np.ndarray((n_rec,self.N))
+            sigm_ext_rec[0,:] = sigm_ext_squ**.5
+
+        mu_recurr = np.zeros((self.N))
+        if return_mu_recurr:
+            mu_recurr_rec = np.ndarray((n_rec,self.N))
+            mu_recurr_rec[0,:] = mu_recurr
+
+        sigm_recurr_squ = np.ones((self.N))*10.**-3.
+        if return_sigm_recurr:
+            sigm_recurr_rec = np.ndarray((n_rec,self.N))
+            sigm_recurr_rec[0,:] = sigm_recurr_squ**.5
+
+        for t in tqdm(range(1,n_t),disable=not(show_progress)):
+
+            ext_in = self.w_in @ u_in[t,:]
+
+            recurr_in = self.W @ y
+
+            mu_ext = self.eps_trail_av_mu_ext*ext_in + (1.-self.eps_trail_av_mu_ext)*mu_ext
+
+            sigm_ext_squ = self.eps_trail_av_sigm_ext*(ext_in - mu_ext)**2. + (1.-self.eps_trail_av_sigm_ext)*sigm_ext_squ
+
+            sigm_ext = sigm_ext_squ**.5
+
+            mu_recurr = self.eps_trail_av_mu_recurr*recurr_in + (1.-self.eps_trail_av_mu_ext)*mu_recurr
+
+            sigm_recurr_squ = self.eps_trail_av_sigm_recurr*(recurr_in - mu_recurr)**2. + (1.-self.eps_trail_av_sigm_recurr)*sigm_recurr_squ
+
+            sigm_recurr = sigm_recurr_squ**.5
+
+            #self.sigm_act_target = ((1.5)**.5 * self.sigm_w/sigm_ext + 1.)**(-.5)
+
+
+
+            #self.gain += self.eps_gain * (self.sigm_act_target**2 - (y - y_trail_av)**2)
+
+            X = recurr_in + ext_in
+
+            if self.noise_level == 0:
+                y = y*(1.-self.alpha) + self.alpha*np.tanh(self.gain*(X - self.bias))
+            else:
+                y = y*(1.-self.alpha) + self.alpha*np.tanh(self.gain*(X - self.bias + self.noise_level*np.random.normal(0.,1.,(self.N))))
+
+            self.gain += self.eps_gain*(1-2.*y*X*self.gain)*(1.+2.*X**2.*(1.-y**2.)*self.gain**2.)
+
+            self.gain = np.maximum(0.,self.gain)
+            self.bias += self.eps_bias * (y - self.mu_act_target)
+
+            y_trail_av += self.eps_trail_av_act*(y - y_trail_av)
+            sigm_y_squ += self.eps_trail_av_sigm_act*((y - y_trail_av)**2 - sigm_y_squ)
+
+            if t%subsample_rec == 0:
+                t_rec = int(t/subsample_rec)
+                if return_reservoir_rec:
+                    y_rec[t_rec,:] = y
+                if return_bias_rec:
+                    bias_rec[t_rec,:] = self.bias
+                if return_gain_rec:
+                    gain_rec[t_rec,:] = self.gain
+                if return_mu_ext:
+                    mu_ext_rec[t_rec,:] = mu_ext
+                if return_sigm_ext:
+                    sigm_ext_rec[t_rec,:] = sigm_ext
+                if return_mu_recurr:
+                    mu_recurr_rec[t_rec,:] = mu_recurr
+                if return_sigm_recurr:
+                    sigm_recurr_rec[t_rec,:] = sigm_recurr
+                if return_mu_reservoir:
+                    mu_y_rec[t_rec,:] = y_trail_av
+                if return_sigm_reservoir:
+                    sigm_y_rec[t_rec,:] = sigm_y_squ**.5
+
+        returndat = []
+
+
+
+        if return_reservoir_rec:
+            returndat.append(y_rec)
+        if return_mu_reservoir:
+            returndat.append(mu_y_rec)
+        if return_sigm_reservoir:
+            returndat.append(sigm_y_rec)
+        if return_bias_rec:
+            returndat.append(bias_rec)
+        if return_gain_rec:
+            returndat.append(gain_rec)
+        if return_mu_recurr:
+            returndat.append(mu_recurr_rec)
+        if return_sigm_recurr:
+            returndat.append(sigm_recurr_rec)
+        if return_mu_ext:
+            returndat.append(mu_ext_rec)
+        if return_sigm_ext:
+            returndat.append(sigm_ext_rec)
+
+
+
+        if len(returndat)==1:
+            return returndat[0]
+
+        elif len(returndat)>1:
+            return returndat
 
 
     def run_hom_adapt_auto_target(self,

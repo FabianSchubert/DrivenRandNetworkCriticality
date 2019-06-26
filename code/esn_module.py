@@ -230,8 +230,9 @@ class esn:
 
             u_out = self.w_out @ y[t,:]
 
-            #self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*(1.-y[t,1:]**2.)*X
-            self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*X
+            self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*(1.-y[t,1:]**2.)*X
+            self.gain = np.maximum(0.,self.gain)
+            #self.gain += self.eps_LMS_gain * np.tensordot((u_target[t] - u_out),self.w_out[:,1:],axes=1)*X
 
             self.w_out += self.eps_LMS_out * np.tensordot((u_target[t] - u_out),y[t,:],axes=0)
 

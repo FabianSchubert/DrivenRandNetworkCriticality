@@ -41,16 +41,17 @@ class esn:
         reg_fact=0.01,
         bias=0.,
         gain=1.,
-        eps_gain=0.001,
-        eps_bias=0.0002,
+        eps_gain=0.005,
+        eps_bias=0.001,
         mu_act_target=0.,
         sigm_act_target=0.25,
-        eps_trail_av_act=0.0001,
-        eps_trail_av_sigm_act=0.001,
-        eps_trail_av_mu_ext=0.0001,
-        eps_trail_av_sigm_ext=0.001,
-        eps_trail_av_mu_recurr=0.0001,
-        eps_trail_av_sigm_recurr=0.001,
+        eps_trail_av_act=0.0005,
+        eps_trail_av_sigm_act=0.005,
+        eps_trail_av_mu_ext=0.0005,
+        eps_trail_av_sigm_ext=0.005,
+        eps_trail_av_mu_recurr=0.0005,
+        eps_trail_av_sigm_recurr=0.005,
+        eps_sigm_act_target=0.005,
         eps_LMS_out=0.001,
         eps_LMS_gain=0.0001,
         W_gen=np.random.normal,
@@ -101,6 +102,8 @@ class esn:
 
         self.eps_trail_av_mu_recurr = eps_trail_av_mu_recurr
         self.eps_trail_av_sigm_recurr = eps_trail_av_sigm_recurr
+
+        self.eps_sigm_act_target = eps_sigm_act_target
 
         self.mu_act_target = mu_act_target
         self.sigm_act_target = sigm_act_target
@@ -412,6 +415,124 @@ class esn:
                 y_rec[t_rec,:] = y
 
         return y_rec
+
+    def run_hom_adapt_weight_mean_field(self,u_in,
+                                            return_reservoir_rec=False,
+                                            return_gain_rec=False,
+                                            return_bias_rec=False,
+                                            return_sigm_act_target_rec=False,
+                                            return_mu_y_rec=False,
+                                            return_sigm_y_rec=False,
+                                            return_v_rec=False,
+                                            show_progress=True,
+                                            subsample_rec=1):
+
+
+        u_in = self.check_data_in_comp(u_in)
+
+        n_t = u_in.shape[0]
+
+        n_rec = int(n_t/subsample_rec)
+
+        if return_reservoir_rec:
+            y_rec = np.ndarray((n_rec,self.N))
+            y_rec[0,:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+            y = y_rec[0,:]
+            y_trail_av = y_rec[0,:]
+        else:
+            y = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+            y_trail_av = np.array(y)
+
+        if return_gain_rec:
+            gain_rec = np.ndarray((n_rec,self.N))
+            gain_rec[0,:] = self.gain
+
+        if return_bias_rec:
+            bias_rec = np.ndarray((n_rec,self.N))
+            bias_rec[0,:] = self.bias
+
+        if return_sigm_act_target_rec:
+            sigm_act_target_rec = np.ndarray((n_rec,self.N))
+            sigm_act_target_rec[0,:] = self.sigm_act_target
+
+        if return_sigm_y_rec:
+            sigm_y_rec = np.ndarray((n_rec,self.N))
+            sigm_y_rec[0,:] = np.ones((self.N))*.25
+        var_y = np.ones((self.N))*.25**2.
+        sigm_y = np.ones((self.N))*.25
+
+        if return_mu_y_rec:
+            mu_y_rec = np.ndarray((n_rec,self.N))
+            mu_y_rec[0,:] = np.zeros((self.N))
+        mu_y = np.zeros((self.N))
+
+        if return_v_rec:
+            v_rec = np.ndarray((n_rec))
+            v_rec[0] = 1.
+        v = 1.
+
+        W_T_squ = np.array(self.W.todense()).T**2.
+
+        for t in tqdm(range(1,n_t)):
+            y = y*(1.-self.alpha) + self.alpha*np.tanh(self.gain*(self.W.dot(y) + self.w_in @ u_in[t,:] - self.bias))
+
+
+            var_y += self.eps_trail_av_sigm_act*((y-mu_y)**2. - var_y)
+
+            sigm_y = var_y**.5
+
+            mu_y += self.eps_trail_av_act*(y - mu_y)
+
+            v = (W_T_squ*self.gain**2.).mean()*self.N
+
+            self.sigm_act_target += self.eps_sigm_act_target*self.sigm_act_target*(1.-self.sigm_act_target)*(1.-v)
+
+            self.gain += self.eps_gain * (self.sigm_act_target - sigm_y)
+            self.gain = np.maximum(0.,self.gain)
+
+            self.bias += self.eps_bias * (y - self.mu_act_target)
+
+
+            if t%subsample_rec == 0:
+                t_rec = int(t/subsample_rec)
+                if return_reservoir_rec:
+                    y_rec[t_rec,:] = y
+                if return_bias_rec:
+                    bias_rec[t_rec,:] = self.bias
+                if return_gain_rec:
+                    gain_rec[t_rec,:] = self.gain
+                if return_sigm_act_target_rec:
+                    sigm_act_target_rec[t_rec] = self.sigm_act_target
+                if return_mu_y_rec:
+                    mu_y_rec[t_rec,:] = mu_y
+                if return_sigm_y_rec:
+                    sigm_y_rec[t_rec,:] = sigm_y
+                if return_v_rec:
+                    v_rec[t_rec] = v
+
+
+        returndat = []
+
+        if return_reservoir_rec:
+            returndat.append(y_rec)
+        if return_bias_rec:
+            returndat.append(bias_rec)
+        if return_gain_rec:
+            returndat.append(gain_rec)
+        if return_sigm_act_target_rec:
+            returndat.append(sigm_act_target_rec)
+        if return_mu_y_rec:
+            returndat.append(mu_y_rec)
+        if return_sigm_y_rec:
+            returndat.append(sigm_y_rec)
+        if return_v_rec:
+            returndat.append(v_rec)
+
+        if len(returndat)==1:
+            return returndat[0]
+        elif len(returndat)>1:
+            return returndat
+
 
 
     def run_hom_adapt_fisher(self,

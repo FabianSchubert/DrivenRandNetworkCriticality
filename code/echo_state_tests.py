@@ -245,8 +245,8 @@ def test_XOR(ESN,t_back_max,n_learn_samples,break_low_threshold,thresh_av_wind,s
         inp_xor, out_xor = gen_in_out_one_in_subs(n_learn_samples,t_back)
         inp_xor_test, out_xor_test = gen_in_out_one_in_subs(n_learn_samples,t_back)
 
-        inp_xor = (inp_xor -.5)*2.*sigm_in
-        inp_xor_test = (inp_xor_test -.5)*2.*sigm_in
+        inp_xor = inp_xor*2.*sigm_in
+        inp_xor_test = inp_xor_test*2.*sigm_in
 
         ESN.learn_w_out(inp_xor,out_xor,show_progress=False)
 

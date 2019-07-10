@@ -660,7 +660,7 @@ As stated in the previous section, a simple memory recall task does not require 
 In correspondence to \eqref{eq:MC} and \eqref{eq:MC_k}, we define the total XOR memory capacity by
 \begin{align}
 	\mathrm{MC}_{\rm XOR} &\defeq \sum_{k=1}^\infty \mathrm{MC}_{{\rm XOR},k} \label{eq:MC_XOR}\\
-	\mathrm{MC}_{{\rm XOR},k} &\defeq \max\limits_{w_{\rm out}} \frac{\mathrm{Cov}^2\left[\mathrm{XOR}\left[u(t-k),u(t-k-1)\right],y_{\rm out}(t)\right]_t}{\mathrm{Var}^2\left[\mathrm{XOR}\left[u(t),u(t-1)\right]\right]_t \mathrm{Var}^2\left[y_{\rm out}(t)\right]_t} \; .\label{eq:MC_XOR_k}
+	\mathrm{MC}_{{\rm XOR},k} &\defeq \max\limits_{w_{\rm out}} \frac{\mathrm{Cov}^2\left[\mathrm{XOR}\left[u(t-k),u(t-k-1)\right],y_{\rm out}(t)\right]_t}{\mathrm{Var}\left[\mathrm{XOR}\left[u(t),u(t-1)\right]\right]_t \mathrm{Var}\left[y_{\rm out}(t)\right]_t} \; .\label{eq:MC_XOR_k}
 \end{align}
 
 The results are shown in Fig.~\ref{fig:xor_mc}. In contrast to the simple recall task, the maximally achievable performance remains relatively constant over a wide range of $\sigma_{\rm ext}$. This local maximum as a function of $\sigma_{\rm ext}$ is well described by the condition $R(\widehat{W}_{\rm a})=1$.

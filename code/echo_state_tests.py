@@ -2,7 +2,7 @@
 
 import numpy as np
 from scipy.stats import linregress
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 import pdb
 
 from esn_module import esn

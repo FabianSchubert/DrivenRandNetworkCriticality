@@ -21,7 +21,7 @@ else:
     from tqdm import tqdm
 '''
 
-from tqdm import tqdm
+from tqdm.autonotebook import tqdm
 
 from scipy.optimize import curve_fit
 
@@ -420,9 +420,9 @@ class esn:
                                             return_reservoir_rec=False,
                                             return_gain_rec=False,
                                             return_bias_rec=False,
-                                            return_sigm_act_target_rec=False,
+                                            return_squ_act_target_rec=False,
                                             return_mu_y_rec=False,
-                                            return_sigm_y_rec=False,
+                                            return_y_squ_rec=False,
                                             return_v_rec=False,
                                             show_progress=True,
                                             subsample_rec=1):
@@ -451,15 +451,14 @@ class esn:
             bias_rec = np.ndarray((n_rec,self.N))
             bias_rec[0,:] = self.bias
 
-        if return_sigm_act_target_rec:
-            sigm_act_target_rec = np.ndarray((n_rec,self.N))
-            sigm_act_target_rec[0,:] = self.sigm_act_target
+        if return_squ_act_target_rec:
+            squ_act_target_rec = np.ndarray((n_rec,self.N))
+            squ_act_target_rec[0,:] = self.sigm_act_target**2.
 
-        if return_sigm_y_rec:
-            sigm_y_rec = np.ndarray((n_rec,self.N))
-            sigm_y_rec[0,:] = np.ones((self.N))*.25
-        var_y = np.ones((self.N))*.25**2.
-        sigm_y = np.ones((self.N))*.25
+        if return_y_squ_rec:
+            y_squ_rec = np.ndarray((n_rec,self.N))
+            y_squ_rec[0,:] = np.ones((self.N))*.25
+        y_squ = np.ones((self.N))*.25**2.
 
         if return_mu_y_rec:
             mu_y_rec = np.ndarray((n_rec,self.N))
@@ -473,13 +472,12 @@ class esn:
 
         W_T_squ = np.array(self.W.todense()).T**2.
 
+
         for t in tqdm(range(1,n_t)):
             y = y*(1.-self.alpha) + self.alpha*np.tanh(self.gain*(self.W.dot(y) + self.w_in @ u_in[t,:] - self.bias))
 
 
-            var_y += self.eps_trail_av_sigm_act*((y-mu_y)**2. - var_y)
-
-            sigm_y = var_y**.5
+            y_squ += self.eps_trail_av_sigm_act*(y**2. - y_squ)
 
             mu_y += self.eps_trail_av_act*(y - mu_y)
 

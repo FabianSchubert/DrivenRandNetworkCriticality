@@ -79,7 +79,8 @@ class esn:
         self.sigm_w_in = sigm_w_in
         self.w_in = w_in_gen(0.,sigm_w_in,(N,data_dim_in))*(np.random.rand(N,data_dim_in) <= cf_w_in)#np.random.normal(0.,sigm_w_in,(N,data_dim_in))*(np.random.rand(N,data_dim_in) <= cf_w_in)
 
-        self.w_out = np.ndarray((data_dim_out,N+1))
+        self.w_out = np.random.rand(data_dim_out,N+1) - .5
+        self.w_out[:,0] = 0.
 
         self.reg_fact = reg_fact
 
@@ -836,6 +837,130 @@ class esn:
 
         elif len(returndat)>1:
             return returndat
+
+    def run_adapt_RFLO(self,
+                                u_in,
+                                u_out,
+                                alpha=1.,
+                                alpha_w_out=1.,
+                                T_w_o_learn = 2000,
+                                T_skip_w_o_learn = 2000,
+                                return_reservoir_rec=False,
+                                return_gain_rec=False,
+                                return_w_out_rec=False,
+                                return_err_rec=False,
+                                show_progress=True,
+                                subsample_rec=1):
+
+        u_in = self.check_data_in_comp(u_in)
+
+        u_out = self.check_data_out_comp(u_out)
+
+        n_t = u_in.shape[0]
+
+        n_rec = int(n_t/subsample_rec)
+
+        y = np.ndarray((self.N+1))
+        y[0] = 1.
+
+        if return_reservoir_rec:
+            y_rec = np.ndarray((n_rec,self.N))
+            y_rec[0,:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+            y[1:] = y_rec[0,:]
+        else:
+            y[1:] = np.tanh(self.gain*(self.w_in @ u_in[0,:] - self.bias))
+
+        if return_gain_rec:
+            a_rec = np.ndarray((n_rec,self.N))
+
+        if return_w_out_rec:
+            w_out_rec = np.ndarray((n_rec,self.N+1))
+
+        if return_err_rec:
+            E_rec = np.ndarray((n_rec))
+
+        y_rec_w_out_learn = np.zeros((T_w_o_learn,self.N+1))
+
+        u_out_w_out_learn = np.zeros((T_w_o_learn,1))
+
+        for t in tqdm(range(n_t)):
+
+            X_r = self.W.dot(y[1:])
+
+            X_e = self.w_in @ u_in[t,:]
+
+            X = X_r + X_e
+
+            y[1:] = np.tanh(self.gain*X)
+
+            y_rec_w_out_learn[t%T_w_o_learn,:] = y[:]
+
+            u_out_w_out_learn[t%T_w_o_learn,0] = u_out[t]
+
+            O = (self.w_out @ y)[0]
+
+            ### update readout weights
+
+            #self.w_out[0,:] += -self.eps_LMS_out * (O-u_out[t]) * y
+
+            #'''
+            if t%T_skip_w_o_learn == 0 and t>=T_w_o_learn:
+
+                self.w_out[0,:] = self.w_out[0,:]*(1.-alpha_w_out) + alpha_w_out * (np.linalg.inv(y_rec_w_out_learn.T @ y_rec_w_out_learn + self.reg_fact*np.eye(self.N+1)) @ y_rec_w_out_learn.T @ u_out_w_out_learn)[:,0]
+            #'''
+
+            ### update gains
+            if t>=T_w_o_learn:
+
+                delta_a = - self.eps_gain * (O-u_out[t]) * self.w_out[0,1:] * (1.-y[1:]**2.)*X_r
+
+                self.gain += (1.-alpha)*delta_a + alpha*delta_a.mean()
+
+                self.gain = np.maximum(self.gain,0.001)
+
+
+
+            ####
+            if t%subsample_rec == 0:
+
+                t_rec = int(t/subsample_rec)
+
+                if return_reservoir_rec:
+                    y_rec[t_rec,:] = y[1:]
+                if return_gain_rec:
+                    a_rec[t_rec,:] = self.gain
+                if return_w_out_rec:
+                    w_out_rec[t_rec,:] = self.w_out
+                if return_err_rec:
+                    E_rec[t_rec] = (O - u_out[t])**2./2.
+
+
+        w_out = (np.linalg.inv(y_rec_w_out_learn.T @ y_rec_w_out_learn + self.reg_fact*np.eye(self.N+1)) @ y_rec_w_out_learn.T @ u_out[t-T_w_o_learn+1:t+1,:])[:,0]
+
+
+        returndat = {}
+
+        if return_reservoir_rec:
+            returndat['reservoir'] = y_rec
+        if return_gain_rec:
+            returndat['gain'] = a_rec
+        if return_w_out_rec:
+            returndat['w_out'] = w_out_rec
+        if return_err_rec:
+            returndat['err'] = E_rec
+
+        if len(returndat) > 0:
+            returndat['t_ax'] = t_ax = np.array(range(n_rec)) * subsample_rec
+
+        if len(returndat)==1:
+            return returndat[0]
+
+        elif len(returndat)>1:
+            return returndat
+
+
+
+
     '''
     def run_hom_adapt_auto(self,
                             u_in,

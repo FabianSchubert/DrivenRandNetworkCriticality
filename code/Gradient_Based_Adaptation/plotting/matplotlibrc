@@ -1,0 +1,33 @@
+
+# Seaborn paper context
+figure.figsize: 6.4, 4.4
+axes.labelsize: 9.
+axes.titlesize: 9.
+#axes.edgecolor: None
+axes.spines.top: False
+axes.spines.right: False
+xtick.labelsize: 9.
+ytick.labelsize: 9.
+legend.fontsize: 9
+grid.linewidth: 0.8
+lines.linewidth: 1.
+patch.linewidth: 0.24
+lines.markersize: 3.
+lines.markeredgewidth: 0
+xtick.major.width: 0.8
+ytick.major.width: 0.8
+xtick.minor.width: 0.4
+ytick.minor.width: 0.4
+xtick.major.pad: 5.6
+ytick.major.pad: 5.6
+font.family: Open Sans
+#font.fanily: Arial
+legend.frameon: False
+image.cmap: gray #rocket #viridis
+
+xtick.bottom : True
+ytick.left: True
+
+#text.usetex: True
+
+#text.latex.preamble : \usepackage[default]{opensans} ,\usepackage[cmintegrals]{newtxsf} #,\usepackage{sansmath},\sansmath

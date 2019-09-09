@@ -48,7 +48,7 @@ for s in tqdm(range(n_samples)):
             #rescale
             rnn.a *= gain_arr[k]
 
-            rnn.eps_a = 0.0002
+            rnn.eps_a = 0.0005
             rnn.eps_w_out = 0.005
 
             u_in,u_out = gen_in_out_one_in_subs(T_sim,tau_arr[n])

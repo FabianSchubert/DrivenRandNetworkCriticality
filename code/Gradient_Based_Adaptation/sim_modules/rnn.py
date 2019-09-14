@@ -323,7 +323,7 @@ class RNN:
             if mode == 2:
                 #D_a_phi_y[range(self.N),range(self.N)] = self.a * phi_y
 
-                dyda[:,:] = (W_RTRL_t.T * phi_y * self.a).T @ dyda
+                dyda[:,:] = (W_RTRL_t * phi_y * self.a).T @ dyda
 
                 dyda[range(self.N),range(self.N)] += phi_y*X
 

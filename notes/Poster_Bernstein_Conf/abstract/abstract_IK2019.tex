@@ -1,0 +1,52 @@
+% to compile on Debian/Ubuntu:
+% sudo apt install latexmk biber texlive-bibtex-extra texlive-fonts-extra
+% latexmk -pdf ik-poster
+\documentclass[a4paper,fontsize=12pt]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{txfontsb}
+\usepackage{microtype}
+\usepackage[top=2.67cm, bottom=3cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{setspace}
+\usepackage{csquotes}
+%\usepackage[sorting=none,citestyle=numeric-comp,bibstyle=trad-abbrv]{biblatex}
+\usepackage{units}
+\usepackage{xcolor}
+\usepackage[
+pdftitle={Local Variance Optimization for the Autonomous Regulation of Echo State Networks},
+pdfauthor={Fabian Schubert, Claudius Gros},
+pdflang=en,
+pdfborder={0 0 0}
+]{hyperref}
+
+\usepackage[square,comma]{natbib}
+\bibliographystyle{ik2019style}
+
+\renewcaptionname{english}{\refname}{\changefontsizes{16pt}\normalfont\textbf{References}}
+%\DeclareFieldFormat{titlecase}{#1}
+
+
+%\addbibresource{abstract.bib}
+
+\begin{document}
+\pagestyle{empty}
+\begin{spacing}{1.11}
+\begin{center}
+  \changefontsizes{20pt}\textbf{Local Variance Optimization for the Autonomous Regulation of Echo State Networks} \\
+  \vspace{.74cm}
+  \changefontsizes{12pt}\textbf{Fabian Schubert\textsuperscript{1,*}, Claudius Gros\textsuperscript{1}} \\
+  \vspace{.44cm}
+  \changefontsizes{10pt}\textsuperscript{1}Institute for Theoretical Physics, Goethe University Frankfurt am Main, Max-von-Laue-Straße 1, 60438 Frankfurt am Main, Germany \\
+  *Corresponding author: fschubert@itp.uni-frankfurt.de
+\end{center}
+\vspace{-.08cm}
+
+Echo state networks have proven to be a powerful tool in the field of time series prediction~\citep{Jaeger_2001,Lukosevicius_2009}. Several approaches to the optimization of the dynamic reservoir have been investigated in the past, including global tuning for criticality~\cite{Livi_2016}, as well as local adaptation towards a given output distribution~\cite{Schrauwen_2008,Boedecker_2009}. The spectral radius $|\Lambda_{\rm max}|$ of the synaptic weight matrix provides a measure to regulate the network in an appropriate working regime~\cite{Caluwaerts_2013}. We show that $|\Lambda_{\rm max}|$ can be regulated by local homeostasis of the variance $\sigma_y^2$ of neural activity. This variance control operates on the gain of the neural transfer function and its optimization target depends on the variance $\sigma_{\rm ext}^2$ of external input. This optimization rule is biologically plausible since it only relies on locally available information. In contrast to previously proposed optimization rules via local intrinsic plasticity, our model relies on the assumption that external and recurrent input signals can be treated as two separate streams of information. The network can hence react autonomously to changes of the input statistics. We demonstrate the importance of this separation by means of network performance---quantified by memory capacity---under varying input statistics.
+
+\end{spacing}
+\vspace{-.35cm}
+\bibliography{./abstract.bib}
+
+\end{document}
+

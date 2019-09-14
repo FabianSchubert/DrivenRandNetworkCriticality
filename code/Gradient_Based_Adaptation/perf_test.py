@@ -10,7 +10,7 @@ from sim_modules.testfuncs import gen_in_out_one_in_subs
 
 data_path = "../../data/Gradient_Based_Adaptation/"
 
-N=50
+N=500
 
 n_samples = 10
 
@@ -53,7 +53,7 @@ for s in tqdm(range(n_samples)):
             msqe[s,n,k] = ((u_out_test - u_out_pred)**2.).mean()
 
 
-    np.save(data_path + "msqe_sweep_small_network.npy",msqe[:s+1,:,:])
+    np.save(data_path + "msqe_sweep_N_500.npy",msqe[:s+1,:,:])
 
 import pdb
 pdb.set_trace()

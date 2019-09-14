@@ -782,7 +782,7 @@ where we ignored the sixth order term. \eqref{eq:gauss_approx_approx} is also sh
 The so called \textit{echo state property} was formally described in \cite{Jaeger_2001}. In short, it states that there exists at least one left-infinity input sequence for which the state sequence of the recurrent network is uniquely determined by this input sequence. In particular, this means that the effect of different initial conditions of the recurrent network will decay. The transition shown in Fig.~\ref{Fig:sigma_target_external}D by the red striped line was determined using this effect by initializing two copies of a network with a small perturbation in the initial conditions and then observing the euclidean distance between both network states while feeding in the same quenched random input.
 
 Assuming that the perturbation is sufficiently small, we model the evolution of this initial offset $\delta_i$ by a linear approximation:
-
+a
 \begin{align}
 	\delta_i(t+1) &\approx a y_i^\prime(t+1) \sum_j w_{ij} \delta_j(t) \label{eq:esp_dist_evolution1} \\
 	&= a \left( 1 - \tanh\left( a \left( x_i(t+1) - b_i\right)\right)^2\right) \sum_j w_{ij} \delta_j(t) \label{eq:esp_dist_evolution2}

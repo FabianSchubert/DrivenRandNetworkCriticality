@@ -10,7 +10,7 @@ from sim_modules.testfuncs import gen_in_out_one_in_subs
 
 data_path = "../../data/Gradient_Based_Adaptation/"
 
-N=500
+N=50
 
 n_samples = 10
 
@@ -44,7 +44,7 @@ for s in tqdm(range(n_samples)):
 
             u_in_train, u_out_train = gen_in_out_one_in_subs(T_batch_w_out,tau_arr[n])
 
-            rnn.learn_w_out(u_in_train,u_out_train)
+            rnn.learn_w_out(u_in_train,u_out_train,reg_fact=0.0001)
 
             u_in_test, u_out_test = gen_in_out_one_in_subs(T_sim,tau_arr[n])
 
@@ -53,7 +53,7 @@ for s in tqdm(range(n_samples)):
             msqe[s,n,k] = ((u_out_test - u_out_pred)**2.).mean()
 
 
-    np.save(data_path + "msqe_sweep_N_500.npy",msqe[:s+1,:,:])
+    np.save(data_path + "msqe_sweep_N_50_2.npy",msqe[:s+1,:,:])
 
 import pdb
 pdb.set_trace()

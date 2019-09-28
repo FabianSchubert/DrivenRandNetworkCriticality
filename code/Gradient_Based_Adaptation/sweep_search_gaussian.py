@@ -354,7 +354,9 @@ class RNN():
         return y_rec, X_r_rec, X_e_rec, a_r_rec, a_e_rec, b_rec, y_mean_rec, y_std_rec
 
 
-n_sweep = 5
+n_sweep = 30
+
+N_net = 1000
 
 sigm_e = np.linspace(0.,1.5,n_sweep+1)
 sigm_y = np.linspace(0.,.9,n_sweep+1)
@@ -363,7 +365,7 @@ perf_xor = np.zeros((n_sweep,n_sweep))
 
 specrad = np.ndarray((n_sweep,n_sweep))
 
-tau_max = 5
+tau_max = 15
 
 t_prerun = 100
 
@@ -371,7 +373,7 @@ for k in tqdm(range(n_sweep)):
     for l in tqdm(range(n_sweep),disable=False):
 
 
-        rnn = RNN(N=500,a_e = 0.9,a_r =0.9,y_std_target=sigm_y[l])
+        rnn = RNN(N=N_net,a_e = 0.9,a_r =0.9,y_std_target=sigm_y[l])
         u_in, u_out = gen_in_out_one_in_subs(rnn.N*50,10)
 
         u_in *= 2.*sigm_e[k]

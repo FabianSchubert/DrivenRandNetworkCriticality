@@ -5,6 +5,9 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage[left=2.50cm, right=2.50cm, top=1.50cm]{geometry}
+
+\usepackage[authoryear]{natbib}
+
 \author{Fabian Schubert}
 \title{Notes on Homeostatic Adaptation and Error Driven Adaptation in ESNs}
 \begin{document}
@@ -36,7 +39,7 @@
 		\delta(x) & i=j \\
 		p_{\rm r} \mathcal{N}\left(x,\mu=0,\sigma=\sigma_{\rm w}/\sqrt{Np_{\rm r}} \right) + (1-p_{\rm r}) \delta(x) & \mathrm{else}
 		\end{cases} \\
-		\mathrm{p}\left(W^{\rm u}_{ij} = x\right) &= \mathcal{N}\left(x,\mu=0,\sigma=\sigma_{\rm e}\right) \; .
+		\mathrm{p}\left(W^{\rm u}_{ij} = x\right) &= \mathcal{N}\left(x,\mu=0,\sigma=1\right) \; .
 	\end{align}
 	
 	Initially, we chose $N=1000$ as the network size, however, due to computational complexity, the results presented here are generated with a network of size $N=500$, unless stated otherwise. See Table~\ref{tab:net_params} for the standard network parameters.
@@ -44,9 +47,9 @@
 		\centering
 		\renewcommand{\arraystretch}{1.2}
 		\caption{Standard network parameters.}
-		\begin{tabular}{c|c|c|c|c|c}
-			$N$ & $D_{\rm in}$ & $D_{\rm out}$ & $p_{\rm r}$ & $\sigma_{\rm w}$ & $\sigma_{\rm e}$\\ \hline
-			500 & 1 & 1 & 0.1 & 1 & variable
+		\begin{tabular}{c|c|c|c|c}
+			$N$ & $D_{\rm in}$ & $D_{\rm out}$ & $p_{\rm r}$ & $\sigma_{\rm w}$ \\ \hline
+			500 & 1 & 1 & 0.1 & 1
 		\end{tabular}
 		\label{tab:net_params}
 	\end{table}
@@ -69,6 +72,19 @@
 		\end{tabular}
 		\label{tab:hom_params}
 	\end{table}
-	\the\textwidth
+	
+	\section{Theory}
+	We stated in the model description that all recurrent weights were drawn independently from a sparse Gaussian distribution. In some sense, of course, this is an assumption that already fulfills one of the conditions that is known to make ESNs work, namely a balance between excitation and inhibition. However, since adjusting gains does not provide a means to dynamically achieve this property, we had to take it as given.
+	
+	Furthermore, we assumed that all entries of the weight matrix were independently drawn from the same distribution. Under this assumption, using the circular law, it follows that setting all gain values to $1/\sigma_{\rm w}$ will result in a uniform unit circle distribution of eigenvalues. The situation is less clear if we allow the rows or columns of the matrix to follow different distributions, in particular---since we assumed to have zero mean---different variances. Numerically, we found that if $\sum_i a^2_i \sigma^2_{{\rm w},i} / N = 1$, where $\sigma^2_{{\rm w},i}$ are the variances of individual rows of the matrix, the spectral radius will still be unity. This observation was also reported and proven in \citep{Rajan2006}.
+	
+	From this observation, two question emerge: first, can we find local gain dynamics that can tune the global measure $\sum_i a^2_i \sigma^2_{{\rm w},i} / N$? And second, given the assumption that this constraint is fulfilled, does the particular distribution of gains affect the network performance?
+	
+	
+			
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\bibliographystyle{humannat}
+	\bibliography{schubert_echo}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 \end{document}

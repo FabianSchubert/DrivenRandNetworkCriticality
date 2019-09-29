@@ -1,0 +1,74 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[left=2.50cm, right=2.50cm, top=1.50cm]{geometry}
+\author{Fabian Schubert}
+\title{Notes on Homeostatic Adaptation and Error Driven Adaptation in ESNs}
+\begin{document}
+	\maketitle
+	
+	\section{Introduction}
+	Strategies for the optimization of ESN hyperparameters can be divided in two categories: supervised and unsupervised methods, where the first one utilizes an error signal, while the latter only uses information contained within the network dynamics.
+	
+	In the first part of our research, we investigated the possibility of defining an unsupervised homeostatic mechanism that controls the mean and variance of neuronal firing in such a way that the network acts in a regime that yields good performance in sequence learning tasks. This mechanism acts on two sets of parameters, biases $b_i$ and neural gain factors $a_i$. It should be emphasized that we did not attempt to define an arbitrarily complex measure that would be most suitable for optimization, e.g. from a machine learning perspective. Rather, we restricted ourselves to adhere to ´biologically plausible' mechanisms. While no exact definition of this term exists, it embraced two aspects in our work:
+	\begin{itemize}
+		\item The dynamics of all variables must be local, i.e., they are bound to a specific neuron and may only access other variables that are locally accessible. In a strict sense, this means all other dynamic variables of the neuron itself and information about the activity of adjacent neurons.
+		\item We use a time-discrete model where the state of a variable in the next step may only be determined by states of the previous step. This means that information about past states must be integrated dynamically.
+	\end{itemize} 
+	
+	 Our approach was based on the assumption that network performance is optimal when the spectral radius of the effective recurrent connectivity, given by $a_i W_{ij}$, is close to, but slightly below $1$. We attempted to transfer this non-local measure into a condition that could be implemented in a biologically plausible way. 
+	
+	\section{Model}
+	\subsection{Network dynamics}
+	\begin{align}
+		y_i(t) &= \tanh\left(a_i x_i(t) - b_i\right) \\
+		x_i(t) &= \sum_{j=1}^N W_{ij} y_j(t-1) + \sum_{j=1}^{D_{\rm in}} W^{\rm u}_{ij} u_j(t) \\
+		o_i(t) &= o^0_i + \sum_{j=1}^{D_{\rm out}} W^{\rm o}_{ij} y_j(t)
+	\end{align}
+	where $\mathbf{y}, \mathbf{x}, \mathbf{a}, \mathbf{b}  \in \mathbb{R}^N$, $W \in \mathbb{R}^{N \times N}$, $\mathbf{u} \in \mathbb{R}^{D_{\rm in}}$, $W^{\rm u} \in \mathbb{R}^{N \times D_{\rm in}}$, $\mathbf{o}, \mathbf{o}^0 \in \mathbb{R}^{D_{\rm out}}$ and  $W^{\rm o} \in \mathbb{R}^{D_{\rm out} \times N}$.
+	
+	Furthermore
+	\begin{align}
+		\mathrm{p}\left(W_{ij} = x\right) &= \begin{cases}
+		\delta(x) & i=j \\
+		p_{\rm r} \mathcal{N}\left(x,\mu=0,\sigma=\sigma_{\rm w}/\sqrt{Np_{\rm r}} \right) + (1-p_{\rm r}) \delta(x) & \mathrm{else}
+		\end{cases} \\
+		\mathrm{p}\left(W^{\rm u}_{ij} = x\right) &= \mathcal{N}\left(x,\mu=0,\sigma=\sigma_{\rm e}\right) \; .
+	\end{align}
+	
+	Initially, we chose $N=1000$ as the network size, however, due to computational complexity, the results presented here are generated with a network of size $N=500$, unless stated otherwise. See Table~\ref{tab:net_params} for the standard network parameters.
+	\begin{table}[h!]
+		\centering
+		\renewcommand{\arraystretch}{1.2}
+		\caption{Standard network parameters.}
+		\begin{tabular}{c|c|c|c|c|c}
+			$N$ & $D_{\rm in}$ & $D_{\rm out}$ & $p_{\rm r}$ & $\sigma_{\rm w}$ & $\sigma_{\rm e}$\\ \hline
+			500 & 1 & 1 & 0.1 & 1 & variable
+		\end{tabular}
+		\label{tab:net_params}
+	\end{table}
+	\subsection{Homeostatic Adaptation}
+	For our homeostatic update mechanism, we use the following dynamics:
+	\begin{align}
+		b_i(t) &= b_i(t-1) + \epsilon_{\rm b} \left[y_i(t) - \mu^{\rm t}_i \right] \\
+		\mu^{\rm y}_i(t) &= \left[1 - \epsilon_{\mu}\right] \mu^{\rm y}_i(t-1) + \epsilon_{\mu} y_i(t) \\
+		a_i(t) &= a_i(t-1) + \epsilon_{\rm a} [{\sigma^{\rm t}_i}^2 - \left( y_i(t) - \mu^{\rm y}_i(t) \right)^2] \; .
+	\end{align}
+	See Table~\ref{tab:hom_params} for the standard values.
+	
+	\begin{table}[h!]
+		\centering
+		\renewcommand{\arraystretch}{1.2}
+		\caption{Standard homeostasis parameters.}
+		\begin{tabular}{c|c|c|c|c}
+			$\epsilon_{\rm b}$ & $\epsilon_{\mu}$ & $\epsilon_{\rm a}$ & $\mu^{\rm t}_i$ & $\sigma^{\rm t}_i$\\ \hline
+			$10^{-3}$ & $10^{-4}$ & $10^{-3}$ & $0.05$ & variable 
+		\end{tabular}
+		\label{tab:hom_params}
+	\end{table}
+	\the\textwidth
+	
+\end{document}

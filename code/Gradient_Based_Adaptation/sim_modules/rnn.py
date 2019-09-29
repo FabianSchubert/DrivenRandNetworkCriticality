@@ -8,64 +8,65 @@ from scipy.sparse import csr_matrix
 
 import matplotlib.pyplot as plt
 
-class RNN:
+class RNN():
 
-    def __init__(self,
-                N=1000,
-                cf=.1,
-                cf_w_in=1.,
-                sigm_w=1.,
-                sigm_w_in=1.,
-                sigm_w_out_init=.1,
-                tau=1.,
-                data_dim_in=1,
-                data_dim_out=1,
-                eps_a=0.0001,
-                eps_w_out = 0.0001):
+    def __init__(self,**kwargs):
 
-        self.N = N
+        self.N = kwargs.get('N',1000)
+        self.cf = kwargs.get('cf',.1)
+        self.cf_in = kwargs.get('cf_in',1.)
+        self.a_r = np.ones((self.N)) * kwargs.get('a_r',1.)
+        self.a_e = np.ones((self.N)) * kwargs.get('a_e',1.)
+        self.b = np.ones((self.N)) * kwargs.get('b',0.)
+        self.mu_w = kwargs.get('mu_w',0.)
+        self.mu_w_in = kwargs.get('mu_w_in',0.)
 
-        self.W = np.random.normal(0.,sigm_w/(N*cf)**.5,(N,N))*(np.random.rand(N,N) <= cf)
-        self.W[range(N),range(N)] = 0.
+        self.tau = 1.*kwargs.get('tau',1.)
 
-        self.cf = (1.*(self.W!=0.)).sum()/N**2.
+        self.dim_in = kwargs.get('dim_in',1)
+        self.dim_out = kwargs.get('dim_out',1)
 
-        self.sigm_w = sigm_w
+        self.eps_a_r = np.ones((self.N)) * kwargs.get('eps_a_r',0.001)
+        self.eps_a_e = np.ones((self.N)) * kwargs.get('eps_a_e',0.001)
+        self.eps_w_out = np.ones((self.dim_out,self.N+1))
+        self.eps_w_out[:,0] *= 1.
+        self.eps_w_out *= kwargs.get('eps_w_out',0.001)
+        self.eps_b = np.ones((self.N)) * kwargs.get('eps_b',0.001)
+        self.eps_y_mean = np.ones((self.N)) * kwargs.get('eps_y_mean',0.0001)
+        self.eps_y_std = np.ones((self.N)) * kwargs.get('eps_y_std',0.001)
 
-        self.Wt = self.W.T
+        self.y_mean_target = np.ones((self.N)) * kwargs.get('y_mean_target',0.1)
+        self.y_std_target = np.ones((self.N)) * kwargs.get('y_std_target',.5)
 
-        if self.cf < .5:
-            self.W = csr_matrix(self.W)
-            self.sparse_W = True
-        else:
-            self.sparse_W = False
+        self.W = np.random.normal(self.mu_w,1./(self.N*self.cf)**.5,(self.N,self.N))*(np.random.rand(self.N,self.N) <= self.cf)
+        self.W[range(self.N),range(self.N)] = 0.
 
-        self.data_dim_in = data_dim_in
-        self.data_dim_out = data_dim_out
-
-        self.w_in = np.random.normal(0.,sigm_w_in,(self.N,self.data_dim_in))*(np.random.rand(self.N,self.data_dim_in) <= cf_w_in)
-
-        self.cf_w_in = (1.*(self.w_in!=0.)).sum()/(N*data_dim_in)
-
-        self.w_out = np.random.rand(data_dim_out,self.N+1)-.5
+        self.w_in = np.random.normal(self.mu_w_in,1.,(self.N,self.dim_in))
+        self.w_out = np.random.rand(self.dim_out,self.N+1)*0.01
         self.w_out[:,0] = 0.
 
-        self.tau = tau
+    def f(self,x):
+        #return (np.tanh(2.*x)+1.)/2.
+        return np.tanh(x)
 
-        self.a = np.ones(self.N)
+    def df_x(self,x):
+        f = self.f(x)
+        #return 4.*f*(1.-f)
+        return 1.-f**2.
 
-        self.eps_a = eps_a
-        self.eps_w_out = eps_w_out
+    def df_y(self,y):
+        #return 4.*y*(1.-y)
+        return 1.-y**2.
 
     def check_data_in_comp(self,data):
 
         if len(data.shape)==1:
-            if self.data_dim_in != 1:
+            if self.dim_in != 1:
                 print("input dimensions do not fit!")
                 sys.exit()
             return np.array([data]).T
 
-        elif (len(data.shape)>2) or (data.shape[1] != self.data_dim_in):
+        elif (len(data.shape)>2) or (data.shape[1] != self.dim_in):
             print("input dimensions do not fit!")
             sys.exit()
 
@@ -74,421 +75,164 @@ class RNN:
     def check_data_out_comp(self,data):
 
         if len(data.shape)==1:
-            if self.data_dim_out != 1:
+            if self.dim_out != 1:
                 print("output dimensions do not fit!")
                 #sys.exit()
             return np.array([data]).T
 
-        elif (len(data.shape)>2) or (data.shape[1] != self.data_dim_out):
+        elif (len(data.shape)>2) or (data.shape[1] != self.dim_out):
             print("output dimensions do not fit!")
             #sys.exit()
 
         return data
 
-
-    def learn_gain(self,
-                    u_in,
-                    u_out,
-                   mode,
-                   mode_w_out = "batch",
-                   randomize_RTRL_matrix=False,
-                   fix_gain_radius=False,
-                  T_batch_w_out=None,
-                    tau_batch_w_out = 1.,
-                    tau_grad_desc_wout = 0.001,
-                    reg_fact = 0.01,
-                    T_stop_learn_wout = None,
-                  T_skip_rec=10,
-                              show_progress=True,
-                  return_y = True,
-                  return_X = True,
-                  return_X_r = True,
-                  return_X_e = True,
-                  return_a = True,
-                  return_dyda = True,
-                  return_delta_a = True,
-                  return_w_out = True,
-                  return_Err = True,
-                return_W = True,
-                 ax_a=None,
-                 ax_w_out=None,
-                 ax_Err=None,
-                 T_plot=500):
-
-
-        modelist = ["local_grad_local_gain",
-                        "local_grad_global_gain",
-                        "global_grad_local_gain",
-                        "global_grad_global_gain"]
-
-        if not(mode in modelist):
-            print("wrong mode argument!")
-            return None
-        else:
-            mode = modelist.index(mode)
-
-        modelist_w_out = ["batch","grad_descent"]
-
-        if not(mode_w_out in modelist_w_out):
-            print("wrong w_out mode argument!")
-            return None
-        else:
-            mode_w_out = modelist_w_out.index(mode_w_out)
-
-
-        if T_batch_w_out == None:
-            T_batch_w_out = self.N*10
-
-        u_in = self.check_data_in_comp(u_in)
-        u_out = self.check_data_out_comp(u_out)
-
-        if u_in.shape[0] == u_out.shape[0]:
-            T = u_in.shape[0]
-        else:
-            print("length of time series do not match!")
-
-        if T_stop_learn_wout == None:
-            T_stop_learn_wout = T
-
-        ### recording
-
-        T_rec = int(T/T_skip_rec)
-
-
-        if return_y:
-            y_rec = np.ndarray((T_rec,self.N))
-        if return_X_r:
-            X_r_rec = np.ndarray((T_rec,self.N))
-        if return_X_e:
-            X_e_rec = np.ndarray((T_rec,self.N))
-        if return_X:
-            X_rec = np.ndarray((T_rec,self.N))
-        if return_a:
-            a_rec = np.ndarray((T_rec,self.N))
-        if return_dyda:
-            if mode == 0:
-                dyda_rec = np.ndarray((T_rec,self.N))
-            if mode == 1:
-                dyda_rec = np.ndarray((T_rec,self.N))
-            if mode == 2:
-                dyda_rec = np.ndarray((T_rec,self.N,self.N))
-            if mode == 3:
-                dyda_rec = np.ndarray((T_rec,self.N))
-        if return_delta_a:
-            if mode == 0:
-                delta_a_rec = np.ndarray((T_rec,self.N))
-            if mode == 1:
-                delta_a_rec = np.ndarray((T_rec))
-            if mode == 2:
-                delta_a_rec = np.ndarray((T_rec,self.N))
-            if mode == 3:
-                delta_a_rec = np.ndarray((T_rec))
-        if return_w_out:
-            w_out_rec = np.ndarray((T_rec,self.data_dim_out,self.N+1))
-        if return_Err:
-            Err_rec = np.ndarray((T_rec))
-
-
-        if mode == 0:
-            dyda = np.zeros((self.N))
-            delta_a = np.zeros((self.N))
-
-        if mode == 1:
-            dyda = np.zeros((self.N))
-            delta_a = 0.
-
-        if mode == 2:
-            dyda = np.zeros((self.N,self.N))
-            delta_a = np.zeros((self.N))
-
-        if mode == 3:
-            dyda = np.zeros((self.N))
-            delta_a = 0.
-
-
-
-
-        y_rec_w_out_learn = np.zeros((T_batch_w_out,self.N+1))
-
-        u_out_w_out_learn = np.zeros((T_batch_w_out,self.data_dim_out))
-        ###
-
-        y = np.random.rand(self.N+1)-.5
-        y[0] = 0.
-
-
-        if randomize_RTRL_matrix:
-            '''
-            W_RTRL = np.random.normal(0.,self.sigm_w/(self.N*self.cf)**.5,(self.N,self.N))*(np.random.rand(self.N,self.N) <= self.cf)
-            W_RTRL[range(self.N),range(self.N)] = 0.
-            '''
-            #W_RTRL = np.eye(self.N)
-            W_RTRL = np.zeros((self.N,self.N))
-
-            W_RTRL_t = np.array(W_RTRL.T)
-
-            if self.sparse_W:
-                W_RTRL = csr_matrix(W_RTRL)
-                #W_RTRL_t = csr_matrix(W_RTRL_t)
-        else:
-            if self.sparse_W:
-                W_RTRL = csr_matrix(self.W)
-                W_RTRL_t = np.array(self.W.todense()).T
-            else:
-                W_RTRL = np.array(self.W)
-                W_RTRL_t = np.array(self.W.T)
-
-
-        if fix_gain_radius:
-            a_rad = np.linalg.norm(self.a)
-
-
-        Vt = np.zeros((self.N))
-        betaV = 0.995
-        St = np.zeros((self.N))
-        betaS = 0.99
-
-        ### Init variables for better performance
-        X_r = np.ndarray((self.N))
-        X_e = np.ndarray((self.N))
-        X = np.ndarray((self.N))
-
-        err = np.ndarray((1,self.data_dim_out))
-        O = np.ndarray((1,self.data_dim_out))
-
-        phi_y = np.ndarray((self.N))
-        #D_a_phi_y = np.eye((self.N))
-        #D_a_phi_y = csr_matrix(D_a_phi_y)
-
-        for t in tqdm(range(T),disable=not(show_progress)):
-            '''
-            if randomize_RTRL_matrix and t%10 == 0:
-                W_RTRL = np.random.normal(0.,self.sigm_w/(self.N*self.cf)**.5,(self.N,self.N))*(np.random.rand(self.N,self.N) <= self.cf)
-                #W_RTRL = np.ones((self.N,self.N))*self.sigm_w/(self.N)
-                W_RTRL[range(self.N),range(self.N)] = 0.
-
-                W_RTRL_t = np.array(W_RTRL.T)
-
-                if self.sparse_W:
-                    W_RTRL = csr_matrix(W_RTRL)
-                    #W_RTRL_t = csr_matrix(W_RTRL_t)
-            '''
-
-            X_r[:] = self.W.dot(y[1:])
-
-            X_e[:] = self.w_in.dot(u_in[t,:])
-
-            X[:] = X_r + X_e
-
-            #y[1:] = np.tanh(self.a*X_r + X_e)
-
-            y[1:] = np.tanh(self.a*X)
-
-            #'''
-            if t <= T_stop_learn_wout:
-
-                y_rec_w_out_learn[t%T_batch_w_out,:] = y[:]
-
-                u_out_w_out_learn[t%T_batch_w_out,:] = u_out[t,:]
-            #'''
-            O[:] = self.w_out.dot(y)
-
-            err[0,:] = O - u_out[t,:]
-
-            if mode_w_out == 0:
-
-                if t%T_batch_w_out == 0 and t>0. and t <= T_stop_learn_wout:
-                    #print("updated wout")
-
-                    #self.learn_w_out(u_in[t-T_batch_w_out:t],u_out[t-T_batch_w_out:t])
-                    self.w_out[:] = self.w_out + (1./tau_batch_w_out)*( -self.w_out + (np.linalg.inv(y_rec_w_out_learn.T @ y_rec_w_out_learn + reg_fact*np.eye(self.N+1)) @ y_rec_w_out_learn.T @ u_out_w_out_learn).T)
-
-            elif mode_w_out == 1:
-
-                if t == T_batch_w_out:
-                    self.w_out[:] = self.w_out + (1./tau_batch_w_out)*( -self.w_out + (np.linalg.inv(y_rec_w_out_learn.T @ y_rec_w_out_learn + reg_fact*np.eye(self.N+1)) @ y_rec_w_out_learn.T @ u_out_w_out_learn).T)
-                elif t > T_batch_w_out:
-
-                    self.w_out[:] -= self.eps_w_out * np.outer(err,y)
-
-
-            phi_y[:] = (1.-y[1:]**2.)
-
-            if mode == 0:
-                dyda[:] = phi_y*X
-
-            if mode == 1:
-                dyda[:] = phi_y*X
-
-            if mode == 2:
-                #D_a_phi_y[range(self.N),range(self.N)] = self.a * phi_y
-
-                dyda[:,:] = (W_RTRL_t * phi_y * self.a).T @ dyda
-
-                dyda[range(self.N),range(self.N)] += phi_y*X
-
-            if mode == 3:
-                dyda[:] = phi_y*(X + self.a[0]*W_RTRL.dot(dyda))
-
-
-            if t >= T_batch_w_out:
-
-
-
-                if mode == 0:
-                    delta_a[:] = -err.dot(self.w_out[:,1:])[0,:]*dyda
-                if mode == 1:
-                    delta_a = -err.dot(self.w_out[:,1:].dot(dyda))
-                if mode == 2:
-                    delta_a[:] = -err.dot(self.w_out[:,1:].dot(dyda))[0,:]
-                if mode == 3:
-                    delta_a = -err.dot(self.w_out[:,1:].dot(dyda))
-
-
-
-
-                if self.eps_a > 0.:
-                    #'''
-                    ## Accelerated Grad. Desc.
-                    #Vt = betaV*Vt + (1.-betaV)*delta_a
-                    #St = betaS*St + (1.-betaS)*(delta_a**2.)
-
-                    #self.a += self.eps_a*Vt
-                    #self.a += self.eps_a*Vt/(St + 10.**-1.)**.5
-                    #'''
-                    self.a += self.eps_a*delta_a
-                    #self.a += self.eps_a*(0.9*delta_a.mean() + 0.1*delta_a)
-                    self.a = np.maximum(0.01,self.a)
-
-                    if fix_gain_radius:
-                        self.a *= a_rad / np.linalg.norm(self.a)
-
-            ### recording
-
-            if t%T_skip_rec == 0:
-
-
-
-                t_rec = int(t/T_skip_rec)
-
-
-                if return_y:
-
-                    y_rec[t_rec,:] = y[1:]
-
-                if return_X:
-                    X_rec[t_rec,:] = X
-                if return_X_r:
-                    X_r_rec[t_rec,:] = X_r
-                if return_X_e:
-                    X_e_rec[t_rec,:] = X_e
-
-                if mode == 0:
-                    if return_dyda:
-                        dyda_rec[t_rec,:] = dyda
-                    if return_delta_a:
-                        delta_a_rec[t_rec,:] = delta_a
-                if mode == 1:
-                    if return_dyda:
-                        dyda_rec[t_rec,:] = dyda
-                    if return_delta_a:
-                        delta_a_rec[t_rec] = delta_a
-
-                if mode == 2:
-                    if return_dyda:
-                        dyda_rec[t_rec,:,:] = dyda
-                    if return_delta_a:
-                        delta_a_rec[t_rec,:] = delta_a
-
-                if mode == 3:
-                    if return_dyda:
-                        dyda_rec[t_rec,:] = dyda
-                    if return_delta_a:
-                        delta_a_rec[t_rec] = delta_a
-
-                if return_a:
-                    a_rec[t_rec,:] = self.a[:]
-
-                    if ax_a != None and t%T_plot == 0:
-                        t_ax = np.array(range(t_rec))*T_skip_rec
-                        ax_a.clear()
-                        ax_a.plot(t_ax,a_rec[:t_rec,:10])
-                        ax_a.plot(t_ax,np.linalg.norm(a_rec[:t_rec,:],axis=1)/self.N**.5,'--',c='k')
-                        plt.pause(0.01)
-
-
-                if return_Err:
-                    Err_rec[t_rec] = .5*(err**2.).sum()
-
-                    if ax_Err != None and t%T_plot == 0:
-                        t_ax = np.array(range(t_rec))*T_skip_rec
-                        ax_Err.clear()
-                        #t_rec_start = int(np.maximum(0,t_rec-100))
-                        #ax_Err.plot(t_ax[t_rec_start:t_rec],Err_rec[t_rec_start:t_rec])
-                        ax_Err.plot(t_ax,Err_rec[:t_rec])
-                        ax_Err.set_yscale("log")
-                        plt.pause(0.01)
-                if return_w_out:
-                    w_out_rec[t_rec,:,:] = self.w_out
-
-                    if ax_w_out != None and t%T_plot == 0:
-                        t_ax = np.array(range(t_rec))*T_skip_rec
-                        ax_w_out.clear()
-                        ax_w_out.plot(t_ax,w_out_rec[:t_rec,0,:10])
-                        plt.pause(0.01)
-
-
-
-        t_ax = np.array(range(T_rec))*T_skip_rec
-
-        result = [t_ax]
-
-        if return_y:
-            result.append(y_rec)
-        if return_X:
-            result.append(X_r_rec+X_e_rec)
-        if return_X_r:
-            result.append(X_r_rec)
-        if return_X_e:
-            result.append(X_e_rec)
-        if return_a:
-            result.append(a_rec)
-        if return_dyda:
-            result.append(dyda_rec)
-        if return_delta_a:
-            result.append(delta_a_rec)
-        if return_w_out:
-            result.append(w_out_rec)
-        if return_Err:
-            result.append(Err_rec)
-        if return_W:
-            result.append(np.array(self.W.todense()))
-
-        return result
-
-
-
-    def learn_w_out(self,u_in,u_target,reg_fact=0.01,t_prerun=0):
+    def learn_w_out_trial(self,u_in,u_target,reg_fact=.01,show_progress=False,T_prerun=0):
 
         u_in = self.check_data_in_comp(u_in)
         u_target = self.check_data_out_comp(u_target)
 
         n_t = u_in.shape[0]
 
+
         y = np.ndarray((n_t,self.N+1))
         y[:,0] = 1.
 
 
-        y[0,1:] = np.tanh(self.w_in @ u_in[0,:])
+        y[0,1:] = self.f(self.a_e*(self.w_in @ u_in[0,:]) - self.b)
 
 
-        for t in tqdm(range(1,n_t)):
+        for t in tqdm(range(1,n_t),disable=not(show_progress)):
 
-            y[t,1:] = np.tanh(self.a*self.W.dot(y[t-1,1:]) + self.w_in @ u_in[t,:])
+            y[t,1:] = self.f(self.a_r*(self.W.dot(y[t-1,1:])) + self.a_e*(self.w_in @ u_in[t,:]) - self.b)
 
-        self.w_out[:,:] = (np.linalg.inv(y[t_prerun:,:].T @ y[t_prerun:,:] + reg_fact*np.eye(self.N+1)) @ y[t_prerun:,:].T @ u_target[t_prerun:,:]).T
+        self.w_out[:,:] = (np.linalg.inv(y[T_prerun:,:].T @ y[T_prerun:,:] + reg_fact*np.eye(self.N+1)) @ y[T_prerun:,:].T @ u_target[T_prerun:,:]).T
 
-    def predict_data(self,data,return_reservoir_rec=False):
+    def run_learn(self,u_in,u_out,T_skip_rec = 1,show_progress=True):
+
+        u_in = self.check_data_in_comp(u_in)
+        u_out = self.check_data_out_comp(u_out)
+
+        T = u_in.shape[0]
+
+        T_rec = int(T/T_skip_rec)
+
+        #### Recorders
+        y_rec = np.ndarray((T_rec,self.N+1))
+        X_r_rec = np.ndarray((T_rec,self.N))
+        X_e_rec = np.ndarray((T_rec,self.N))
+        O_rec = np.ndarray((T_rec,self.dim_out))
+        err_rec = np.ndarray((T_rec,self.dim_out))
+        a_r_rec = np.ndarray((T_rec,self.N))
+        a_e_rec = np.ndarray((T_rec,self.N))
+        delta_a_r_rec = np.ndarray((T_rec))
+        delta_a_e_rec = np.ndarray((T_rec))
+        w_out_rec = np.ndarray((T_rec,self.dim_out,self.N+1))
+        ####
+
+        y = np.ndarray((self.N+1))
+        y[0] = 1.
+
+        X_r = np.ndarray((self.N))
+        X_e = np.ndarray((self.N))
+
+        O = np.ndarray((self.dim_out))
+
+        err = np.ndarray((self.dim_out))
+
+        sign_err = np.ndarray((self.dim_out))
+
+        dyda_r = np.zeros((self.N))
+        dyda_e = np.zeros((self.N))
+
+        delta_a_r = 0.#np.ndarray((self.N))
+        delta_a_e = 0.#np.ndarray((self.N))
+
+        delta_w_out = np.ndarray((self.dim_out,self.N+1))
+
+        X_r[:] = 0.
+        X_e[:] = self.w_in @ u_in[0,:]
+
+        y[1:] = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+
+        O[:] = self.w_out @ y
+        err[:] = O - u_out[0,:]
+
+        #### Assign for t=0
+        y_rec[0,:] = y
+        X_r_rec[0,:] = X_r
+        X_e_rec[0,:] = X_e
+        O_rec[0,:] = O
+        err_rec[0,:] = err
+        a_r_rec[0,:] = self.a_r
+        a_e_rec[0,:] = self.a_e
+        w_out_rec[0,:,:] = self.w_out
+        delta_a_r_rec[0] = 0.
+        delta_a_e_rec[0] = 0.
+        ####
+
+        for t in tqdm(range(1,T),disable=not(show_progress)):
+
+            X_r = self.W @ y[1:]
+            X_e = self.w_in @ u_in[t,:]
+
+            y[1:] = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+
+            #### calc err
+            O = self.w_out @ y
+            err = O - u_out[t,:]
+
+            sign_err = 2.*(err > 0.) - 1.
+            ####
+
+            #### update gains
+            #dyda_r = self.df_y(y[1:])*(X_r + self.a_r[0]*self.W @ dyda_r)
+            #dyda_e = self.df_y(y[1:])*(X_e + self.a_r[0]*self.W @ dyda_e)
+
+            dyda_r = self.df_y(y[1:])*X_r
+            dyda_e = self.df_y(y[1:])*X_e
+
+            #delta_a_r = -(self.w_out[:,1:].T @ err) * self.df_y(y[1:]) * X_r
+            #delta_a_e = -(self.w_out[:,1:].T @ err) * self.df_y(y[1:]) * X_e
+
+            delta_a_r = -(err * (self.w_out[:,1:] @ dyda_r)).sum()
+            delta_a_e = -(err * (self.w_out[:,1:] @ dyda_e)).sum()
+
+            self.a_r += self.eps_a_r * delta_a_r
+            self.a_e += self.eps_a_e * delta_a_e
+
+            self.a_r = np.maximum(0.01,self.a_r)
+            self.a_e = np.maximum(0.01,self.a_e)
+            ####
+
+            #### update readout weights
+            delta_w_out = -np.outer(err,y)
+            #delta_w_out = np.outer(u_out[t,:],y) - self.w_out * (y**2.)
+            self.w_out += self.eps_w_out * delta_w_out
+
+            #self.w_out[:,1:] = np.maximum(0.,self.w_out[:,1:])
+            ####
+
+            #### record
+            if t%T_skip_rec == 0:
+
+                t_rec = int(t/T_skip_rec)
+
+                y_rec[t_rec,:] = y
+                X_r_rec[t_rec,:] = X_r
+                X_e_rec[t_rec,:] = X_e
+                O_rec[t_rec,:] = O
+                err_rec[t_rec,:] = err
+                a_r_rec[t_rec,:] = self.a_r
+                a_e_rec[t_rec,:] = self.a_e
+                delta_a_r_rec[t_rec] = delta_a_r
+                delta_a_e_rec[t_rec] = delta_a_e
+                w_out_rec[t_rec,:,:] = self.w_out
+
+        t_ax = np.array(range(T_rec))*T_skip_rec
+
+        return t_ax,y_rec,X_r_rec,X_e_rec,O_rec,err_rec,w_out_rec,a_r_rec,a_e_rec,delta_a_r_rec,delta_a_e_rec
+
+    def predict_data(self,data,return_reservoir_rec=False,show_progress=True):
 
         data = self.check_data_in_comp(data)
 
@@ -499,17 +243,113 @@ class RNN:
         y = np.ndarray((n_t,self.N+1))
         y[:,0] = 1.
 
-        y[0,1:] = np.tanh(self.w_in @ u_in[0,:])
+        y[0,1:] = self.f(self.a_e*(self.w_in @ u_in[0,:]) - self.b)
 
-        for t in tqdm(range(1,n_t)):
+        for t in tqdm(range(1,n_t),disable=not(show_progress)):
 
-            y[t,1:] = np.tanh(self.a*self.W.dot(y[t-1,1:]) + self.w_in @ u_in[t,:])
+            y[t,1:] = self.f(self.a_r*(self.W.dot(y[t-1,1:])) + self.a_e*(self.w_in @ u_in[t,:]) - self.b)
 
         out = (self.w_out @ y.T).T
-        if self.data_dim_out == 1:
+        if self.dim_out == 1:
             out = out[:,0]
 
         if return_reservoir_rec:
             return (out,y)
         else:
             return out
+
+    def run_hom_adapt(self,u_in=None,sigm_e=1.,T_skip_rec = 1,T=None,show_progress=True):
+
+        if u_in is not None:
+            mode = 'real_input'
+            u_in = self.check_data_in_comp(u_in)
+            T = u_in.shape[0]
+        else:
+            mode = 'gaussian_noise_input'
+            if T == None:
+                T = self.N*50
+
+        T_rec = int(T/T_skip_rec)
+
+        #### Recorders
+        y_rec = np.ndarray((T_rec,self.N))
+        X_r_rec = np.ndarray((T_rec,self.N))
+        X_e_rec = np.ndarray((T_rec,self.N))
+        a_r_rec = np.ndarray((T_rec,self.N))
+        a_e_rec = np.ndarray((T_rec,self.N))
+        b_rec = np.ndarray((T_rec,self.N))
+        y_mean_rec = np.ndarray((T_rec,self.N))
+        y_std_rec = np.ndarray((T_rec,self.N))
+        ####
+
+        y = np.ndarray((self.N))
+        y_mean = np.ndarray((self.N))
+        y_var = np.ndarray((self.N))
+
+        X_r = np.ndarray((self.N))
+        X_e = np.ndarray((self.N))
+
+        X_r[:] = 0.
+        #X_e[:] = self.w_in @ u_in[0,:]
+        if mode == 'real_input':
+            X_e = self.w_in @ u_in[0,:]
+        else:
+            X_e = np.random.normal(0.,sigm_e,(self.N))
+
+        y = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+        y_mean = y[:]
+        y_var[:] = 0.
+
+        delta_a = np.zeros((self.N))
+        delta_b = np.zeros((self.N))
+
+        #### Assign for t=0
+        y_rec[0,:] = y
+        X_r_rec[0,:] = X_r
+        X_e_rec[0,:] = X_e
+        a_r_rec[0,:] = self.a_r
+        a_e_rec[0,:] = self.a_e
+        b_rec[0,:] = self.b
+        y_mean_rec[0,:] = y_mean
+        y_std_rec[0,:] = y_var**.5
+        ####
+
+        for t in tqdm(range(1,T),disable=not(show_progress)):
+
+            X_r = self.W @ y
+            if mode == 'real_input':
+                X_e = self.w_in @ u_in[t,:]
+            else:
+                X_e = np.random.normal(0.,sigm_e,(self.N))
+
+            y = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+
+            y_mean += self.eps_y_mean * ( -y_mean + y)
+            y_var += self.eps_y_std * ( -y_var + (y-y_mean)**2.)
+
+            delta_a = (self.y_std_target**2. - (y-y_mean)**2.)
+            delta_b = (y - self.y_mean_target)
+
+            self.a_r += self.eps_a_r * delta_a
+            self.a_e += self.eps_a_e * delta_a
+
+            self.a_r = np.maximum(0.,self.a_r)
+            self.a_e = np.maximum(0.,self.a_e)
+
+            self.b += self.eps_b * delta_b
+
+            #### record
+            if t%T_skip_rec == 0:
+
+                t_rec = int(t/T_skip_rec)
+
+                y_rec[t_rec,:] = y
+                X_r_rec[t_rec,:] = X_r
+                X_e_rec[t_rec,:] = X_e
+                a_r_rec[t_rec,:] = self.a_r
+                a_e_rec[t_rec,:] = self.a_e
+                b_rec[t_rec,:] = self.b
+                y_mean_rec[t_rec,:] = y_mean
+                y_std_rec[t_rec,:] = y_var**.5
+
+        return y_rec, X_r_rec, X_e_rec, a_r_rec, a_e_rec, b_rec, y_mean_rec, y_std_rec

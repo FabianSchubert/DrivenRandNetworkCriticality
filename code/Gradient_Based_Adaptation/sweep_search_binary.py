@@ -27,9 +27,12 @@ for k in tqdm(range(n_sweep)):
 
 
         rnn = RNN(N=N_net,a_e = 0.9,a_r =0.9,y_std_target=sigm_y[l])
+        u_in, u_out = gen_in_out_one_in_subs(rnn.N*50,10)
 
-        y,X_r,X_e,a_r,a_e,b,y_mean,y_std = rnn.run_hom_adapt(sigm_e=sigm_e[k],T_skip_rec=10,show_progress=False)
-        #y,X_r,X_e,a_r,a_e,b,y_mean,y_std = rnn.run_hom_adapt(u_in=u_in,T_skip_rec=10,show_progress=True)
+        u_in *= 2.*sigm_e[k]
+
+        #y,X_r,X_e,a_r,a_e,b,y_mean,y_std = rnn.run_hom_adapt(sigm_e=sigm_e[k],T_skip_rec=10,show_progress=False)
+        y,X_r,X_e,a_r,a_e,b,y_mean,y_std = rnn.run_hom_adapt(u_in=u_in,T_skip_rec=10,show_progress=True)
         #'''
         for tau in range(tau_max):
             u_in, u_out = gen_in_out_one_in_subs(rnn.N*5+t_prerun,tau)
@@ -42,7 +45,7 @@ for k in tqdm(range(n_sweep)):
 
             perf_xor[k,l] += np.corrcoef(u_out_test[t_prerun:],u_pred[t_prerun:])[1,0]**2.
         #'''
-        specrad[k,l] = np.abs(np.linalg.eigvals((rnn.W.T * rnn.a_r).T)).max()
+        specrad[k,l] = ((rnn.a_r**2.).sum()/rnn.N)**.5
 
-np.save("../../data/perf_xor_gaussian.npy",perf_xor)
-np.save("../../data/specrad_gaussian.npy",specrad)
+np.save("../../data/perf_xor_binary.npy",perf_xor)
+np.save("../../data/specrad_binary.npy",specrad)

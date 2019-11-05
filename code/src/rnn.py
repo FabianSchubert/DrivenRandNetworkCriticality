@@ -12,7 +12,7 @@ class RNN():
 
     def __init__(self,**kwargs):
 
-        self.N = kwargs.get('N',1000)
+        self.N = kwargs.get('N',500)
         self.cf = kwargs.get('cf',.1)
         self.cf_in = kwargs.get('cf_in',1.)
         self.a_r = np.ones((self.N)) * kwargs.get('a_r',1.)
@@ -35,7 +35,7 @@ class RNN():
         self.eps_y_mean = np.ones((self.N)) * kwargs.get('eps_y_mean',0.0001)
         self.eps_y_std = np.ones((self.N)) * kwargs.get('eps_y_std',0.001)
 
-        self.y_mean_target = np.ones((self.N)) * kwargs.get('y_mean_target',0.1)
+        self.y_mean_target = np.ones((self.N)) * kwargs.get('y_mean_target',0.05)
         self.y_std_target = np.ones((self.N)) * kwargs.get('y_std_target',.5)
 
         self.W = np.random.normal(self.mu_w,1./(self.N*self.cf)**.5,(self.N,self.N))*(np.random.rand(self.N,self.N) <= self.cf)
@@ -149,7 +149,7 @@ class RNN():
 
         delta_w_out = np.ndarray((self.dim_out,self.N+1))
 
-        X_r[:] = 0.
+        X_r[:] = np.random.normal(0.,1.,(self.N))
         X_e[:] = self.w_in @ u_in[0,:]
 
         y[1:] = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
@@ -289,7 +289,7 @@ class RNN():
         X_r = np.ndarray((self.N))
         X_e = np.ndarray((self.N))
 
-        X_r[:] = 0.
+        X_r[:] = np.random.normal(0.,1.,(self.N))
         #X_e[:] = self.w_in @ u_in[0,:]
         if mode == 'real_input':
             X_e = self.w_in @ u_in[0,:]
@@ -353,3 +353,65 @@ class RNN():
                 y_std_rec[t_rec,:] = y_var**.5
 
         return y_rec, X_r_rec, X_e_rec, a_r_rec, a_e_rec, b_rec, y_mean_rec, y_std_rec
+
+    def run_sample(self,u_in=None,sigm_e=1.,T_skip_rec = 1,T=None,show_progress=True):
+
+        if u_in is not None:
+            mode = 'real_input'
+            u_in = self.check_data_in_comp(u_in)
+            T = u_in.shape[0]
+        else:
+            mode = 'gaussian_noise_input'
+            if T == None:
+                T = self.N*50
+
+        T_rec = int(T/T_skip_rec)
+
+        #### Recorders
+        y_rec = np.ndarray((T_rec,self.N))
+        X_r_rec = np.ndarray((T_rec,self.N))
+        X_e_rec = np.ndarray((T_rec,self.N))
+        ####
+
+        y = np.ndarray((self.N))
+
+        X_r = np.ndarray((self.N))
+        X_e = np.ndarray((self.N))
+
+        X_r[:] = np.random.normal(0.,1.,(self.N))
+        #X_e[:] = self.w_in @ u_in[0,:]
+        if mode == 'real_input':
+            X_e = self.w_in @ u_in[0,:]
+        else:
+            X_e = np.random.normal(0.,sigm_e,(self.N))
+
+        y = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+
+        #### Assign for t=0
+        y_rec[0,:] = y
+        X_r_rec[0,:] = X_r
+        X_e_rec[0,:] = X_e
+        ####
+
+        for t in tqdm(range(1,T),disable=not(show_progress)):
+
+            X_r = self.W @ y
+            if mode == 'real_input':
+                X_e = self.w_in @ u_in[t,:]
+            else:
+                X_e = np.random.normal(0.,sigm_e,(self.N))
+
+            y = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+
+
+            #### record
+            if t%T_skip_rec == 0:
+
+                t_rec = int(t/T_skip_rec)
+
+                y_rec[t_rec,:] = y
+                X_r_rec[t_rec,:] = X_r
+                X_e_rec[t_rec,:] = X_e
+
+
+        return y_rec, X_r_rec, X_e_rec

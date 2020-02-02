@@ -76,7 +76,7 @@ def plot(ax):
     ax.legend().texts[0].set_text('$\\sigma_{\\rm e}$')
 
     ax.set_xlabel('$\\sigma_{\\rm t}$')
-    ax.set_ylabel('Mean Activity Cross Correlation')
+    ax.set_ylabel('$\\langle C\\left(y_i,y_j\\right)\\rangle_{\\rm P}$')
 
 
 

@@ -19,51 +19,59 @@ import pandas as pd
 
 def plot(ax):
 
-    file_search = glob.glob(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/N_500/param_sweep_*'))
+    #check if there is already a saved dataframe...
+    try:
+        corr_df = pd.read_hdf(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/corr_df.h5'), 'table')
+    except:
+        print("No dataframe found! Creating it...")
 
-    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        file_search = glob.glob(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/N_500/param_sweep_*'))
 
-    cmap = mpl.cm.get_cmap('viridis')
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-    if isinstance(file_search,list):
-        simfile = []
-        timestamp = []
-        for file_search_inst in file_search:
-            simfile_inst, timestamp_inst = get_simfile_prop(os.path.join(DATA_DIR,file_search_inst))
-            simfile.append(simfile_inst)
-            timestamp.append(timestamp_inst)
-    else:
-        simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR,file_search))
-        simfile = [simfile]
-        timestamp = [timestamp]
+        cmap = mpl.cm.get_cmap('viridis')
 
-    dat = []
+        if isinstance(file_search,list):
+            simfile = []
+            timestamp = []
+            for file_search_inst in file_search:
+                simfile_inst, timestamp_inst = get_simfile_prop(os.path.join(DATA_DIR,file_search_inst))
+                simfile.append(simfile_inst)
+                timestamp.append(timestamp_inst)
+        else:
+            simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR,file_search))
+            simfile = [simfile]
+            timestamp = [timestamp]
 
-    for simfile_inst in simfile:
-        dat.append(np.load(simfile_inst))
+        dat = []
 
-    corr_df = pd.DataFrame(columns=('sigm_e','sigm_t','cross_corr'))
+        for simfile_inst in simfile:
+            dat.append(np.load(simfile_inst))
 
-    for k,dat_inst in enumerate(dat):
+        corr_df = pd.DataFrame(columns=('sigm_e','sigm_t','cross_corr'))
 
-        sigm_e = dat_inst['sigm_e']
-        sigm_t = dat_inst['sigm_t']
-        y = dat_inst['y']
+        for k,dat_inst in enumerate(dat):
 
-        n_sigm_t = sigm_t.shape[0]
-        n_sigm_e = sigm_e.shape[0]
+            sigm_e = dat_inst['sigm_e']
+            sigm_t = dat_inst['sigm_t']
+            y = dat_inst['y']
 
-        N = y.shape[3]
+            n_sigm_t = sigm_t.shape[0]
+            n_sigm_e = sigm_e.shape[0]
 
-        for k in range(n_sigm_e):
-            for l in range(n_sigm_t):
-                corr = np.corrcoef(y[k,l,:,:].T)
-                avg_off_diag = (np.abs(corr).sum() - np.abs(corr[range(N),range(N)]).sum())/(N**2-N)
+            N = y.shape[3]
+
+            for k in range(n_sigm_e):
+                for l in range(n_sigm_t):
+                    corr = np.corrcoef(y[k,l,:,:].T)
+                    avg_off_diag = (np.abs(corr).sum() - np.abs(corr[range(N),range(N)]).sum())/(N**2-N)
 
 
-                corr_df = corr_df.append(pd.DataFrame(columns=('sigm_e','sigm_t','cross_corr'),data=np.array([[sigm_e[k],sigm_t[l],avg_off_diag]])))
+                    corr_df = corr_df.append(pd.DataFrame(columns=('sigm_e','sigm_t','cross_corr'),data=np.array([[sigm_e[k],sigm_t[l],avg_off_diag]])))
 
-    corr_df["sigm_e"] = ["$%s$" % x for x in corr_df["sigm_e"]]
+        corr_df["sigm_e"] = ["$%s$" % x for x in corr_df["sigm_e"]]
+
+        corr_df.to_hdf(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/corr_df.h5'),'table')
     #mean_corr = corr_df.groupby(by=['sigm_e','sigm_t']).mean()
     #sem_corr = corr_df.groupby(by=['sigm_e','sigm_t']).agg('sem')
 
@@ -76,7 +84,7 @@ def plot(ax):
     ax.legend().texts[0].set_text('$\\sigma_{\\rm e}$')
 
     ax.set_xlabel('$\\sigma_{\\rm t}$')
-    ax.set_ylabel('Mean Activity Cross Correlation')
+    ax.set_ylabel('$\\langle C\\left(y_i,y_j\\right)\\rangle_{\\rm P}$')
 
 
 

@@ -18,56 +18,63 @@ from src.analysis_tools import get_simfile_prop
 
 def plot(ax):
 
-    file_search = glob.glob(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/N_500/param_sweep_*'))
+    try:
+        MSE_df = pd.read_hdf(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/MSE_df.h5'), 'table')
+    except:
+        print("No dataframe found! Creating it...")
 
-    #####
-    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        file_search = glob.glob(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/N_500/param_sweep_*'))
 
-    cmap = mpl.cm.get_cmap('viridis')
+        #####
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-    if isinstance(file_search,list):
-        simfile = []
-        timestamp = []
-        for file_search_inst in file_search:
-            simfile_inst, timestamp_inst = get_simfile_prop(os.path.join(DATA_DIR,file_search_inst))
-            simfile.append(simfile_inst)
-            timestamp.append(timestamp_inst)
-    else:
-        simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR,file_search))
-        simfile = [simfile]
-        timestamp = [timestamp]
+        cmap = mpl.cm.get_cmap('viridis')
 
-    dat = []
+        if isinstance(file_search,list):
+            simfile = []
+            timestamp = []
+            for file_search_inst in file_search:
+                simfile_inst, timestamp_inst = get_simfile_prop(os.path.join(DATA_DIR,file_search_inst))
+                simfile.append(simfile_inst)
+                timestamp.append(timestamp_inst)
+        else:
+            simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR,file_search))
+            simfile = [simfile]
+            timestamp = [timestamp]
 
-    for simfile_inst in simfile:
-        dat.append(np.load(simfile_inst))
+        dat = []
 
-    MSE_df = pd.DataFrame(columns=('sigm_e','sigm_t','MSE'))
+        for simfile_inst in simfile:
+            dat.append(np.load(simfile_inst))
 
-    for dat_inst in dat:
+        MSE_df = pd.DataFrame(columns=('sigm_e','sigm_t','MSE'))
 
-        sigm_e = dat_inst['sigm_e']
-        sigm_t = dat_inst['sigm_t']
-        y = dat_inst['y']
-        X_r = dat_inst['X_r']
-        W = dat_inst['W']
+        for dat_inst in dat:
 
-        sigm_w = W.std(axis=3)
-        sigm_X_r = X_r.std(axis=2)
-        sigm_y = y.std(axis=2)
+            sigm_e = dat_inst['sigm_e']
+            sigm_t = dat_inst['sigm_t']
+            y = dat_inst['y']
+            X_r = dat_inst['X_r']
+            W = dat_inst['W']
 
-        n_sigm_t = sigm_t.shape[0]
-        n_sigm_e = sigm_e.shape[0]
+            sigm_w = W.std(axis=3)
+            sigm_X_r = X_r.std(axis=2)
+            sigm_y = y.std(axis=2)
 
-        N = y.shape[3]
+            n_sigm_t = sigm_t.shape[0]
+            n_sigm_e = sigm_e.shape[0]
 
-        for k in range(n_sigm_e):
-            for l in range(n_sigm_t):
-                MSE = ((sigm_X_r[k,l,:]-sigm_w[k,l,:]*sigm_y[k,l,:]*N**.5)**2.).mean()
+            N = y.shape[3]
 
-                MSE_df = MSE_df.append(pd.DataFrame(columns=('sigm_e','sigm_t','MSE'),data=np.array([[sigm_e[k],sigm_t[l],MSE]])))
+            for k in range(n_sigm_e):
+                for l in range(n_sigm_t):
+                    MSE = ((sigm_X_r[k,l,:]-sigm_w[k,l,:]*sigm_y[k,l,:]*N**.5)**2.).mean()
 
-    MSE_df["sigm_e"] = ["$%s$" % x for x in MSE_df["sigm_e"]]
+                    MSE_df = MSE_df.append(pd.DataFrame(columns=('sigm_e','sigm_t','MSE'),data=np.array([[sigm_e[k],sigm_t[l],MSE]])))
+
+        MSE_df["sigm_e"] = ["$%s$" % x for x in MSE_df["sigm_e"]]
+
+        MSE_df.to_hdf(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/MSE_df.h5'),'table')
 
     sns.lineplot(ax=ax,x='sigm_t',y='MSE',hue='sigm_e',data=MSE_df,palette='viridis')
 

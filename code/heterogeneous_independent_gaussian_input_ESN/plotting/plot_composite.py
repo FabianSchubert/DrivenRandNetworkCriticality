@@ -22,8 +22,11 @@ ax1 = plt.subplot(221)
 ax2 = plt.subplot(222)
 ax3 = plt.subplot(212)
 
+print("plotting corr_act.py...")
 plot_corr_act.plot(ax1)
+print("plotting plot_rec_mem_pot_variance_predict.py...")
 plot_rec_mem_pot_variance_predict.plot(ax2)
+print("plotting gains_sweep.py...")
 plot_gains_sweep.plot(ax3)
 
 fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)

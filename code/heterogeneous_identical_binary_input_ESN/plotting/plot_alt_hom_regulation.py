@@ -31,7 +31,9 @@ def plot(ax):
     cf_w = dat['cf_w']
     cf_w_in = dat['cf_w_in']
     sigm_w_e = dat['sigm_w_e']
+    print(sigm_w_e)
     eps_a = dat['eps_a']
+    print(eps_a)
     eps_b = dat['eps_b']
     mu_y_target = dat['mu_y_target']
 
@@ -75,7 +77,7 @@ def plot(ax):
     ax.set_ylim([vy_pl[0]-30.,vy_pl[-1]])
 
     ax.set_xlabel('$a$')
-    ax.set_ylabel('$\\sigma_{\\rm y}^2$')
+    ax.set_ylabel('$||\\mathbf{y}||^2$')
 
 if __name__ == '__main__':
 

@@ -23,7 +23,7 @@ def plot(ax):
 
     cmap = mpl.cm.get_cmap('viridis')
 
-    simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/N_500/param_sweep_'))
+    simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/gains_sweep/gains_sweep_run_'))
 
     print('Loading data from ' + simfile + '...')
 
@@ -53,7 +53,7 @@ def plot(ax):
     sigm_w = W.std(axis=3)*N**.5
 
     ### check if cache file (starting with 'gain_solutions...') with solutions exsists and has the right time stamp:
-    cachefile_list = glob.glob(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/gain_solutions_*'))
+    cachefile_list = glob.glob(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/gains_sweep/gains_solutions_*'))
 
     cachefile_load = None
 
@@ -93,7 +93,7 @@ def plot(ax):
                 else:
                     a_pred[k,l,:] = 1.
         print('saving result...')
-        np.save(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/gain_solutions_'+timestamp+'.npy'),a_pred)
+        np.save(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/gains_sweep/gains_solutions_'+timestamp+'.npy'),a_pred)
     ####
 
     a_pred_norm = ((a_pred**2.).sum(axis=2)/N)**.5
@@ -110,7 +110,7 @@ def plot(ax):
         ax.plot(sigm_t,a_pred_norm[k,:],color=col)
 
     ax.set_xlabel('$\\sigma_{\\rm t}$')
-    ax.set_ylabel('$\\sqrt{\\sum_i a^2_i/N}$')
+    ax.set_ylabel('$R_{\\rm a}$')
 
     ax.legend()
 

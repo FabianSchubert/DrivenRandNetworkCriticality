@@ -28,7 +28,7 @@ def plot(ax):
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 
-    file_search_preprocess,timestamp_preprocess = get_simfile_prop(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_processed_data_'),return_None=True)
+    file_search_preprocess,timestamp_preprocess = get_simfile_prop(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/param_sweep_performance_processed_data_'),return_None=True)
 
     if file_search_preprocess != None:
 
@@ -36,7 +36,7 @@ def plot(ax):
 
     else:
 
-        file_search = glob.glob(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_*'))
+        file_search = glob.glob(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/param_sweep_performance_*'))
 
         if isinstance(file_search,list):
             simfile = []
@@ -87,7 +87,7 @@ def plot(ax):
 
         sweep_df = sweep_df.reset_index()
 
-        sweep_df.to_pickle(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_processed_data_'+str(datetime.now().isoformat())+'.pkl'))
+        sweep_df.to_pickle(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/param_sweep_performance_processed_data_'+str(datetime.now().isoformat())+'.pkl'))
 
 
     sigm_e = sweep_df.sigm_e.unique()
@@ -139,7 +139,7 @@ if __name__ == '__main__':
 
     fig.tight_layout(pad=0.1)
 
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_xor_perf.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_xor_perf.png'),dpi=1000)
+    fig.savefig(os.path.join(PLOT_DIR,'homogeneous_independent_gaussian_input_xor_perf.pdf'))
+    fig.savefig(os.path.join(PLOT_DIR,'homogeneous_independent_gaussian_input_xor_perf.png'),dpi=1000)
 
     plt.show()

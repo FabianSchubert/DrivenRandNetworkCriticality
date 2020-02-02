@@ -70,10 +70,10 @@ for k in tqdm(range(n_sweep_sigm_e)):
         a[k,l,:] = rnn.a_r
         b[k,l,:] = rnn.b
 
-if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/'))):
-    os.makedirs(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/'))
+if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/N_' + str(N)))):
+    os.makedirs(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/N_' + str(N)))
 
-np.savez(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_'+str(datetime.now().isoformat())+'.npz'),
+np.savez(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/N_' + str(N) + '/param_sweep_'+str(datetime.now().isoformat())+'.npz'),
         sigm_t=sigm_t,
         sigm_e=sigm_e,
         y=y,

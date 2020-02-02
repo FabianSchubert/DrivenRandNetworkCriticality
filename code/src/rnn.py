@@ -354,7 +354,7 @@ class RNN():
 
         return y_rec, X_r_rec, X_e_rec, a_r_rec, a_e_rec, b_rec, y_mean_rec, y_std_rec
 
-    def run_sample(self,u_in=None,sigm_e=1.,T_skip_rec = 1,T=None,show_progress=True):
+    def run_sample(self,u_in=None,sigm_e=1.,X_r_init=None,T_skip_rec = 1,T=None,show_progress=True):
 
         if u_in is not None:
             mode = 'real_input'
@@ -378,7 +378,10 @@ class RNN():
         X_r = np.ndarray((self.N))
         X_e = np.ndarray((self.N))
 
-        X_r[:] = np.random.normal(0.,1.,(self.N))
+        if X_r_init is not None:
+            X_r[:] = X_r_init
+        else:
+            X_r[:] = np.random.normal(0.,1.,(self.N))
         #X_e[:] = self.w_in @ u_in[0,:]
         if mode == 'real_input':
             X_e = self.w_in @ u_in[0,:]

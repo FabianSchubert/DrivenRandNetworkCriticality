@@ -1,0 +1,5 @@
+* https://igi-web.tugraz.at/people/maass/psfiles/165.pdf
+* https://igi-web.tugraz.at/PDF/189.pdf
+* https://ieeexplore.ieee.org/abstract/document/7024132
+* https://www.sciencedirect.com/science/article/pii/S0925231213006292
+* http://papers.nips.cc/paper/2671-at-the-edge-of-chaos-real-time-computations-and-self-organized-criticality-in-recurrent-neural-networks.pdf

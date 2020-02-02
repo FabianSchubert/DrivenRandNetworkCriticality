@@ -72,14 +72,14 @@ def plot(ax):
 
             for k in range(n_sigm_e):
                 for l in range(n_sigm_t):
-                    MSE = ((sigm_X_r[k,l,:]-sigm_w[k,l,:]*sigm_y[k,l,:]*N**.5)**2.).mean()*N
+                    MSE = ((sigm_X_r[k,l,:]-sigm_w[k,l,:]*sigm_y[k,l,:]*N**.5)**2.).mean()
 
-                    MSE_df = MSE_df.append(pd.DataFrame(columns=('sigm_e','sigm_t','N','MSE'),data=np.array([[sigm_e[k],sigm_t[l],N,MSE]])))
+                    MSE_df = MSE_df.append(pd.DataFrame(columns=('sigm_e','sigm_t','N','MSE','MSE_N'),data=np.array([[sigm_e[k],sigm_t[l],N,MSE,MSE*N]])))
 
     MSE_df = MSE_df.loc[MSE_df['sigm_e']==0.]
     MSE_df["N"] = ["$%s$" % x for x in MSE_df["N"].astype('int')]
 
-    sns.lineplot(ax=ax,x='sigm_t',y='MSE',hue='N',data=MSE_df,palette='viridis')
+    sns.lineplot(ax=ax,x='sigm_t',y='MSE_N',hue='N',data=MSE_df,palette='viridis')
 
     #ax.legend().texts[0].set_text('$\\sigma_{\\rm e}$')
 

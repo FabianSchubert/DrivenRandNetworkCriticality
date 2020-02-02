@@ -66,19 +66,12 @@ for k in tqdm(range(n_sweep_sigm_e)):
 
         rnn = RNN(N=N,y_mean_target=y_mean_target,y_std_target=sigm_t[l])
 
-        u_in_adapt,u_out = gen_in_out_one_in_subs(T_run_adapt,1)
-        u_in_adapt *= sigm_e[k]
+        sigm_e_dist = np.abs(np.random.normal(0.,sigm_e[k],(rnn.N)))
 
-        adapt = rnn.run_hom_adapt(u_in=u_in_adapt,T_skip_rec=1000)
+        adapt = rnn.run_hom_adapt(u_in=None,sigm_e=sigm_e_dist,T=T_run_adapt,T_skip_rec=1000)
 
-        #run test sample
-        u_in_adapt_sample,u_out_adapt_sample = gen_in_out_one_in_subs(T_sample_variance,0)
-        u_in_adapt_sample *= sigm_e[k]
-
-        y, X_r, X_e = rnn.run_sample(u_in=u_in_adapt_sample,show_progress=True)
-
-        sigm_x_r_adapt[k,l,:] = X_r.std(axis=0)
-        sigm_x_e_adapt[k,l,:] = X_e.std(axis=0)
+        #run sample after adaptation, USING THE INPUT STATISTICS OF THE ADAPTATION!!
+        y, X_r, X_e = rnn.run_sample(u_in=None,sigm_e=sigm_e_dist,T=T_sample_variance,show_progress=True)
 
         W[k,l,:,:] = rnn.W
         a[k,l,:] = rnn.a_r
@@ -113,7 +106,7 @@ for k in tqdm(range(n_sweep_sigm_e)):
 
         ESP[k,l,:] = d
 
-        #run test sample
+        #run test sample with xor_input
         u_in_test,u_out_test = gen_in_out_one_in_subs(T_sample_variance,0)
         u_in_test *= sigm_e[k]
         y, X_r, X_e = rnn.run_sample(u_in=u_in_test,show_progress=True)
@@ -121,10 +114,10 @@ for k in tqdm(range(n_sweep_sigm_e)):
         sigm_x_r_test[k,l,:] = X_r.std(axis=0)
         sigm_x_e_test[k,l,:] = X_e.std(axis=0)
 
-if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/'))):
-    os.makedirs(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/'))
+if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/'))):
+    os.makedirs(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/'))
 
-np.savez(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_'+str(datetime.now().isoformat())+'.npz'),
+np.savez(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/param_sweep_performance_'+str(datetime.now().isoformat())+'.npz'),
         sigm_t=sigm_t,
         sigm_e=sigm_e,
         sigm_x_r_adapt=sigm_x_r_adapt,

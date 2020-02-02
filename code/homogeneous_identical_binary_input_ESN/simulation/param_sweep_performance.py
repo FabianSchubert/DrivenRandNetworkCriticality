@@ -66,6 +66,8 @@ for k in tqdm(range(n_sweep_sigm_e)):
 
         rnn = RNN(N=N,y_mean_target=y_mean_target,y_std_target=sigm_t[l])
 
+        rnn.w_in = np.ones((rnn.N,1))
+
         u_in_adapt,u_out = gen_in_out_one_in_subs(T_run_adapt,1)
         u_in_adapt *= sigm_e[k]
 
@@ -121,10 +123,10 @@ for k in tqdm(range(n_sweep_sigm_e)):
         sigm_x_r_test[k,l,:] = X_r.std(axis=0)
         sigm_x_e_test[k,l,:] = X_e.std(axis=0)
 
-if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/'))):
-    os.makedirs(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/'))
+if not(os.path.isdir(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/'))):
+    os.makedirs(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/'))
 
-np.savez(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_'+str(datetime.now().isoformat())+'.npz'),
+np.savez(os.path.join(DATA_DIR,'homogeneous_identical_binary_input_ESN/param_sweep_performance_'+str(datetime.now().isoformat())+'.npz'),
         sigm_t=sigm_t,
         sigm_e=sigm_e,
         sigm_x_r_adapt=sigm_x_r_adapt,

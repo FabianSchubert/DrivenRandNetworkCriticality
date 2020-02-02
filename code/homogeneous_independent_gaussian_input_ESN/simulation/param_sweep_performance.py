@@ -61,21 +61,20 @@ sigm_x_r_test = np.ndarray((n_sweep_sigm_e,n_sweep_sigm_t,N))
 sigm_x_e_adapt = np.ndarray((n_sweep_sigm_e,n_sweep_sigm_t,N))
 sigm_x_e_test = np.ndarray((n_sweep_sigm_e,n_sweep_sigm_t,N))
 
+
+
 for k in tqdm(range(n_sweep_sigm_e)):
     for l in tqdm(range(n_sweep_sigm_t)):
 
         rnn = RNN(N=N,y_mean_target=y_mean_target,y_std_target=sigm_t[l])
 
-        u_in_adapt,u_out = gen_in_out_one_in_subs(T_run_adapt,1)
-        u_in_adapt *= sigm_e[k]
+        rnn.w_in = np.ones((rnn.N,1))
 
-        adapt = rnn.run_hom_adapt(u_in=u_in_adapt,T_skip_rec=1000)
+        # adapt weights
+        adapt = rnn.run_hom_adapt(u_in=None,sigm_e=sigm_e[k],T=T_run_adapt,T_skip_rec=1000)
 
-        #run test sample
-        u_in_adapt_sample,u_out_adapt_sample = gen_in_out_one_in_subs(T_sample_variance,0)
-        u_in_adapt_sample *= sigm_e[k]
-
-        y, X_r, X_e = rnn.run_sample(u_in=u_in_adapt_sample,show_progress=True)
+        #run sample after adaptation, USING THE INPUT STATISTICS OF THE ADAPTATION!!
+        y, X_r, X_e = rnn.run_sample(u_in=None,sigm_e=sigm_e[k],T=T_sample_variance,show_progress=True)
 
         sigm_x_r_adapt[k,l,:] = X_r.std(axis=0)
         sigm_x_e_adapt[k,l,:] = X_e.std(axis=0)
@@ -98,7 +97,7 @@ for k in tqdm(range(n_sweep_sigm_e)):
 
             MC[k,l,tau] = np.corrcoef(u_out_test[T_prerun:],u_out_pred[T_prerun:])[0,1]**2.
 
-        ### test ESP
+        ### testrun
         u_in_ESP,u_out_ESP = gen_in_out_one_in_subs(T_run_ESP,0)
         u_in_ESP *= sigm_e[k]
 
@@ -113,7 +112,7 @@ for k in tqdm(range(n_sweep_sigm_e)):
 
         ESP[k,l,:] = d
 
-        #run test sample
+        #run test sample with xor_input
         u_in_test,u_out_test = gen_in_out_one_in_subs(T_sample_variance,0)
         u_in_test *= sigm_e[k]
         y, X_r, X_e = rnn.run_sample(u_in=u_in_test,show_progress=True)
@@ -121,10 +120,11 @@ for k in tqdm(range(n_sweep_sigm_e)):
         sigm_x_r_test[k,l,:] = X_r.std(axis=0)
         sigm_x_e_test[k,l,:] = X_e.std(axis=0)
 
-if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/'))):
-    os.makedirs(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/'))
 
-np.savez(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_'+str(datetime.now().isoformat())+'.npz'),
+if not(os.path.isdir(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/'))):
+    os.makedirs(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/'))
+
+np.savez(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/param_sweep_performance_'+str(datetime.now().isoformat())+'.npz'),
         sigm_t=sigm_t,
         sigm_e=sigm_e,
         sigm_x_r_adapt=sigm_x_r_adapt,

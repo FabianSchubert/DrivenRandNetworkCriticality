@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
 
 
-    plot(ax,files)
+    plot(ax)
 
     fig.tight_layout(pad=0.1)
 

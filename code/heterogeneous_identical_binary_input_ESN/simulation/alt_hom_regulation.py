@@ -10,11 +10,12 @@ import sys
 
 try:
     mode = sys.argv[1]
-    if not(mode in ('local','global')):
-        print('Wrong mode argument.')
-        sys.exit()
 except:
     mode = 'local'
+if not(mode in ('local','global')):
+    print('Wrong mode argument.')
+    sys.exit()
+
 
 N = 500
 

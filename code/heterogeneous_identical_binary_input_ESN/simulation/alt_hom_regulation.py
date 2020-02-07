@@ -16,6 +16,10 @@ if not(mode in ('local','global')):
     print('Wrong mode argument.')
     sys.exit()
 
+if mode=='local':
+    mode = 0
+else:
+    mode = 1
 
 N = 500
 
@@ -142,7 +146,10 @@ for k in tqdm(range(n_samples)):
         #y_squ_targ = 1.-1./(1.+2.*Var_y.mean() + 2.*Var_X_e)**.5
 
         #a = a + eps_a * a * ((y**2.).mean() - (X_r**2.).mean())
-        a = a + eps_a * a * (y_prev**2. - X_r**2.)
+        if mode == 0:
+            a = a + eps_a * a * (y_prev**2. - X_r**2.)
+        else:
+            a = a + eps_a * a * ((y_prev**2.).mean() - (X_r**2.).mean())
         #a = a + eps_a * (W_av @ (y_prev**2.) - X_r**2.)
         #a = a + eps_a * ((y**2.) - (X_r**2.))
         b = b + eps_b * (y - mu_y_target)
@@ -170,7 +177,7 @@ for k in tqdm(range(n_samples)):
 if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/alt_hom_regulation/'))):
     os.makedirs(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/alt_hom_regulation/'))
 
-np.savez(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/alt_hom_regulation/alt_hom_regulation_'+str(datetime.now().isoformat())+'.npz'),
+np.savez(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/alt_hom_regulation/alt_hom_regulation_'+('local','global')[mode]+'_'+str(datetime.now().isoformat())+'.npz'),
         a=a_rec,
         b=b_rec,
         W=W,

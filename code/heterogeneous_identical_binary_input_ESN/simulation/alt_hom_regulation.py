@@ -8,6 +8,14 @@ from datetime import datetime
 
 import sys
 
+try:
+    mode = sys.argv[1]
+    if not(mode in ('local','global')):
+        print('Wrong mode argument.')
+        sys.exit()
+except:
+    mode = 'local'
+
 N = 500
 
 n_samples = 1

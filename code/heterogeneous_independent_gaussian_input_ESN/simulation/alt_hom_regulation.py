@@ -79,10 +79,10 @@ for k in tqdm(range(n_samples)):
     b = np.zeros((N))
 
     if sigm_w_e > 0.:
-        w_in = np.random.normal(0.,sigm_w_e,(N,1)) * (np.random.rand(N,1) <= cf_w_in)
+        w_in = np.random.normal(0.,sigm_w_e,(N)) * (np.random.rand(N,1) <= cf_w_in)
         #w_in = np.ones((N,1))*sigm_w_e
     else:
-        w_in = np.zeros((N,1))
+        w_in = np.zeros((N))
 
     u_in = (np.random.rand(1,T) >= .5)*2.-1.
 
@@ -101,7 +101,7 @@ for k in tqdm(range(n_samples)):
 
 
     ### first time step
-    X_e[:] = w_in @ u_in[:,0]
+    X_e[:] = w_in * np.random.normal(0.,1.,(N))
     X_r[:] = (np.random.rand(N)-.5)
     X_r[:] *= np.random.rand()*X_r_norm_init_span/np.linalg.norm(X_r)
     y[:] = np.tanh(X_r[:] + X_e[:])
@@ -133,7 +133,7 @@ for k in tqdm(range(n_samples)):
         y_prev = y[:]
 
         X_r[:] = a[:] * (W @ y[:])
-        X_e[:] = w_in @ u_in[:,t]
+        X_e[:] = w_in * np.random.normal(0.,1.,(N))
 
         y[:] = np.tanh(X_r + X_e - b)
 

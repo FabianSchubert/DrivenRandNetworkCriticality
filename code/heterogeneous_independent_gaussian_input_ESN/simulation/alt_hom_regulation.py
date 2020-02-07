@@ -8,6 +8,19 @@ from datetime import datetime
 
 import sys
 
+try:
+    mode = sys.argv[1]
+except:
+    mode = 'local'
+if not(mode in ('local','global')):
+    print('Wrong mode argument.')
+    sys.exit()
+
+if mode=='local':
+    mode = 0
+else:
+    mode = 1
+
 N = 500
 
 n_samples = 1
@@ -66,12 +79,12 @@ for k in tqdm(range(n_samples)):
     b = np.zeros((N))
 
     if sigm_w_e > 0.:
-        w_in = np.random.normal(0.,sigm_w_e,(N)) * (np.random.rand(N) <= cf_w_in)
+        w_in = np.random.normal(0.,sigm_w_e,(N,1)) * (np.random.rand(N,1) <= cf_w_in)
         #w_in = np.ones((N,1))*sigm_w_e
     else:
         w_in = np.zeros((N,1))
 
-    #u_in = (np.random.rand(1,T) >= .5)*2.-1.
+    u_in = (np.random.rand(1,T) >= .5)*2.-1.
 
     y = np.ndarray((N))
     X_r = np.ndarray((N))
@@ -88,7 +101,7 @@ for k in tqdm(range(n_samples)):
 
 
     ### first time step
-    X_e[:] = w_in * np.random.normal(0.,1.,(N))
+    X_e[:] = w_in @ u_in[:,0]
     X_r[:] = (np.random.rand(N)-.5)
     X_r[:] *= np.random.rand()*X_r_norm_init_span/np.linalg.norm(X_r)
     y[:] = np.tanh(X_r[:] + X_e[:])
@@ -120,7 +133,7 @@ for k in tqdm(range(n_samples)):
         y_prev = y[:]
 
         X_r[:] = a[:] * (W @ y[:])
-        X_e[:] = w_in * np.random.normal(0.,1.,(N))
+        X_e[:] = w_in @ u_in[:,t]
 
         y[:] = np.tanh(X_r + X_e - b)
 
@@ -133,7 +146,10 @@ for k in tqdm(range(n_samples)):
         #y_squ_targ = 1.-1./(1.+2.*Var_y.mean() + 2.*Var_X_e)**.5
 
         #a = a + eps_a * a * ((y**2.).mean() - (X_r**2.).mean())
-        a = a + eps_a * a * (y_prev**2. - X_r**2.)
+        if mode == 0:
+            a = a + eps_a * a * (y_prev**2. - X_r**2.)
+        else:
+            a = a + eps_a * a * ((y_prev**2.).mean() - (X_r**2.).mean())
         #a = a + eps_a * (W_av @ (y_prev**2.) - X_r**2.)
         #a = a + eps_a * ((y**2.) - (X_r**2.))
         b = b + eps_b * (y - mu_y_target)
@@ -161,7 +177,7 @@ for k in tqdm(range(n_samples)):
 if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/alt_hom_regulation/'))):
     os.makedirs(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/alt_hom_regulation/'))
 
-np.savez(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/alt_hom_regulation/alt_hom_regulation_'+str(datetime.now().isoformat())+'.npz'),
+np.savez(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/alt_hom_regulation/alt_hom_regulation_'+('local','global')[mode]+'_'+str(datetime.now().isoformat())+'.npz'),
         a=a_rec,
         b=b_rec,
         W=W,

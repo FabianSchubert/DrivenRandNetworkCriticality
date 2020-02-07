@@ -29,6 +29,10 @@ plot_rec_mem_pot_variance_predict.plot(ax2)
 print("plotting gains_sweep.py...")
 plot_gains_sweep.plot(ax3)
 
+ax1.set_title('A',fontdict={'fontweight':'bold'},loc='left')
+ax2.set_title('B',fontdict={'fontweight':'bold'},loc='left')
+ax3.set_title('C',fontdict={'fontweight':'bold'},loc='left')
+
 fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 
 fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_compos.pdf'))

@@ -20,7 +20,7 @@ from tqdm import tqdm
 
 def plot(ax):
 
-    file = get_simfile_prop(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/alt_hom_regulation'))
+    file = get_simfile_prop(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/alt_hom_regulation/alt_hom_regulation'))
 
     dat = np.load(file[0])
 
@@ -39,7 +39,7 @@ def plot(ax):
     r_a = a_rec[0,:,:]**2. * (W**2.).sum(axis=1)
 
     ax.plot(r_a[:,0],c=colors[0],alpha=0.25,label='$R_{{\\rm a},i}$')
-    ax.plot(r_a[:,1:],c=colors[0],alpha=0.25)
+    ax.plot(r_a[:,1:100],c=colors[0],alpha=0.25)
 
     ax.plot(r_a.mean(axis=1),'--',c='k',label='$\\left\\langle R_{{\\rm a},i} \\right\\rangle_{\\rm P}$',lw=2)
 

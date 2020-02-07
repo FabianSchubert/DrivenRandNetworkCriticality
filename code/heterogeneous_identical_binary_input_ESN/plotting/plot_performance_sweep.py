@@ -89,7 +89,6 @@ def plot(ax):
 
         sweep_df.to_pickle(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_processed_data_'+str(datetime.now().isoformat())+'.pkl'))
 
-
     sigm_e = sweep_df.sigm_e.unique()
     sigm_t = sweep_df.sigm_t.unique()
 

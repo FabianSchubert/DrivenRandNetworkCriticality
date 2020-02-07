@@ -64,7 +64,7 @@ sigm_x_e_test = np.ndarray((n_sweep_sigm_e,n_sweep_sigm_t,N))
 for k in tqdm(range(n_sweep_sigm_e)):
     for l in tqdm(range(n_sweep_sigm_t)):
 
-        rnn = RNN(N=N,y_mean_target=y_mean_target,y_std_target=sigm_t[l])
+        rnn = RNN(N=N,y_mean_target=y_mean_target,y_std_target=sigm_t[l],eps_a_e = 0.)
 
         u_in_adapt,u_out = gen_in_out_one_in_subs(T_run_adapt,1)
         u_in_adapt *= sigm_e[k]

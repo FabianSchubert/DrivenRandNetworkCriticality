@@ -79,7 +79,7 @@ for k in tqdm(range(n_samples)):
     b = np.zeros((N))
 
     if sigm_w_e > 0.:
-        w_in = np.random.normal(0.,sigm_w_e,(N)) * (np.random.rand(N,1) <= cf_w_in)
+        w_in = np.random.normal(0.,sigm_w_e,(N)) * (np.random.rand(N) <= cf_w_in)
         #w_in = np.ones((N,1))*sigm_w_e
     else:
         w_in = np.zeros((N))

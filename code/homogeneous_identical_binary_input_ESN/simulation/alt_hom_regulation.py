@@ -79,8 +79,8 @@ for k in tqdm(range(n_samples)):
     b = np.zeros((N))
 
     if sigm_w_e > 0.:
-        w_in = np.random.normal(0.,sigm_w_e,(N,1)) * (np.random.rand(N,1) <= cf_w_in)
-        #w_in = np.ones((N,1))*sigm_w_e
+        #w_in = np.random.normal(0.,sigm_w_e,(N,1)) * (np.random.rand(N,1) <= cf_w_in)
+        w_in = np.ones((N,1))*sigm_w_e
     else:
         w_in = np.zeros((N,1))
 
@@ -174,10 +174,10 @@ for k in tqdm(range(n_samples)):
             ####
     y_norm_rec[k,:] = np.linalg.norm(y_rec,axis=1)
 
-if not(os.path.isdir(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/alt_hom_regulation/'))):
-    os.makedirs(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/alt_hom_regulation/'))
+if not(os.path.isdir(os.path.join(DATA_DIR,'homogeneous_idential_binary_input_ESN/alt_hom_regulation/'))):
+    os.makedirs(os.path.join(DATA_DIR,'homogeneous_idential_binary_input_ESN/alt_hom_regulation/'))
 
-np.savez(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/alt_hom_regulation/alt_hom_regulation_'+('local','global')[mode]+'_'+str(datetime.now().isoformat())+'.npz'),
+np.savez(os.path.join(DATA_DIR,'homogeneous_idential_binary_input_ESN/alt_hom_regulation/alt_hom_regulation_'+('local','global')[mode]+'_'+str(datetime.now().isoformat())+'.npz'),
         a=a_rec,
         b=b_rec,
         W=W,

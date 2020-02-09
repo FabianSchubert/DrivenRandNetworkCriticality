@@ -8,18 +8,31 @@ from datetime import datetime
 
 import sys
 
-try:
-    mode = sys.argv[1]
-except:
-    mode = 'local'
-if not(mode in ('local','global')):
-    print('Wrong mode argument.')
-    sys.exit()
+import argparse
 
-if mode=='local':
-    mode = 0
-else:
-    mode = 1
+parser = argparse.ArgumentParser()
+
+parser.add_argument("input_type",
+help='''specify four type of input (homogeneous_identical_binary,
+homogeneous_independent_gaussian, heterogeneous_identical_binary,
+heterogeneous_independent_gaussian)''',
+choices=['homogeneous_identical_binary',
+'homogeneous_independent_gaussian',
+'heterogeneous_identical_binary',
+'heterogeneous_independent_gaussian'])
+
+parser.add_argument("adaptation_mode",
+help='''specify the mode of adaptation: local or global''',
+choices=['local','global'])
+
+args = parser.parse_args()
+
+input_type = ['homogeneous_identical_binary',
+'homogeneous_independent_gaussian',
+'heterogeneous_identical_binary',
+'heterogeneous_independent_gaussian'].index(args.input_type)
+
+adaptation_mode = ['local','global'].index(args.adaptation_mode)
 
 N = 500
 
@@ -79,12 +92,12 @@ for k in tqdm(range(n_samples)):
     b = np.zeros((N))
 
     if sigm_w_e > 0.:
-        #w_in = np.random.normal(0.,sigm_w_e,(N)) * (np.random.rand(N) <= cf_w_in)
-        w_in = np.ones((N))*sigm_w_e
+        if (input_type in [0,1]):
+            w_in = np.ones(N) * (np.random.rand(N) <= cf_w_in) * (sigm_w_e/cf_w_in**.5)
+        else:
+            w_in = np.random.normal(0.,1.,(N)) * (np.random.rand(N) <= cf_w_in) * (sigm_w_e/cf_w_in**.5)
     else:
         w_in = np.zeros((N))
-
-    #u_in = (np.random.rand(1,T) >= .5)*2.-1.
 
     y = np.ndarray((N))
     X_r = np.ndarray((N))
@@ -101,7 +114,10 @@ for k in tqdm(range(n_samples)):
 
 
     ### first time step
-    X_e[:] = w_in * np.random.normal(0.,1.,(N))
+    if input_type in [0,2]:
+        X_e[:] = w_in * (2.*(np.random.rand() <= 0.5) - 1.)
+    else:
+        X_e[:] = w_in * np.random.normal(0.,1.,(N))
     X_r[:] = (np.random.rand(N)-.5)
     X_r[:] *= np.random.rand()*X_r_norm_init_span/np.linalg.norm(X_r)
     y[:] = np.tanh(X_r[:] + X_e[:])
@@ -133,7 +149,11 @@ for k in tqdm(range(n_samples)):
         y_prev = y[:]
 
         X_r[:] = a[:] * (W @ y[:])
-        X_e[:] = w_in * np.random.normal(0.,1.,(N))
+
+        if input_type in [0,2]:
+            X_e[:] = w_in * (2.*(np.random.rand() <= 0.5) - 1.)
+        else:
+            X_e[:] = w_in * np.random.normal(0.,1.,(N))
 
         y[:] = np.tanh(X_r + X_e - b)
 
@@ -146,7 +166,7 @@ for k in tqdm(range(n_samples)):
         #y_squ_targ = 1.-1./(1.+2.*Var_y.mean() + 2.*Var_X_e)**.5
 
         #a = a + eps_a * a * ((y**2.).mean() - (X_r**2.).mean())
-        if mode == 0:
+        if adaptation_mode == 0:
             a = a + eps_a * a * (y_prev**2. - X_r**2.)
         else:
             a = a + eps_a * a * ((y_prev**2.).mean() - (X_r**2.).mean())
@@ -174,10 +194,13 @@ for k in tqdm(range(n_samples)):
             ####
     y_norm_rec[k,:] = np.linalg.norm(y_rec,axis=1)
 
-if not(os.path.isdir(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/alt_hom_regulation/'))):
-    os.makedirs(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/alt_hom_regulation/'))
+if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type + '_input_ESN/alt_hom_regulation/'))):
+    os.makedirs(os.path.join(DATA_DIR, args.input_type + '_input_ESN/alt_hom_regulation/'))
 
-np.savez(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/alt_hom_regulation/alt_hom_regulation_'+('local','global')[mode]+'_'+str(datetime.now().isoformat())+'.npz'),
+np.savez(os.path.join(DATA_DIR,  args.input_type
+        +'_input_ESN/alt_hom_regulation/alt_hom_regulation_'
+        +args.adaptation_mode
+        +'_'+str(datetime.now().isoformat())+'.npz'),
         a=a_rec,
         b=b_rec,
         W=W,

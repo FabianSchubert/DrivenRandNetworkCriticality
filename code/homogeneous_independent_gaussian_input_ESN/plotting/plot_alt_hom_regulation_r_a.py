@@ -30,7 +30,7 @@ if not(mode in ('local','global')):
 
 def plot(ax):
 
-    file = get_simfile_prop(os.path.join(DATA_DIR,'heterogeneous_independent_gaussian_input_ESN/alt_hom_regulation/alt_hom_regulation'+mode))
+    file = get_simfile_prop(os.path.join(DATA_DIR,'homogeneous_independent_gaussian_input_ESN/alt_hom_regulation/alt_hom_regulation'+mode))
 
     dat = np.load(file[0])
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     fig.tight_layout(pad=0.1)
 
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_independent_gaussian_input_alt_hom_regulation_r_a'+mode+'.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_independent_gaussian_input_alt_hom_regulation_r_a'+mode+'.png'),dpi=1000)
+    fig.savefig(os.path.join(PLOT_DIR,'homogeneous_independent_gaussian_input_alt_hom_regulation_r_a'+mode+'.pdf'))
+    fig.savefig(os.path.join(PLOT_DIR,'homogeneous_independent_gaussian_input_alt_hom_regulation_r_a'+mode+'.png'),dpi=1000)
 
     plt.show()

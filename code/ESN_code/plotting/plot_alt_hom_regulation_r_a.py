@@ -50,7 +50,7 @@ def plot(ax,input_type,adaptation_mode):
 
     ax.ticklabel_format(axis='x',style='sci',scilimits=(0,0),useMathText=True)
 
-    leg = plt.legend()
+    leg = ax.legend()
     for lh in leg.legendHandles:
         lh.set_alpha(1)
 

@@ -20,7 +20,7 @@ from tqdm import tqdm
 
 import argparse
 
-def plot(ax,input_type,adaptation_mode):
+def plot(ax,input_type,adaptation_mode,label_str,col=colors[0]):
 
     file = get_simfile_prop(os.path.join(DATA_DIR,input_type
     +'_input_ESN/alt_hom_regulation/alt_hom_regulation_'+adaptation_mode))
@@ -42,10 +42,13 @@ def plot(ax,input_type,adaptation_mode):
     l_start = np.linalg.eigvals((W.T * a_rec[0,0,:]).T)
     l_end = np.linalg.eigvals((W.T * a_rec[0,-1,:]).T)
 
-    ax.plot(l_start.real,l_start.imag,'.',markersize=5,label='$t=0$')
-    sc_not_exp = int(np.log10(a_rec.shape[1]))
-    sc_not_fact = a_rec.shape[1]/10**sc_not_exp
-    ax.plot(l_end.real,l_end.imag,'.',markersize=5,label='$t='+str(sc_not_fact)+'\\times 10^'+str(sc_not_exp)+'$')
+    #ax.plot(l_start.real,l_start.imag,'.',markersize=5,label='$t=0$')
+    #sc_not_fact = a_rec.shape[1]/10**sc_not_exp
+    #sc_not_exp = int(np.log10(a_rec.shape[1]))
+    #ax.plot(l_end.real,l_end.imag,'.',markersize=5,label='$t='+str(sc_not_fact)+'\\times 10^'+str(sc_not_exp)+'$')
+    ax.plot(l_end.real,l_end.imag,'.',markersize=3,alpha=0.25,c=col,label=label_str)
+    circle = plt.Circle((0,0),np.abs(l_end).max(),color=col,alpha=0.25)
+    ax.add_artist(circle)
 
     ax.set_xlabel('$\\mathrm{Re}(\\lambda_i)$')
     ax.set_ylabel('$\\mathrm{Im}(\\lambda_i)$')
@@ -75,7 +78,7 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH*0.8,TEXT_WIDTH*0.6))
 
-    plot(ax,args.input_type,args.adaptation_mode)
+    plot(ax,args.input_type,args.adaptation_mode,ax,args.input_type+args.adaptation_mode)
 
     fig.tight_layout(pad=0.1)
 

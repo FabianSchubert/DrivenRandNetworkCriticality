@@ -30,12 +30,12 @@ ax2.set_title('B',fontdict={'fontweight':'bold'},loc='left')
 ax3.set_title('C',fontdict={'fontweight':'bold'},loc='left')
 ax4.set_title('D',fontdict={'fontweight':'bold'},loc='left')
 
-r_a.plot(ax1,'heterogeneous_identical_binary','local')
+r_a.plot(ax1,'heterogeneous_identical_binary','local',col=colors[0])
 ax1.set_ylim([0.,5.])
 
-r_a.plot(ax2,'heterogeneous_independent_gaussian','local')
+r_a.plot(ax2,'heterogeneous_independent_gaussian','local',col=colors[1])
 
-r_a.plot(ax3,'heterogeneous_identical_binary','global')
+r_a.plot(ax3,'heterogeneous_identical_binary','global',col=colors[2])
 
 specrad.plot(ax4,'heterogeneous_identical_binary','local','A',col=colors[0])
 specrad.plot(ax4,'heterogeneous_independent_gaussian','local','B',col=colors[1])
@@ -45,5 +45,7 @@ fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 
 fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_composite.pdf'))
 fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_composite.png'),dpi=1000)
+
+fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_composite_low_res.png'),dpi=300)
 
 plt.show()

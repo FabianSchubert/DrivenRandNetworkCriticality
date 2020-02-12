@@ -14,6 +14,8 @@ import seaborn as sns
 sns.set()
 mpl.style.use('matplotlibrc')
 
+import matplotlib.patches as mpatches
+
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 from tqdm import tqdm
@@ -46,8 +48,8 @@ def plot(ax,input_type,adaptation_mode,label_str,col=colors[0]):
     #sc_not_fact = a_rec.shape[1]/10**sc_not_exp
     #sc_not_exp = int(np.log10(a_rec.shape[1]))
     #ax.plot(l_end.real,l_end.imag,'.',markersize=5,label='$t='+str(sc_not_fact)+'\\times 10^'+str(sc_not_exp)+'$')
-    ax.plot(l_end.real,l_end.imag,'.',markersize=3,alpha=0.25,c=col,label=label_str)
-    circle = plt.Circle((0,0),np.abs(l_end).max(),color=col,alpha=0.25)
+    ax.plot(l_end.real,l_end.imag,'.',markersize=4,alpha=0.8,c=col,label=label_str)
+    circle = plt.Circle((0,0),np.abs(l_end).max(),facecolor=(0,0,0,0),edgecolor=col,lw=1.5,linestyle='--')
     ax.add_artist(circle)
 
     ax.set_xlabel('$\\mathrm{Re}(\\lambda_i)$')
@@ -78,7 +80,7 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH*0.8,TEXT_WIDTH*0.6))
 
-    plot(ax,args.input_type,args.adaptation_mode,ax,args.input_type+args.adaptation_mode)
+    plot(ax,args.input_type,args.adaptation_mode,args.input_type+args.adaptation_mode)
 
     fig.tight_layout(pad=0.1)
 

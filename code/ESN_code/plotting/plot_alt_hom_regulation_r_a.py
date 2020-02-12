@@ -22,7 +22,7 @@ import sys
 
 import argparse
 
-def plot(ax,input_type,adaptation_mode):
+def plot(ax,input_type,adaptation_mode,col=colors[0]):
 
     file = get_simfile_prop(os.path.join(DATA_DIR,input_type
     +'_input_ESN/alt_hom_regulation/alt_hom_regulation_'+adaptation_mode))
@@ -43,8 +43,8 @@ def plot(ax,input_type,adaptation_mode):
 
     r_a = a_rec[0,:,:]**2. * (W**2.).sum(axis=1)
 
-    ax.plot(r_a[:,0],c=colors[0],alpha=0.25,label='$R^2_{{\\rm a},i}$')
-    ax.plot(r_a[:,1:100],c=colors[0],alpha=0.25)
+    ax.plot(r_a[:,0],c=col,alpha=0.25,label='$R^2_{{\\rm a},i}$')
+    ax.plot(r_a[:,1:100],c=col,alpha=0.25)
 
     ax.plot(r_a.mean(axis=1),'--',c='k',label='$R^2_{\\rm a}$',lw=2)
 

@@ -210,10 +210,10 @@ for k in tqdm(range(n_sweep_sigm_e)):
         sigm_x_r_test[k,l,:] = X_r.std(axis=0)
         sigm_x_e_test[k,l,:] = X_e.std(axis=0)
 
-if not(os.path.isdir(os.path.join(DATA_DIR, input_type+'_input_ESN/'))):
-    os.makedirs(os.path.join(DATA_DIR, input_type+'_input_ESN/'))
+if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type+'_input_ESN/'))):
+    os.makedirs(os.path.join(DATA_DIR, args.input_type+'_input_ESN/'))
 
-np.savez(os.path.join(DATA_DIR, input_type+'_input_ESN/param_sweep_performance_'
+np.savez(os.path.join(DATA_DIR, args.input_type+'_input_ESN/param_sweep_performance_'
         +str(datetime.now().isoformat())+'.npz'),
         sigm_t=sigm_t,
         sigm_e=sigm_e,
@@ -224,5 +224,4 @@ np.savez(os.path.join(DATA_DIR, input_type+'_input_ESN/param_sweep_performance_'
         W=W,
         a=a,
         b=b,
-        MC=MC,
-        ESP=ESP)
+        MC=MC)

@@ -17,13 +17,13 @@ from tqdm import tqdm
 
 from src.analysis_tools import get_simfile_prop
 
-def plot(ax):
+def plot(ax,input_type):
 
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
     cmap = mpl.cm.get_cmap('viridis')
 
-    simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/gains_sweep/gains_sweep_run_'))
+    simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR, input_type + '_input_ESN/gains_sweep/gains_sweep_run_'))
 
     print('Loading data from ' + simfile + '...')
 
@@ -53,7 +53,7 @@ def plot(ax):
     sigm_w = W.std(axis=3)*N**.5
 
     ### check if cache file (starting with 'gain_solutions...') with solutions exsists and has the right time stamp:
-    cachefile_list = glob.glob(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/gains_sweep/gains_solutions_*'))
+    cachefile_list = glob.glob(os.path.join(DATA_DIR, input_type + '_input_ESN/gains_sweep/gains_solutions_*'))
 
     cachefile_load = None
 
@@ -82,6 +82,7 @@ def plot(ax):
         sigm_X_e = X_e.std(axis=2)
 
         for l in tqdm(range(n_sigm_t)):
+            #for k in tqdm(range(n_sigm_e)):
             for k in tqdm(range(n_sigm_e)):
                 if not(sigm_e[k]==0 and sigm_t[l]==0):
                     for n in tqdm(range(N)):
@@ -93,12 +94,13 @@ def plot(ax):
                 else:
                     a_pred[k,l,:] = 1.
         print('saving result...')
-        np.save(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/gains_solutions_'+timestamp+'.npy'),a_pred)
+        np.save(os.path.join(DATA_DIR, input_type + '_input_ESN/gains_solutions_'+timestamp+'.npy'),a_pred)
     ####
 
     a_pred_norm = ((a_pred**2.).sum(axis=2)/N)**.5
 
-    for k in range(n_sigm_e):
+    #for k in range(n_sigm_e):
+    for k in [0,2,4]:
 
         col = cmap(0.8*k/n_sigm_e)
         #ax.plot(sigm_t,a_mean[:,k],'^',color=col,label='$\\sigma_{\\rm ext} = $' +  str(sigm_e[k]))
@@ -118,11 +120,11 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH,TEXT_WIDTH*0.6))
 
-    plot(ax)
+    plot(ax,'homogeneous_identical_binary')
 
     fig.tight_layout(pad=0.1)
 
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_gains.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_gains.png'),dpi=1000)
+    fig.savefig(os.path.join(PLOT_DIR, 'homogeneous_identical_binary' + '_input_gains.pdf'))
+    fig.savefig(os.path.join(PLOT_DIR, 'homogeneous_identical_binary' + '_input_gains.png'),dpi=1000)
 
     plt.show()

@@ -16,7 +16,6 @@ class RNN():
         self.cf = kwargs.get('cf',.1)
         self.cf_in = kwargs.get('cf_in',1.)
         self.a_r = np.ones((self.N)) * kwargs.get('a_r',1.)
-        self.a_e = np.ones((self.N)) * kwargs.get('a_e',1.)
         self.b = np.ones((self.N)) * kwargs.get('b',0.)
         self.mu_w = kwargs.get('mu_w',0.)
         self.mu_w_in = kwargs.get('mu_w_in',0.)
@@ -27,7 +26,6 @@ class RNN():
         self.dim_out = kwargs.get('dim_out',1)
 
         self.eps_a_r = np.ones((self.N)) * kwargs.get('eps_a_r',0.001)
-        self.eps_a_e = np.ones((self.N)) * kwargs.get('eps_a_e',0.001)
         self.eps_w_out = np.ones((self.dim_out,self.N+1))
         self.eps_w_out[:,0] *= 1.
         self.eps_w_out *= kwargs.get('eps_w_out',0.001)
@@ -98,12 +96,12 @@ class RNN():
         y[:,0] = 1.
 
 
-        y[0,1:] = self.f(self.a_e*(self.w_in @ u_in[0,:]) - self.b)
+        y[0,1:] = self.f(self.w_in @ u_in[0,:] - self.b)
 
 
         for t in tqdm(range(1,n_t),disable=not(show_progress)):
 
-            y[t,1:] = self.f(self.a_r*(self.W.dot(y[t-1,1:])) + self.a_e*(self.w_in @ u_in[t,:]) - self.b)
+            y[t,1:] = self.f(self.a_r*(self.W.dot(y[t-1,1:])) + self.w_in @ u_in[t,:] - self.b)
 
         self.w_out[:,:] = (np.linalg.inv(y[T_prerun:,:].T @ y[T_prerun:,:] + reg_fact*np.eye(self.N+1)) @ y[T_prerun:,:].T @ u_target[T_prerun:,:]).T
 
@@ -123,9 +121,7 @@ class RNN():
         O_rec = np.ndarray((T_rec,self.dim_out))
         err_rec = np.ndarray((T_rec,self.dim_out))
         a_r_rec = np.ndarray((T_rec,self.N))
-        a_e_rec = np.ndarray((T_rec,self.N))
         delta_a_r_rec = np.ndarray((T_rec))
-        delta_a_e_rec = np.ndarray((T_rec))
         w_out_rec = np.ndarray((T_rec,self.dim_out,self.N+1))
         ####
 
@@ -142,17 +138,15 @@ class RNN():
         sign_err = np.ndarray((self.dim_out))
 
         dyda_r = np.zeros((self.N))
-        dyda_e = np.zeros((self.N))
 
         delta_a_r = 0.#np.ndarray((self.N))
-        delta_a_e = 0.#np.ndarray((self.N))
 
         delta_w_out = np.ndarray((self.dim_out,self.N+1))
 
         X_r[:] = np.random.normal(0.,1.,(self.N))
         X_e[:] = self.w_in @ u_in[0,:]
 
-        y[1:] = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+        y[1:] = self.f(self.a_r * X_r + X_e - self.b)
 
         O[:] = self.w_out @ y
         err[:] = O - u_out[0,:]
@@ -164,10 +158,8 @@ class RNN():
         O_rec[0,:] = O
         err_rec[0,:] = err
         a_r_rec[0,:] = self.a_r
-        a_e_rec[0,:] = self.a_e
         w_out_rec[0,:,:] = self.w_out
         delta_a_r_rec[0] = 0.
-        delta_a_e_rec[0] = 0.
         ####
 
         for t in tqdm(range(1,T),disable=not(show_progress)):
@@ -175,7 +167,7 @@ class RNN():
             X_r = self.W @ y[1:]
             X_e = self.w_in @ u_in[t,:]
 
-            y[1:] = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+            y[1:] = self.f(self.a_r * X_r + X_e - self.b)
 
             #### calc err
             O = self.w_out @ y
@@ -186,22 +178,16 @@ class RNN():
 
             #### update gains
             #dyda_r = self.df_y(y[1:])*(X_r + self.a_r[0]*self.W @ dyda_r)
-            #dyda_e = self.df_y(y[1:])*(X_e + self.a_r[0]*self.W @ dyda_e)
 
             dyda_r = self.df_y(y[1:])*X_r
-            dyda_e = self.df_y(y[1:])*X_e
 
             #delta_a_r = -(self.w_out[:,1:].T @ err) * self.df_y(y[1:]) * X_r
-            #delta_a_e = -(self.w_out[:,1:].T @ err) * self.df_y(y[1:]) * X_e
 
             delta_a_r = -(err * (self.w_out[:,1:] @ dyda_r)).sum()
-            delta_a_e = -(err * (self.w_out[:,1:] @ dyda_e)).sum()
 
             self.a_r += self.eps_a_r * delta_a_r
-            self.a_e += self.eps_a_e * delta_a_e
 
-            self.a_r = np.maximum(0.01,self.a_r)
-            self.a_e = np.maximum(0.01,self.a_e)
+            self.a_r = np.maximum(0.001,self.a_r)
             ####
 
             #### update readout weights
@@ -223,14 +209,12 @@ class RNN():
                 O_rec[t_rec,:] = O
                 err_rec[t_rec,:] = err
                 a_r_rec[t_rec,:] = self.a_r
-                a_e_rec[t_rec,:] = self.a_e
                 delta_a_r_rec[t_rec] = delta_a_r
-                delta_a_e_rec[t_rec] = delta_a_e
                 w_out_rec[t_rec,:,:] = self.w_out
 
         t_ax = np.array(range(T_rec))*T_skip_rec
 
-        return t_ax,y_rec,X_r_rec,X_e_rec,O_rec,err_rec,w_out_rec,a_r_rec,a_e_rec,delta_a_r_rec,delta_a_e_rec
+        return t_ax,y_rec,X_r_rec,X_e_rec,O_rec,err_rec,w_out_rec,a_r_rec,delta_a_r_rec
 
     def predict_data(self,data,return_reservoir_rec=False,show_progress=True):
 
@@ -243,11 +227,11 @@ class RNN():
         y = np.ndarray((n_t,self.N+1))
         y[:,0] = 1.
 
-        y[0,1:] = self.f(self.a_e*(self.w_in @ u_in[0,:]) - self.b)
+        y[0,1:] = self.f(self.w_in @ u_in[0,:] - self.b)
 
         for t in tqdm(range(1,n_t),disable=not(show_progress)):
 
-            y[t,1:] = self.f(self.a_r*(self.W.dot(y[t-1,1:])) + self.a_e*(self.w_in @ u_in[t,:]) - self.b)
+            y[t,1:] = self.f(self.a_r*(self.W.dot(y[t-1,1:])) + self.w_in @ u_in[t,:] - self.b)
 
         out = (self.w_out @ y.T).T
         if self.dim_out == 1:
@@ -276,7 +260,6 @@ class RNN():
         X_r_rec = np.ndarray((T_rec,self.N))
         X_e_rec = np.ndarray((T_rec,self.N))
         a_r_rec = np.ndarray((T_rec,self.N))
-        a_e_rec = np.ndarray((T_rec,self.N))
         b_rec = np.ndarray((T_rec,self.N))
         y_mean_rec = np.ndarray((T_rec,self.N))
         y_std_rec = np.ndarray((T_rec,self.N))
@@ -296,7 +279,7 @@ class RNN():
         else:
             X_e = np.random.normal(0.,sigm_e,(self.N))
 
-        y = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+        y = self.f(self.a_r * X_r + X_e - self.b)
         y_mean = y[:]
         y_var[:] = 0.
 
@@ -308,7 +291,6 @@ class RNN():
         X_r_rec[0,:] = X_r
         X_e_rec[0,:] = X_e
         a_r_rec[0,:] = self.a_r
-        a_e_rec[0,:] = self.a_e
         b_rec[0,:] = self.b
         y_mean_rec[0,:] = y_mean
         y_std_rec[0,:] = y_var**.5
@@ -322,7 +304,7 @@ class RNN():
             else:
                 X_e = np.random.normal(0.,sigm_e,(self.N))
 
-            y = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+            y = self.f(self.a_r * X_r + X_e - self.b)
 
             y_mean += self.eps_y_mean * ( -y_mean + y)
             y_var += self.eps_y_std * ( -y_var + (y-y_mean)**2.)
@@ -331,10 +313,8 @@ class RNN():
             delta_b = (y - self.y_mean_target)
 
             self.a_r += self.eps_a_r * delta_a
-            self.a_e += self.eps_a_e * delta_a
 
-            self.a_r = np.maximum(0.,self.a_r)
-            self.a_e = np.maximum(0.,self.a_e)
+            self.a_r = np.maximum(0.001,self.a_r)
 
             self.b += self.eps_b * delta_b
 
@@ -347,12 +327,11 @@ class RNN():
                 X_r_rec[t_rec,:] = X_r
                 X_e_rec[t_rec,:] = X_e
                 a_r_rec[t_rec,:] = self.a_r
-                a_e_rec[t_rec,:] = self.a_e
                 b_rec[t_rec,:] = self.b
                 y_mean_rec[t_rec,:] = y_mean
                 y_std_rec[t_rec,:] = y_var**.5
 
-        return y_rec, X_r_rec, X_e_rec, a_r_rec, a_e_rec, b_rec, y_mean_rec, y_std_rec
+        return y_rec, X_r_rec, X_e_rec, a_r_rec, b_rec, y_mean_rec, y_std_rec
 
     def run_sample(self,u_in=None,sigm_e=1.,X_r_init=None,T_skip_rec = 1,T=None,show_progress=True):
 
@@ -388,7 +367,7 @@ class RNN():
         else:
             X_e = np.random.normal(0.,sigm_e,(self.N))
 
-        y = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+        y = self.f(self.a_r * X_r + X_e - self.b)
 
         #### Assign for t=0
         y_rec[0,:] = y
@@ -404,7 +383,7 @@ class RNN():
             else:
                 X_e = np.random.normal(0.,sigm_e,(self.N))
 
-            y = self.f(self.a_r * X_r + self.a_e * X_e - self.b)
+            y = self.f(self.a_r * X_r + X_e - self.b)
 
 
             #### record

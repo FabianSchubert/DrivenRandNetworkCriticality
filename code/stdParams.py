@@ -3,7 +3,7 @@ import os
 DATA_DIR = os.path.join(os.path.dirname(__file__),"../data")
 PLOT_DIR = os.path.join(os.path.dirname(__file__),"../plots")
 
-TEXT_WIDTH = 6.323
+TEXT_WIDTH = 5.78
 
 BRIGHT_YELLOW = (1.,.8,.0)
 BRIGHT_BLUE = (0.,.66,1.)

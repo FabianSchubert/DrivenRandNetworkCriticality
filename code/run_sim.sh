@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-./sweep_run_homogeneous_independent_gaussian.sh
-./sweep_run_homogeneous_identical_binary.sh
-./sweep_run_heterogeneous_identical_binary.sh
-./scaling_run_homogeneous_independent_gaussian.sh
+for k in $(seq 5)
+do
+    echo $k of 5
+    python3 -m ESN_code.simulation.param_sweep_performance heterogeneous_identical_binary
+    python3 -m ESN_code.simulation.param_sweep_performance heterogeneous_independent_gaussian
+    python3 -m ESN_code.simulation.param_sweep_performance homogeneous_identical_binary
+    python3 -m ESN_code.simulation.param_sweep_performance homogeneous_independent_gaussian
+done

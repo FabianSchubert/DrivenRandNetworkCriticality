@@ -17,15 +17,15 @@ from src.analysis_tools import get_simfile_prop
 
 import pandas as pd
 
-def plot(ax):
+def plot(ax,input_type):
 
     #check if there is already a saved dataframe...
     try:
-        corr_df = pd.read_hdf(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/corr_df.h5'), 'table')
+        corr_df = pd.read_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/corr_df.h5'), 'table')
     except:
         print("No dataframe found! Creating it...")
 
-        file_search = glob.glob(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/N_500/param_sweep_*'))
+        file_search = glob.glob(os.path.join(DATA_DIR, input_type + '_input_ESN/N_500/param_sweep_*'))
 
         colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
@@ -71,7 +71,7 @@ def plot(ax):
 
         corr_df["sigm_e"] = ["$%s$" % x for x in corr_df["sigm_e"]]
 
-        corr_df.to_hdf(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/corr_df.h5'),'table')
+        corr_df.to_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/corr_df.h5'),'table')
 
     '''
     file_search = glob.glob(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/N_500/param_sweep_*'))
@@ -140,11 +140,11 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH,TEXT_WIDTH*0.6))
 
-    plot(ax)
+    plot(ax,'heterogeneous_identical_binary')
 
     fig.tight_layout(pad=0.1)
 
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_corr_act.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_corr_act.png'),dpi=1000)
+    fig.savefig(os.path.join(PLOT_DIR, 'heterogeneous_identical_binary' + '_input_corr_act.pdf'))
+    fig.savefig(os.path.join(PLOT_DIR, 'heterogeneous_identical_binary' + '_input_corr_act.png'),dpi=1000)
 
     plt.show()

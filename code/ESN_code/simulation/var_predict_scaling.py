@@ -61,7 +61,7 @@ default=0.561)
 parser.add_argument("--n_samples",
 help="number of runs to average over for each data point.",
 type=int,
-default=5)
+default=10)
 
 args = parser.parse_args()
 
@@ -71,7 +71,9 @@ input_type = ['homogeneous_identical_binary',
 'heterogeneous_independent_gaussian'].index(args.input_type)
 
 N_list = [100,200,300,400,500,700,1000]
-n_N = len(N)
+n_N = len(N_list)
+
+n_samples = args.n_samples
 
 sigm_e = args.sigm_e
 sigm_t = args.sigm_t
@@ -87,9 +89,11 @@ MAE_list = []
 
 ####################################
 
-for k, N in tqdm(enumerate(N_list)):
+for k in tqdm(range(n_N)):
 
-    for l in range(n_samples):
+    N = N_list[k]
+
+    for l in tqdm(range(n_samples)):
 
         rnn = RNN(N=N,y_mean_target=y_mean_target,y_std_target=sigm_t)
 
@@ -163,24 +167,13 @@ for k, N in tqdm(enumerate(N_list)):
 
         MAE = np.abs(Var_X_r - Var_y).mean()
 
-        MAE_list.append(dict('N':N,'MAE':MAE))
+        MAE_list.append({'N':N,'MAE':MAE})
 
 MAE_df = pd.DataFrame(MAE_list, columns=('N','MAE'))
 
-import pdb
-pdb.set_trace()
-
 ################################
 
-if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type+'_input_ESN/var_predict_scaling/N_' + str(N)))):
-    os.makedirs(os.path.join(DATA_DIR, args.input_type+'_input_ESN/var_predict_scaling/N_' + str(N)))
+if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type+'_input_ESN'))):
+    os.makedirs(os.path.join(DATA_DIR, args.input_type+'_input_ESN'))
 
-np.savez(os.path.join(DATA_DIR, args.input_type+'_input_ESN/var_predict_scaling/N_' + str(N) + '/param_sweep_'+str(datetime.now().isoformat())+'.npz'),
-        sigm_t=sigm_t,
-        sigm_e=sigm_e,
-        y=y,
-        X_r=X_r,
-        X_e=X_e,
-        W=W,
-        a=a,
-        b=b)
+MAE_df.to_hdf(os.path.join(DATA_DIR, args.input_type + '_input_ESN/var_predict_scaling_df.h5'),'table')

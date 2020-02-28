@@ -18,11 +18,26 @@ colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 from tqdm import tqdm
 
-def plot(ax):
+import argparse
 
-    file = get_simfile_prop(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/alt_hom_regulation'))
+parser = argparse.ArgumentParser()
 
-    dat = np.load(file[0])
+parser.add_argument("input_type",
+help='''specify four type of input (homogeneous_identical_binary,
+homogeneous_independent_gaussian, heterogeneous_identical_binary,
+heterogeneous_independent_gaussian)''',
+choices=['homogeneous_identical_binary',
+'homogeneous_independent_gaussian',
+'heterogeneous_identical_binary',
+'heterogeneous_independent_gaussian'])
+
+def plot(ax,input_type):
+
+    try:
+        dat = np.load(os.path.join(DATA_DIR, input_type + '_input_ESN/alt_hom_regulation/flow_data.npz'))
+    except:
+        print("Could not load data file!")
+        sys.exit()
 
     a_rec = dat['a']
     y_norm_rec = dat['y_norm']
@@ -40,24 +55,24 @@ def plot(ax):
     n_averaging_inp = 1000
 
     a = np.linspace(0.,2.5,500)
-    vy = np.linspace(0.,1.*N,500)
+    vy = np.linspace(0.,1.,500)
 
     A,VY = np.meshgrid(a,vy)
 
-    delta_a = eps_a*A*(1.-A**2.)*VY/N
+    delta_a = eps_a*A*(1.-A**2.)*VY
 
     delta_vy = np.zeros((500,500))
 
     for k in tqdm(range(n_averaging_inp)):
 
-        delta_vy += N*(1-(1. + 2*A**2.*VY/N + 2.*np.random.normal(0.,sigm_w_e)**2.)**(-.5))-VY
+        delta_vy += 1-(1. + 2*A**2.*VY + 2.*np.random.normal(0.,sigm_w_e)**2.)**(-.5)-VY
 
     delta_vy /= n_averaging_inp
 
 
     ax.streamplot(A,VY,delta_a,delta_vy)
 
-    vy_pl = np.linspace(0.,1.*N,1000)
+    vy_pl = np.linspace(0.,1.,1000)
     a_pl = np.linspace(0.,2.5,1000)
 
 
@@ -65,8 +80,8 @@ def plot(ax):
     #ax.plot((((1.-vy_pl/N)**(-2.)/2. - v_e - .5 )/(sigm_w**2.*vy_pl/N))**.5,vy_pl)
     #ax.plot(0.*a + sigm_w**(-1.),vy)
 
-    for k in range(50):
-        plt.plot(a_rec[k,:,0],y_norm_rec[k,:]**2.,c=colors[1],alpha=1.,lw=1)
+    for k in range(n_samples):
+        plt.plot(a_rec[k,:,0],y_norm_rec[k,:]**2./N,c=colors[1],alpha=1.,lw=1)
         #plt.plot(a_rec[k,1:,0])
         #plt.plot(y_norm_rec[k,1:])
 
@@ -74,20 +89,24 @@ def plot(ax):
     ax.contour(a,vy,delta_vy,levels=[0.],colors=[colors[3]],linewidths=[2.],zorder=4)
 
     ax.set_xlim([a_pl[0]-.1,a_pl[-1]])
-    ax.set_ylim([vy_pl[0]-30.,vy_pl[-1]])
+    ax.set_ylim([vy_pl[0]-.1,vy_pl[-1]])
 
     ax.set_xlabel('$a$')
-    ax.set_ylabel('$||\\mathbf{y}||^2$')
+    ax.set_ylabel('$\\sigma_{\\rm y}^2$')
 
 if __name__ == '__main__':
 
+    args = parser.parse_args()
+
+    input_type = args.input_type
+
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH,TEXT_WIDTH*0.6))
 
-    plot(ax)
+    plot(ax,input_type)
 
     fig.tight_layout(pad=0.1)
 
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_alt_hom_regulation.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_alt_hom_regulation.png'),dpi=1000)
+    fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.pdf'))
+    fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.png'),dpi=300)
 
     plt.show()

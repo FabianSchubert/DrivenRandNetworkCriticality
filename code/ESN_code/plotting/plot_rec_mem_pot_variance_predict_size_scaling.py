@@ -17,9 +17,14 @@ from pathlib import Path
 
 from src.analysis_tools import get_simfile_prop
 
-def plot(ax,input_type):
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+def plot(ax,input_type,col=colors[0]):
 
     #check if there is already a saved dataframe...
+
+    MAE_df = pd.read_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/var_predict_scaling_df.h5'), 'table')
+    '''
     try:
         MSE_df = pd.read_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/var_predict_scaling_df.h5'), 'table')
     except:
@@ -88,8 +93,8 @@ def plot(ax,input_type):
 
     MSE_df = MSE_df.loc[MSE_df['sigm_e']==.5]
     #MSE_df["N"] = ["$%s$" % x for x in MSE_df["N"].astype('int')]
-
-    sns.lineplot(ax=ax,x='N',y='MSE',data=MSE_df)
+    '''
+    sns.lineplot(ax=ax,x='N',y='MAE',data=MAE_df,color=col,linewidth=1.5)
 
     #ax.legend().texts[0].set_text('$\\sigma_{\\rm e}$')
 

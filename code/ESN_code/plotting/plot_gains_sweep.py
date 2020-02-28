@@ -23,7 +23,7 @@ def plot(ax,input_type):
 
     cmap = mpl.cm.get_cmap('viridis')
 
-    simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR, input_type + '_input_ESN/gains_sweep/gains_sweep_run_'))
+    simfile,timestamp = get_simfile_prop(os.path.join(DATA_DIR, input_type + '_input_ESN/gains_sweep/param_sweep_'))
 
     print('Loading data from ' + simfile + '...')
 
@@ -45,12 +45,9 @@ def plot(ax,input_type):
     ### solve analytical approximation numerically
     a_pred = np.ndarray((n_sigm_e,n_sigm_t))
 
-    W = dat['W']
-    N = W.shape[2]
+    N = a.shape[2]
 
     a_norm = ((a**2.).sum(axis=2).T/N)**.5
-
-    sigm_w = W.std(axis=3)*N**.5
 
     ### check if cache file (starting with 'gain_solutions...') with solutions exsists and has the right time stamp:
     cachefile_list = glob.glob(os.path.join(DATA_DIR, input_type + '_input_ESN/gains_sweep/gains_solutions_*'))
@@ -81,26 +78,51 @@ def plot(ax,input_type):
 
         sigm_X_e = X_e.std(axis=2)
 
+
+
         for l in tqdm(range(n_sigm_t)):
             #for k in tqdm(range(n_sigm_e)):
+
+
+
+
+            func = lambda s: integrate.quad(lambda x: np.tanh(x)**2.*np.exp(-0.5*x**2./s**2.),
+            -np.inf,np.inf)[0]/(2.*np.pi*s**2.)**.5 - sigm_t[l]**2.
+
+            s_guess = ((1./(1.-sigm_t[l]**2.)**2. - 1.)/2.)**.5
+
+            s_sol = newton_krylov(func,s_guess+1e-2)
+
             for k in tqdm(range(n_sigm_e)):
                 if not(sigm_e[k]==0 and sigm_t[l]==0):
                     for n in tqdm(range(N)):
-                        sigm_squ = sigm_w[k,l,n]**2.*sigm_t[l]**2. + sigm_X_e[k,l,n]**2.
-                        a_sol_pred = (((1.-sigm_t[l]**2.)**(-2.) - 1.)/(2.*sigm_squ))**.5
-                        func = lambda A: integrate.quad(lambda x: np.tanh(A*x)**2.*np.exp(-0.5*x**2./sigm_squ),-np.inf,np.inf)[0]/(2.*np.pi*sigm_squ)**.5 - sigm_t[l]**2.
-                        solver_res = newton_krylov(func,a_sol_pred)
-                        a_pred[k,l,n] = solver_res[()]
+                        ### make prediction to speed up convergence
+                        a_pred[k,l,n] = np.maximum(0.,s_sol**2. - sigm_X_e[k,l,n]**2.)**.5/sigm_t[l]
+                        '''
+                        if((1.-sigm_t[l]**2.)**2.*(1.+2.*sigm_X_e[k,l,n]**2.)<1.):
+                            a_sol_pred = ((1.-(1.-sigm_t[l]**2.)**2.*(1.+2.*sigm_X_e[k,l,n]**2.))/(2.*(1.-sigm_t[l]**2.)**2.*sigm_t[l]**2.))**.5
+                        else:
+                            a_sol_pred = 0.
+
+                        func = lambda A: integrate.quad(lambda x: np.tanh(x)**2.*np.exp(-0.5*x**2./(A**2.*sigm_t[l]**2. + sigm_X_e[k,l,n]**2.)),
+                        -np.inf,np.inf)[0]/(2.*np.pi*(A**2.*sigm_t[l]**2. + sigm_X_e[k,l,n]**2.))**.5 - sigm_t[l]**2.
+                        try:
+                            solver_res = newton_krylov(func,a_sol_pred)
+                            a_pred[k,l,n] = solver_res[()]
+                        except:
+                            a_pred[k,l,n] = 0.
+                        '''
+
                 else:
                     a_pred[k,l,:] = 1.
         print('saving result...')
-        np.save(os.path.join(DATA_DIR, input_type + '_input_ESN/gains_solutions_'+timestamp+'.npy'),a_pred)
+        np.save(os.path.join(DATA_DIR, input_type + '_input_ESN/gains_sweep/gains_solutions_'+timestamp+'.npy'),a_pred)
     ####
 
     a_pred_norm = ((a_pred**2.).sum(axis=2)/N)**.5
 
-    #for k in range(n_sigm_e):
-    for k in [0,2,4]:
+    for k in range(n_sigm_e):
+    #for k in [0,2,4]:
 
         col = cmap(0.8*k/n_sigm_e)
         #ax.plot(sigm_t,a_mean[:,k],'^',color=col,label='$\\sigma_{\\rm ext} = $' +  str(sigm_e[k]))
@@ -120,11 +142,11 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH,TEXT_WIDTH*0.6))
 
-    plot(ax,'homogeneous_identical_binary')
+    plot(ax,'heterogeneous_independent_gaussian')
 
     fig.tight_layout(pad=0.1)
 
-    fig.savefig(os.path.join(PLOT_DIR, 'homogeneous_identical_binary' + '_input_gains.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR, 'homogeneous_identical_binary' + '_input_gains.png'),dpi=1000)
+    fig.savefig(os.path.join(PLOT_DIR, 'heterogeneous_independent_gaussian' + '_input_gains.pdf'))
+    fig.savefig(os.path.join(PLOT_DIR, 'heterogeneous_independent_gaussian' + '_input_gains.png'),dpi=1000)
 
     plt.show()

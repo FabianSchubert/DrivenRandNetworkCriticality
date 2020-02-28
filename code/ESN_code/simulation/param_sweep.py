@@ -81,7 +81,7 @@ else:
 
 n_sweep_sigm_t = args.n_sweep_sigm_t
 if n_sweep_sigm_t == 1:
-    sigm_t = np.array([0.561])
+    sigm_t = np.array([0.5])
 else:
     sigm_t = np.linspace(0.,0.9,n_sweep_sigm_t)
 
@@ -174,10 +174,10 @@ for k in tqdm(range(n_sweep_sigm_e)):
 
 ################################
 
-if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type+'_input_ESN/var_predict_scaling/N_' + str(N)))):
-    os.makedirs(os.path.join(DATA_DIR, args.input_type+'_input_ESN/var_predict_scaling/N_' + str(N)))
+if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type+'_input_ESN/gains_sweep'))):
+    os.makedirs(os.path.join(DATA_DIR, args.input_type+'_input_ESN/gains_sweep'))
 
-np.savez(os.path.join(DATA_DIR, args.input_type+'_input_ESN/var_predict_scaling/N_' + str(N) + '/param_sweep_'+str(datetime.now().isoformat())+'.npz'),
+np.savez(os.path.join(DATA_DIR, args.input_type+'_input_ESN/gains_sweep/param_sweep_'+str(datetime.now().isoformat())+'.npz'),
         sigm_t=sigm_t,
         sigm_e=sigm_e,
         y=y,

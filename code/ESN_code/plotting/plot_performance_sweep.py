@@ -21,22 +21,33 @@ from src.analysis_tools import get_simfile_prop
 
 import pandas as pd
 
+import argparse
 
+parser = argparse.ArgumentParser()
 
-def plot(ax):
+parser.add_argument("--input_type",
+help='''specify four type of input (homogeneous_identical_binary,
+homogeneous_independent_gaussian, heterogeneous_identical_binary,
+heterogeneous_independent_gaussian)''',
+default='homogeneous_independent_gaussian')
+
+args = parser.parse_args()
+
+def plot(ax,input_type):
 
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 
-    file_search_preprocess,timestamp_preprocess = get_simfile_prop(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_processed_data_'),return_None=True)
+    #file_search_preprocess,timestamp_preprocess = get_simfile_prop(os.path.join(DATA_DIR, input_type + '_input_ESN/performance_sweep/param_sweep_performance_processed_data'),return_None=True)
 
-    if file_search_preprocess != None:
+    #if file_search_preprocess != None:
 
-        sweep_df = pd.read_pickle(file_search_preprocess)
+    try:
+        #sweep_df = pd.read_pickle(file_search_preprocess)
+        sweep_df = pd.read_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/performance_sweep/param_sweep_performance_processed_data.h5'), 'table')
+    except:
 
-    else:
-
-        file_search = glob.glob(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_*'))
+        file_search = glob.glob(os.path.join(DATA_DIR, input_type + '_input_ESN/performance_sweep/param_sweep_performance_*'))
 
         if isinstance(file_search,list):
             simfile = []
@@ -55,7 +66,7 @@ def plot(ax):
         for simfile_inst in simfile:
             dat.append(np.load(simfile_inst))
 
-        sweep_df = pd.DataFrame(columns=('sigm_e','sigm_t','MC_abs','specrad','ESP','timestamp'))
+        sweep_df = pd.DataFrame(columns=('sigm_e','sigm_t','MC_abs','specrad','timestamp'))
 
         for i,dat_inst in enumerate(dat):
 
@@ -87,7 +98,9 @@ def plot(ax):
 
         sweep_df = sweep_df.reset_index()
 
-        sweep_df.to_pickle(os.path.join(DATA_DIR,'heterogeneous_identical_binary_input_ESN/param_sweep_performance_processed_data_'+str(datetime.now().isoformat())+'.pkl'))
+        #sweep_df.to_pickle(os.path.join(DATA_DIR, input_type + '_input_ESN/performance_sweep/param_sweep_performance_processed_data_'+str(datetime.now().isoformat())+'.pkl'))
+
+        sweep_df.to_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/performance_sweep/param_sweep_performance_processed_data.h5'),'table')
 
     sigm_e = sweep_df.sigm_e.unique()
     sigm_t = sweep_df.sigm_t.unique()
@@ -116,29 +129,39 @@ def plot(ax):
     #sweep_df_max_sigm_t = sweep_df_group_sigm_e.agg('max')
     #sweep_df_max_sigm_t.reset_index(inplace=True)
 
+    MC_pivot = sweep_df_merge.pivot(index='sigm_e',columns='sigm_t',values='MC_abs_mean')
 
-    pcm = ax.pcolormesh(sigm_t,sigm_e,sweep_df_merge.pivot(index='sigm_e',columns='sigm_t',values='MC_abs_mean'),rasterized=True)
+    ### Cutoff for masking is 0.2
+    pcm = ax.pcolormesh(sigm_t,sigm_e,np.ma.MaskedArray(MC_pivot,MC_pivot < 2e-1),cmap='viridis',rasterized=True,vmin=0.,vmax=9.)
 
     plt.colorbar(ax=ax,mappable=pcm)
 
-    ax.contour(sigm_t,sigm_e,sweep_df_merge.pivot(index='sigm_e',columns='sigm_t',values='specrad_mean'),levels=[1.],linestyles=['dashed'],colors=[BRIGHT_BLUE],linewidths=[2.])
+    ax.contour(sigm_t,sigm_e,sweep_df_merge.pivot(index='sigm_e',columns='sigm_t',values='specrad_mean'),levels=[1.],linestyles=['dashed'],colors=['w'],linewidths=[2.])
 
     ax.plot(max_MC_values_mean.sigm_t.to_numpy()[1:],sigm_e[1:],lw=2.,c=BRIGHT_YELLOW)
     ax.fill_betweenx(sigm_e[1:],(max_MC_values_mean.sigm_t-max_MC_values_sem.sigm_t).to_numpy()[1:],(max_MC_values_mean.sigm_t+max_MC_values_sem.sigm_t).to_numpy()[1:],color=BRIGHT_YELLOW,alpha=.25)
 
-    ax.plot((1.5**.5 / sigm_e + 1.)**(-.5),sigm_e,'--',lw=2.,c=BRIGHT_GREEN)
+    #ax.plot((1.5**.5 / sigm_e + 1.)**(-.5),sigm_e,'--',lw=2.,c=BRIGHT_GREEN)
+    sigm_e_crit = (sigm_t**2./2.**.5)*(3.**.5 + (1.-3.**.5)*sigm_t**2.)/(1.-sigm_t**2.)
+    ax.plot(sigm_t,sigm_e_crit,'--',lw=2.,c=BRIGHT_RED)
+
+    ax.set_xlim([sigm_t[0],sigm_t[-1]])
+    ax.set_ylim([sigm_e[0],sigm_e[-1]])
+
+    ax.set_xlabel("$\\sigma_{\\rm t}$")
+    ax.set_ylabel("$\\sigma_{\\rm ext}$")
 
 if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH*.5,TEXT_WIDTH*.45))
 
-    plot(ax)
+    plot(ax,args.input_type)
     ax.set_xlabel("$\\sigma_{\\rm t}$ (target)")
     ax.set_ylabel("$\\sigma_{\\rm ext}$ (input)")
 
     fig.tight_layout(pad=0.1)
 
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_xor_perf.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR,'heterogeneous_identical_binary_input_xor_perf.png'),dpi=1000)
+    fig.savefig(os.path.join(PLOT_DIR, args.input_type + '_input_xor_perf.pdf'))
+    fig.savefig(os.path.join(PLOT_DIR, args.input_type + '_input_xor_perf.png'),dpi=300)
 
     plt.show()

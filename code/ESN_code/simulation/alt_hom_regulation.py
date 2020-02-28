@@ -25,6 +25,81 @@ parser.add_argument("adaptation_mode",
 help='''specify the mode of adaptation: local or global''',
 choices=['local','global'])
 
+parser.add_argument("--N",
+help='''number of Neurons''',
+type=int,
+default=500)
+
+parser.add_argument("--n_samples",
+help='''number of sample runs''',
+type=int,
+default=1)
+
+parser.add_argument("--cf_w",
+help='''recurrent connection fraction''',
+type=float,
+default=.1)
+
+parser.add_argument("--cf_w_in",
+help='''external input connection fraction''',
+type=float,
+default=1.)
+
+parser.add_argument("--sigm_w_e",
+help='''external input standard deviation''',
+type=float,
+default=.5)
+
+parser.add_argument("--eps_a",
+help='''gain learning rate''',
+type=float,
+default=1e-3)
+
+parser.add_argument("--eps_b",
+help='''bias learning rate''',
+type=float,
+default=1e-4)
+
+parser.add_argument("--eps_mu",
+help='''activity trailing average adaptation rate''',
+type=float,
+default=1e-3)
+
+parser.add_argument("--eps_var",
+help='''activity variance trailing average adaptation rate''',
+type=float,
+default=1e-2)
+
+parser.add_argument("--mu_y_target",
+help='''activity target''',
+type=float,
+default=0.05)
+
+parser.add_argument("--a_init",
+help='''initial gain''',
+type=float,
+default=1.5)
+
+parser.add_argument("--T",
+help='''runtime''',
+type=int,
+default=int(3e4))
+
+parser.add_argument("--T_skip_rec",
+help='''time sampling skip length for recording (1 means record everything)''',
+type=int,
+default=1)
+
+parser.add_argument("--X_r_norm_init_span",
+help='''Maximum norm of randomized initial X_r''',
+type=float,
+default=100.)
+
+parser.add_argument("--rand_a_init",
+help='''if true, initial gain is randomized between 0 and a_init''',
+type=bool,
+default=False)
+
 args = parser.parse_args()
 
 input_type = ['homogeneous_identical_binary',
@@ -34,30 +109,32 @@ input_type = ['homogeneous_identical_binary',
 
 adaptation_mode = ['local','global'].index(args.adaptation_mode)
 
-N = 500
+N = args.N
 
-n_samples = 1
+n_samples = args.n_samples
 
-cf_w = .1
-cf_w_in = 1.
+cf_w = args.cf_w
+cf_w_in = args.cf_w_in
 
-sigm_w_e = .5
+sigm_w_e = args.sigm_w_e
 
-eps_a = 1e-3
-eps_b = 10e-4
+eps_a = args.eps_a
+eps_b = args.eps_b
 
-eps_mu = 10e-4
-eps_var = 10e-3
+eps_mu = args.eps_mu
+eps_var = args.eps_var
 
-mu_y_target = np.ones((N))*0.
+mu_y_target = np.ones((N))*args.mu_y_target
 
-a_init = 1.5
-X_r_norm_init_span = 100.
+a_init = args.a_init
+X_r_norm_init_span = args.X_r_norm_init_span
+
+rand_a_init = args.rand_a_init
 
 #r_target = .9
 
-T = int(3e4)
-T_skip_rec = 1
+T = args.T
+T_skip_rec = args.T_skip_rec
 T_rec = int(T/T_skip_rec)
 
 t_arr = np.arange(T_rec)*T_skip_rec
@@ -88,7 +165,11 @@ for k in tqdm(range(n_samples)):
     W_av = 1.*(W!=0.)
     W_av = (W_av.T / W_av.sum(axis=1)).T
 
-    a = np.ones((N))*a_init
+    if rand_a_init:
+        a = np.ones((N)) * np.random.rand() * a_init
+    else:
+        a = np.ones((N))*a_init
+
     b = np.zeros((N))
 
     if sigm_w_e > 0.:

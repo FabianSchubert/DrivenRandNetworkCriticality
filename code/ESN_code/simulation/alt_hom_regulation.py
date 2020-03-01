@@ -70,6 +70,16 @@ help='''activity variance trailing average adaptation rate''',
 type=float,
 default=1e-2)
 
+parser.add_argument("--eps_y_squ",
+help='''squared local activity trailing averate adaptation rate''',
+type=float,
+default=1.)
+
+parser.add_argument("--eps_X_r_squ",
+help='''adaptation rate for trailing average of squared recurrent membrane potential''',
+type=float,
+default=1e-2)
+
 parser.add_argument("--mu_y_target",
 help='''activity target''',
 type=float,
@@ -123,6 +133,8 @@ eps_b = args.eps_b
 
 eps_mu = args.eps_mu
 eps_var = args.eps_var
+eps_y_squ = args.eps_y_squ
+eps_X_r_squ = args.eps_X_r_squ
 
 mu_y_target = np.ones((N))*args.mu_y_target
 
@@ -148,6 +160,8 @@ y_rec = np.ones((T_rec,N))
 y_norm_rec = np.ones((n_samples,T_rec))
 X_r_rec = np.ones((T_rec,N))
 X_e_rec = np.ones((T_rec,N))
+
+y_squ_trail_av_rec = np.ones((T_rec,N))
 
 mu_y_rec = np.ones((T_rec,N))
 mu_X_e_rec = np.ones((T_rec,N))
@@ -183,6 +197,12 @@ for k in tqdm(range(n_samples)):
     y = np.ndarray((N))
     X_r = np.ndarray((N))
     X_e = np.ndarray((N))
+
+    y_squ_trail_av = np.ndarray((N))
+
+    ##trailing average of X_r**2 for adjusting the learning rate
+    X_r_squ_av = X_r**2.
+
     #X_e = (w_in @ u_in).T
     #X_e = np.random.normal(0.,1.,(T,N)) * w_in[:,0]
     #X_e = np.random.normal(0.,.25,(T,N))
@@ -202,7 +222,7 @@ for k in tqdm(range(n_samples)):
     X_r[:] = (np.random.rand(N)-.5)
     X_r[:] *= np.random.rand()*X_r_norm_init_span/np.linalg.norm(X_r)
     y[:] = np.tanh(X_r[:] + X_e[:])
-
+    y_squ_trail_av[:] = y**2.
 
     mu_y[:] = y
     mu_X_e[:] = X_e
@@ -218,6 +238,8 @@ for k in tqdm(range(n_samples)):
     X_r_rec[0,:] = X_r
     X_e_rec[0,:] = X_e
 
+    y_squ_trail_av_rec[0,:] = y_squ_trail_av
+
     mu_y_rec[0,:] = mu_y
     mu_X_e_rec[0,:] = mu_X_e
     Var_y_rec[0,:] = Var_y
@@ -225,7 +247,7 @@ for k in tqdm(range(n_samples)):
     ####
     ###
 
-    for t in range(1,T):
+    for t in tqdm(range(1,T)):
 
         y_prev = y[:]
 
@@ -244,13 +266,17 @@ for k in tqdm(range(n_samples)):
         Var_y[:] = (1.-eps_var)*Var_y + eps_var * (y - mu_y)**2.
         Var_X_e[:] = (1.-eps_var)*Var_X_e + eps_var * (X_e - mu_X_e)**2.
 
+        y_squ_trail_av = (1.-eps_y_squ)*y_squ_trail_av + eps_y_squ * y_prev**2.
+
+        X_r_squ_av += eps_X_r_squ*(X_r**2.- X_r_squ_av)
+
         #y_squ_targ = 1.-1./(1.+2.*Var_y.mean() + 2.*Var_X_e)**.5
 
         #a = a + eps_a * a * ((y**2.).mean() - (X_r**2.).mean())
         if adaptation_mode == 0:
-            a = a + eps_a * a * (y_prev**2. - X_r**2.)
+            a = a + eps_a * a * (y_squ_trail_av - X_r_squ_av)/X_r_squ_av.mean()
         else:
-            a = a + eps_a * a * ((y_prev**2.).mean() - (X_r**2.).mean())
+            a = a + eps_a * a * (y_squ_trail_av.mean() - X_r_squ_av.mean())/X_r_squ_av.mean()
         #a = a + eps_a * (W_av @ (y_prev**2.) - X_r**2.)
         #a = a + eps_a * ((y**2.) - (X_r**2.))
         b = b + eps_b * (y - mu_y_target)
@@ -272,8 +298,12 @@ for k in tqdm(range(n_samples)):
             mu_X_e_rec[t_rec,:] = mu_X_e
             Var_y_rec[t_rec,:] = Var_y
             Var_X_e_rec[t_rec,:] = Var_X_e
+
+            y_squ_trail_av_rec[t_rec,:] = y_squ_trail_av
             ####
     y_norm_rec[k,:] = np.linalg.norm(y_rec,axis=1)
+
+DATA_DIR = '/home/fabian/work/data/'
 
 if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type + '_input_ESN/alt_hom_regulation/'))):
     os.makedirs(os.path.join(DATA_DIR, args.input_type + '_input_ESN/alt_hom_regulation/'))
@@ -295,4 +325,5 @@ np.savez(os.path.join(DATA_DIR,  args.input_type
         eps_a = eps_a,
         eps_b = eps_b,
         mu_y_target = mu_y_target,
-        X_r=X_r_rec)
+        X_r=X_r_rec,
+        y_squ_trail_av=y_squ_trail_av_rec)

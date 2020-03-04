@@ -29,15 +29,15 @@ ax2 = plt.subplot(222)
 ax3 = plt.subplot(223)
 ax4 = plt.subplot(224)
 
-print("plotting performance sigm_t sweep heterogeneous_independent_gaussian...")
-plot_performance_sweep.plot(ax1,'heterogeneous_independent_gaussian')
-print("plotting performance r_a sweep heterogeneous_independent_gaussian...")
-plot_alt_hom_regulation_performance_sweep.plot(ax2,'heterogeneous_independent_gaussian','local')
+print("plotting performance sigm_t sweep homogeneous_identical_binary...")
+plot_performance_sweep.plot(ax1,'homogeneous_identical_binary')
+print("plotting performance r_a sweep homogeneous_identical_binary...")
+plot_alt_hom_regulation_performance_sweep.plot(ax2,'homogeneous_identical_binary','local')
 
-print("plotting cross_corr sigm_t sweep heterogeneous_independent_gaussian...")
-plot_corr_act.plot(ax3,'heterogeneous_independent_gaussian')
-print("plotting cross_corr r_a sweep heterogeneous_independent_gaussian...")
-plot_alt_hom_regulation_corr_act.plot(ax4,'heterogeneous_independent_gaussian','local')
+print("plotting cross_corr sigm_t sweep homogeneous_identical_binary...")
+plot_corr_act.plot(ax3,'homogeneous_identical_binary')
+print("plotting cross_corr r_a sweep homogeneous_identical_binary...")
+plot_alt_hom_regulation_corr_act.plot(ax4,'homogeneous_identical_binary','local')
 
 fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 
@@ -53,8 +53,8 @@ ax4.set_title(ax4_title,loc='left',usetex=True)
 
 fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 
-fig.savefig(os.path.join(PLOT_DIR,'het_gauss_input_composite.pdf'))
-fig.savefig(os.path.join(PLOT_DIR,'het_gauss_input_composite.png'),dpi=300)
+fig.savefig(os.path.join(PLOT_DIR,'hom_bin_input_composite.pdf'))
+fig.savefig(os.path.join(PLOT_DIR,'hom_bin_input_composite.png'),dpi=300)
 
 #fig.savefig(os.path.join(PLOT_DIR,'r_a_sweep_composite_low_res.png'),dpi=300)
 

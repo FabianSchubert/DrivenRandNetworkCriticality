@@ -22,7 +22,7 @@ import os
 
 import ESN_code.plotting.plot_rec_mem_pot_variance_predict_size_scaling as plot_var_pred
 
-fig = plt.figure(figsize=(TEXT_WIDTH,TEXT_WIDTH*0.6))
+fig = plt.figure(figsize=(TEXT_WIDTH,TEXT_WIDTH*0.5))
 
 #fig, ax = plt.subplots(2,2,figsize=(TEXT_WIDTH,TEXT_WIDTH*0.8))
 
@@ -40,7 +40,12 @@ plot_var_pred.plot(ax,'heterogeneous_independent_gaussian',col=colors[2])
 print("plotting variance prediction error scaling for heterogeneous_identical_binary...")
 plot_var_pred.plot(ax,'heterogeneous_identical_binary',col=colors[3])
 
-ax.set_ylim([0.,.25])
+#ax.set_ylim([0.,.25])
+
+ax.set_yscale("log")
+ax.set_xscale("log")
+
+ax.set_ylim([0.04,0.25])
 
 custom_lines = [Line2D([0], [0], color=colors[0], lw=2),
                 Line2D([0], [0], color=colors[1], lw=2),
@@ -52,12 +57,14 @@ ax.legend(custom_lines,['hom. gauss.',
                         'het. gauss.',
                         'het. bin.'])
 
+
 #ax1.set_title(ax1_title,loc='left',usetex=True)
 #ax2.set_title(ax2_title,loc='left',usetex=True)
 #ax3.set_title(ax3_title,loc='left',usetex=True)
 #ax4.set_title(ax4_title,loc='left',usetex=True)
 
-fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
+
+fig.tight_layout(rect=[0.1, 0, 0.9, 1],pad=0.1)
 
 fig.savefig(os.path.join(PLOT_DIR,'var_predict_composite.pdf'))
 fig.savefig(os.path.join(PLOT_DIR,'var_predict_composite.png'),dpi=300)

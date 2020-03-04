@@ -30,9 +30,9 @@ ax2 = plt.subplot(222)
 ax3 = plt.subplot(223)
 ax4 = plt.subplot(224)
 
-r_a.plot(ax1,'heterogeneous_independent_gaussian','local',col=colors[1])
+r_a.plot(ax1,'heterogeneous_independent_gaussian','local',col=colors[0])
 
-r_a.plot(ax2,'heterogeneous_identical_binary','local',col=colors[0])
+r_a.plot(ax2,'heterogeneous_identical_binary','local',col=colors[1])
 ax2.set_ylim([0.,5.])
 
 r_a.plot(ax3,'heterogeneous_identical_binary','global',col=colors[2])

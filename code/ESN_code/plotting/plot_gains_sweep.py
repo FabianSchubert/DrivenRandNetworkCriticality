@@ -40,7 +40,7 @@ def plot(ax,input_type):
     #a_mean = a.mean(axis=2).T
     #a_std = a.std(axis=2).T
 
-
+    mu_t = 0.05
 
     ### solve analytical approximation numerically
     a_pred = np.ndarray((n_sigm_e,n_sigm_t))
@@ -84,20 +84,31 @@ def plot(ax,input_type):
             #for k in tqdm(range(n_sigm_e)):
 
 
+            #func = lambda s: integrate.quad(lambda x: np.tanh(x)**2.*np.exp(-0.5*x**2./s**2.),
+            #-np.inf,np.inf)[0]/(2.*np.pi*s**2.)**.5 - sigm_t[l]**2.
+
+            #sm = [standard deviation, mean]
+
+            func = lambda sm: np.array([integrate.quad(lambda x: np.tanh(x)**2.*np.exp(-0.5*(x-sm[1])**2./sm[0]**2.),
+            -np.inf,np.inf)[0]/(2.*np.pi*sm[0]**2.)**.5 - mu_t**2. - sigm_t[l]**2.,
+            integrate.quad(lambda x: np.tanh(x)*np.exp(-0.5*(x-sm[1])**2./sm[0]**2.),
+            -np.inf,np.inf)[0]/(2.*np.pi*sm[0]**2.)**.5 - mu_t])
 
 
-            func = lambda s: integrate.quad(lambda x: np.tanh(x)**2.*np.exp(-0.5*x**2./s**2.),
-            -np.inf,np.inf)[0]/(2.*np.pi*s**2.)**.5 - sigm_t[l]**2.
 
-            s_guess = ((1./(1.-sigm_t[l]**2.)**2. - 1.)/2.)**.5
+            sm_guess = np.array([((1./(1.-sigm_t[l]**2.)**2. - 1.)/2.)**.5,0.])
 
-            s_sol = newton_krylov(func,s_guess+1e-2)
+            try:
+                s_sol = newton_krylov(func,sm_guess+np.array([1e-2,0.]))
+            except:
+                print("Warning! no solution found!")
+                s_sol = np.array([0.,0.])
 
             for k in tqdm(range(n_sigm_e)):
                 if not(sigm_e[k]==0 and sigm_t[l]==0):
                     for n in tqdm(range(N)):
                         ### make prediction to speed up convergence
-                        a_pred[k,l,n] = np.maximum(0.,s_sol**2. - sigm_X_e[k,l,n]**2.)**.5/sigm_t[l]
+                        a_pred[k,l,n] = np.maximum(0.,s_sol[0]**2. - sigm_X_e[k,l,n]**2.)**.5/sigm_t[l]
                         '''
                         if((1.-sigm_t[l]**2.)**2.*(1.+2.*sigm_X_e[k,l,n]**2.)<1.):
                             a_sol_pred = ((1.-(1.-sigm_t[l]**2.)**2.*(1.+2.*sigm_X_e[k,l,n]**2.))/(2.*(1.-sigm_t[l]**2.)**2.*sigm_t[l]**2.))**.5

@@ -31,31 +31,34 @@ ax = plt.subplot(111)
 #ax3 = plt.subplot(223)
 #ax4 = plt.subplot(224)
 
-print("plotting variance prediction error scaling for homogeneous_independent_gaussian...")
-plot_var_pred.plot(ax,'homogeneous_independent_gaussian',col=colors[0])
-print("plotting variance prediction error scaling for homogeneous_identical_binary...")
-plot_var_pred.plot(ax,'homogeneous_identical_binary',col=colors[1])
-print("plotting variance prediction error scaling for heterogeneous_independent_gaussian...")
-plot_var_pred.plot(ax,'heterogeneous_independent_gaussian',col=colors[2])
 print("plotting variance prediction error scaling for heterogeneous_identical_binary...")
 plot_var_pred.plot(ax,'heterogeneous_identical_binary',col=colors[3])
+
+print("plotting variance prediction error scaling for homogeneous_identical_binary...")
+plot_var_pred.plot(ax,'homogeneous_identical_binary',col=colors[1])
+
+print("plotting variance prediction error scaling for heterogeneous_independent_gaussian...")
+plot_var_pred.plot(ax,'heterogeneous_independent_gaussian',col=colors[2])
+
+print("plotting variance prediction error scaling for homogeneous_independent_gaussian...")
+plot_var_pred.plot(ax,'homogeneous_independent_gaussian',col=colors[0])
 
 #ax.set_ylim([0.,.25])
 
 ax.set_yscale("log")
 ax.set_xscale("log")
 
-ax.set_ylim([0.04,0.25])
+ax.set_ylim([0.028,0.25])
 
-custom_lines = [Line2D([0], [0], color=colors[0], lw=2),
+custom_lines = [Line2D([0], [0], color=colors[3], lw=2),
                 Line2D([0], [0], color=colors[1], lw=2),
                 Line2D([0], [0], color=colors[2], lw=2),
-                Line2D([0], [0], color=colors[3], lw=2)]
+                Line2D([0], [0], color=colors[0], lw=2)]
 
-ax.legend(custom_lines,['hom. gauss.',
-                        'hom. bin.',
-                        'het. gauss.',
-                        'het. bin.'])
+ax.legend(custom_lines,['heterogeneous binary',
+                        'homomogeneous binary',
+                        'heterogeneous gaussian',
+                        'homogeneous gaussian'])
 
 
 #ax1.set_title(ax1_title,loc='left',usetex=True)

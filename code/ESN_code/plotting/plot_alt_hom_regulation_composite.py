@@ -45,14 +45,15 @@ ax4.set_ylim([-1.8,1.8])
 
 fig.tight_layout(pad=0.1,h_pad=0.1,w_pad=0.3)
 
-ax1_title = '\\makebox['+str(ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf A} \\hfill \\normalfont het. gauss. local}'
-ax2_title = '\\makebox['+str(ax2.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf B} \\hfill \\normalfont het. bin. local}'
-ax3_title = '\\makebox['+str(ax3.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf C} \\hfill \\normalfont het. bin. global}'
+ax1_title = '\\makebox['+str(ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf A} \\hfill \\normalfont heterogeneous gaussian (local)}'
+ax2_title = '\\makebox['+str(ax2.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf B} \\hfill \\normalfont heterogeneous binary (local)}'
+ax3_title = '\\makebox['+str(ax3.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf C} \\hfill \\normalfont heterogeneous binary (global)}'
+ax4_title = '\\makebox['+str(ax3.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf D} \\hfill \\normalfont complex eigenvalues}'
 
 ax1.set_title(ax1_title,loc='left',usetex=True)
 ax2.set_title(ax2_title,loc='left',usetex=True)
 ax3.set_title(ax3_title,loc='left',usetex=True)
-ax4.set_title('D',fontdict={'fontweight':'bold'},loc='left')
+ax4.set_title(ax4_title,loc='left',usetex=True)
 
 fig.tight_layout(pad=0.1,h_pad=0.1,w_pad=0.3)
 

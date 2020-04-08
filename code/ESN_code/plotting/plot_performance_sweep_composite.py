@@ -16,6 +16,7 @@ from stdParams import *
 import os
 
 import ESN_code.plotting.plot_performance_sweep as plot_performance_sweep
+import ESN_code.plotting.plot_alt_hom_regulation_performance_sweep as plot_alt_hom_regulation_performance_sweep
 
 fig = plt.figure(figsize=(TEXT_WIDTH,TEXT_WIDTH*0.8))
 
@@ -26,21 +27,21 @@ ax2 = plt.subplot(222)
 ax3 = plt.subplot(223)
 ax4 = plt.subplot(224)
 
-print("plotting performance sweep homogeneous_independent_gaussian...")
-plot_performance_sweep.plot(ax1,'homogeneous_independent_gaussian')
-print("plotting performance sweep homogeneous_identical_binary...")
-plot_performance_sweep.plot(ax2,'homogeneous_identical_binary')
-print("plotting performance sweep heterogeneous_independent_gaussian...")
-plot_performance_sweep.plot(ax3,'heterogeneous_independent_gaussian')
 print("plotting performance sweep heterogeneous_identical_binary...")
-plot_performance_sweep.plot(ax4,'heterogeneous_identical_binary')
+plot_performance_sweep.plot(ax2,'heterogeneous_identical_binary')
+plot_alt_hom_regulation_performance_sweep.plot(ax1,'heterogeneous_identical_binary','local')
+
+print("plotting performance sweep heterogeneous_independent_gaussian...")
+plot_performance_sweep.plot(ax4,'heterogeneous_independent_gaussian')
+plot_alt_hom_regulation_performance_sweep.plot(ax3,'heterogeneous_independent_gaussian','local')
+
 
 fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 
-ax1_title = '\\makebox['+str(ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf A} \\hfill \\normalfont hom. gauss.}'
-ax2_title = '\\makebox['+str(ax2.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf B} \\hfill \\normalfont hom. bin.}'
-ax3_title = '\\makebox['+str(ax3.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf C} \\hfill \\normalfont het. gauss.}'
-ax4_title = '\\makebox['+str(ax4.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf D} \\hfill \\normalfont het. bin.}'
+ax1_title = '\\makebox['+str(ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf A} \\hfill \\normalfont heterogeneous binary / flow}'
+ax2_title = '\\makebox['+str(ax2.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf B} \\hfill \\normalfont heterogeneous binary / variance}'
+ax3_title = '\\makebox['+str(ax3.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf C} \\hfill \\normalfont heterogeneous gauss / flow}'
+ax4_title = '\\makebox['+str(ax4.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).width)+'in]{ {\\bf D} \\hfill \\normalfont heterogeneous gauss / variance}'
 
 ax1.set_title(ax1_title,loc='left',usetex=True)
 ax2.set_title(ax2_title,loc='left',usetex=True)

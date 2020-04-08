@@ -8,7 +8,7 @@ axes.spines.top: False
 axes.spines.right: False
 xtick.labelsize: 9.
 ytick.labelsize: 9.
-legend.fontsize: 9
+legend.fontsize: 11
 grid.linewidth: 0.8
 lines.linewidth: 1.
 patch.linewidth: 0.24
@@ -26,6 +26,11 @@ legend.frameon: False
 image.cmap: gray #rocket #viridis
 xtick.bottom : True
 ytick.left: True
+
+xtick.major.size    : 3.     ## major tick size in points
+xtick.minor.size    : 1.8       ## minor tick size in points
+ytick.major.size    : 3.     ## major tick size in points
+ytick.minor.size    : 1.8       ## minor tick size in points
 
 #text.usetex: True
 

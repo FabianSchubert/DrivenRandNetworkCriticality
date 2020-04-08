@@ -150,7 +150,7 @@ def plot(ax,input_type,adaptation_mode):
     ax.plot(max_MC_values_mean.r_a.to_numpy()[1:],sigm_e[1:],lw=2.,c=BRIGHT_YELLOW)
     ax.fill_betweenx(sigm_e[1:],(max_MC_values_mean.r_a-max_MC_values_sem.r_a).to_numpy()[1:],(max_MC_values_mean.r_a+max_MC_values_sem.r_a).to_numpy()[1:],color=BRIGHT_YELLOW,alpha=.25)
 
-    ax.set_xlabel("$R_{\\rm a}$")
+    ax.set_xlabel("$R_{\\rm t}$")
     ax.set_ylabel("$\\sigma_{\\rm ext}$")
 
 

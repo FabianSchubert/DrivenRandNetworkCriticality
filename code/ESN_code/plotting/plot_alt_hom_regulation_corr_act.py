@@ -108,9 +108,9 @@ def plot(ax,input_type,adaptation_mode):
         ax.plot([min_over_thresh_r_a_1p5],[corr_thresh],'.',markerfacecolor=(0.,0.,0.,0.),markeredgecolor=cmap(0.75),markersize=10,markeredgewidth=1.5)
     '''
 
-
-    ax.set_xlabel('$R_{\\rm a}$')
-    ax.set_ylabel('$\\langle \\left|| C\\left(y_i,y_j\\right) \\right|| \\rangle_{\\rm P}$')
+    ax.legend().texts[0].set_text('$\\sigma_{\\rm ext}$')
+    ax.set_xlabel('$R_{\\rm t}$')
+    ax.set_ylabel('$\\overline{C}$')# \\langle \\, \\left|| C\\left(y_i,y_j\\right) \\right|| \\, \\rangle_{\\rm P}$')
 
     ax.set_yscale("log")
 

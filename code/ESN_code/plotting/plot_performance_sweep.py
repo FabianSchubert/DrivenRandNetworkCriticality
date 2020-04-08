@@ -33,6 +33,10 @@ default='homogeneous_independent_gaussian')
 
 args = parser.parse_args()
 
+
+
+
+
 def plot(ax,input_type):
 
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']

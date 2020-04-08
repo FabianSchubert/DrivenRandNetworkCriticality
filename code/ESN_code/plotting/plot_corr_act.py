@@ -73,7 +73,7 @@ def plot(ax,input_type):
 
         corr_df.to_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/corr_df.h5'),'table')
 
-    
+
     sns.lineplot(ax=ax,x='sigm_t',y='cross_corr',hue='sigm_e',data=corr_df,palette='viridis')
 
     if input_type == 'homogeneous_independent_gaussian' or input_type == 'homogeneous_identical_binary':
@@ -87,7 +87,7 @@ def plot(ax,input_type):
             min_over_thresh_sigm_t_0p5 = mean_corr_df.loc[mean_corr_df['sigm_e'] == '$0.5$'].loc[mean_corr_df['cross_corr'] >= corr_thresh]['sigm_t'].iloc[0]
             min_over_thresh_sigm_t_1p5 = mean_corr_df.loc[mean_corr_df['sigm_e'] == '$1.5$'].loc[mean_corr_df['cross_corr'] >= corr_thresh]['sigm_t'].iloc[0]
 
-            ax.legend().texts[0].set_text('$\\sigma_{\\rm e}$')
+
 
         else:
 
@@ -102,10 +102,11 @@ def plot(ax,input_type):
         ax.plot([min_over_thresh_sigm_t_1p5],[corr_thresh],'.',markerfacecolor=(0.,0.,0.,0.),markeredgecolor=cmap(0.75),markersize=10,markeredgewidth=1.5)
 
 
-
+    ax.legend().texts[0].set_text('$\\sigma_{\\rm ext}$')
     ax.set_xlabel('$\\sigma_{\\rm t}$')
-    ax.set_ylabel('$\\langle \\left|| C\\left(y_i,y_j\\right) \\right|| \\rangle_{\\rm P}$')
-
+    #ax.set_ylabel('$\\langle \\, \\left|| C\\left(y_i,y_j\\right) \\right|| \\, \\rangle_{\\rm P}$')
+    ax.set_ylabel('$\\overline{C}$')
+    
     ax.set_yscale("log")
 
 

@@ -55,7 +55,7 @@ for k,T in enumerate(t):
     col = np.array(colors[0])*(nt-1-k)/(nt-1) + np.array(colors[1])*k/(nt-1)
     if k==0 or k==nt-1:
         ax.plot(sigm_squ[k,:],'.',c=col,
-        label="$t="+str(T)+"$",markersize=5)
+        label="$n="+str(T)+"$",markersize=5)
     else:
         ax.plot(sigm_squ[k,:],'.',c=col,markersize=4)
 

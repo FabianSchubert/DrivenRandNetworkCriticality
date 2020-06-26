@@ -32,10 +32,14 @@ class RNN():
         self.eps_b = np.ones((self.N)) * kwargs.get('eps_b',0.001)
         self.eps_y_mean = np.ones((self.N)) * kwargs.get('eps_y_mean',0.0001)
         self.eps_y_std = np.ones((self.N)) * kwargs.get('eps_y_std',0.001)
-
+        self.eps_E_mean = np.ones((self.N)) * kwargs.get('eps_E_mean',0.0001)
+        self.eps_E_std = np.ones((self.N)) * kwargs.get('eps_E_std',0.001)
+        
         self.y_mean_target = np.ones((self.N)) * kwargs.get('y_mean_target',0.05)
         self.y_std_target = np.ones((self.N)) * kwargs.get('y_std_target',.5)
-
+        
+        self.R_target = kwargs.get('R_target',1.)
+        
         self.W = np.random.normal(self.mu_w,1./(self.N*self.cf)**.5,(self.N,self.N))*(np.random.rand(self.N,self.N) <= self.cf)
         self.W[range(self.N),range(self.N)] = 0.
 
@@ -332,7 +336,126 @@ class RNN():
                 y_std_rec[t_rec,:] = y_var**.5
 
         return y_rec, X_r_rec, X_e_rec, a_r_rec, b_rec, y_mean_rec, y_std_rec
+    
+    
+    def run_var_adapt_R(self,u_in=None,sigm_e=1.,T_skip_rec = 1,T=None,adapt_mode="local",show_progress=True):
+        
+        if u_in is not None:
+            mode = 'real_input'
+            u_in = self.check_data_in_comp(u_in)
+            T = u_in.shape[0]
+        else:
+            mode = 'gaussian_noise_input'
+            if T == None:
+                T = self.N*50
 
+        T_rec = int(T/T_skip_rec)
+
+        #### Recorders
+        y_rec = np.ndarray((T_rec,self.N))
+        X_r_rec = np.ndarray((T_rec,self.N))
+        X_e_rec = np.ndarray((T_rec,self.N))
+        a_r_rec = np.ndarray((T_rec,self.N))
+        b_rec = np.ndarray((T_rec,self.N))
+        y_mean_rec = np.ndarray((T_rec,self.N))
+        y_std_rec = np.ndarray((T_rec,self.N))
+        
+        E_mean_rec = np.ndarray((T_rec,self.N))
+        E_std_rec = np.ndarray((T_rec,self.N))
+        
+        var_t_rec = np.ndarray((T_rec,self.N))
+        ####
+
+        y = np.ndarray((self.N))
+        y_mean = np.ndarray((self.N))
+        y_var = np.ndarray((self.N))
+        
+        E_mean = np.ndarray((self.N))
+        E_var = np.ndarray((self.N))
+        
+        var_t = np.ndarray((self.N))
+        
+        X_r = np.ndarray((self.N))
+        X_e = np.ndarray((self.N))
+
+        X_r[:] = np.random.normal(0.,1.,(self.N))
+        #X_e[:] = self.w_in @ u_in[0,:]
+        if mode == 'real_input':
+            X_e = self.w_in @ u_in[0,:]
+        else:
+            X_e = np.random.normal(0.,sigm_e,(self.N))
+
+        y = self.f(self.a_r * X_r + X_e - self.b)
+        y_mean = y[:]
+        y_var[:] = 0.5
+        
+        E_mean[:] = 0.
+        E_var[:] = 0.5
+        
+        var_t[:] = 0.5
+
+        delta_a = np.zeros((self.N))
+        delta_b = np.zeros((self.N))
+
+        #### Assign for t=0
+        y_rec[0,:] = y
+        X_r_rec[0,:] = X_r
+        X_e_rec[0,:] = X_e
+        a_r_rec[0,:] = self.a_r
+        b_rec[0,:] = self.b
+        y_mean_rec[0,:] = y_mean
+        y_std_rec[0,:] = y_var**.5
+        E_mean_rec[0] = E_mean
+        E_std_rec[0] = E_var**.5
+        var_t_rec[0,:] = var_t
+        ####
+
+        for t in tqdm(range(1,T),disable=not(show_progress)):
+
+            X_r = self.W @ y
+            if mode == 'real_input':
+                X_e = self.w_in @ u_in[t,:]
+            else:
+                X_e = np.random.normal(0.,sigm_e,(self.N))
+
+            y = self.f(self.a_r * X_r + X_e - self.b)
+
+            y_mean += self.eps_y_mean * ( -y_mean + y)
+            y_var += self.eps_y_std * ( -y_var + (y-y_mean)**2.)
+            
+            E_mean += self.eps_E_mean * ( -E_mean + X_e)
+            E_var += self.eps_E_std * ( -E_var + (X_e - E_mean)**.2)
+                        
+            if adapt_mode == "local":
+                var_t = 1. - 1./(1. + 2. * self.R_target**2. * y_var +  2.*E_var)**.5
+            else:
+                var_t = 1. - 1./(1. + 2. *self.R_target**2. * y_var.mean() + 2.*E_var)**.5
+            
+            delta_a = (var_t - (y-y_mean)**2.)
+            delta_b = (y - self.y_mean_target)
+
+            self.a_r += self.eps_a_r * delta_a
+
+            self.a_r = np.maximum(0.001,self.a_r)
+
+            self.b += self.eps_b * delta_b
+
+            #### record
+            if t%T_skip_rec == 0:
+
+                t_rec = int(t/T_skip_rec)
+
+                y_rec[t_rec,:] = y
+                X_r_rec[t_rec,:] = X_r
+                X_e_rec[t_rec,:] = X_e
+                a_r_rec[t_rec,:] = self.a_r
+                b_rec[t_rec,:] = self.b
+                y_mean_rec[t_rec,:] = y_mean
+                y_std_rec[t_rec,:] = y_var**.5
+
+        return y_rec, X_r_rec, X_e_rec, a_r_rec, b_rec, y_mean_rec, y_std_rec
+        
+    
     def run_sample(self,u_in=None,sigm_e=1.,X_r_init=None,T_skip_rec = 1,T=None,show_progress=True):
 
         if u_in is not None:

@@ -349,8 +349,10 @@ class RNN():
             if T == None:
                 T = self.N*50
 
-        T_rec = int(T/T_skip_rec)
-
+        T_rec = int((T-1)/T_skip_rec) + 1
+        
+        
+        
         #### Recorders
         y_rec = np.ndarray((T_rec,self.N))
         X_r_rec = np.ndarray((T_rec,self.N))
@@ -424,7 +426,7 @@ class RNN():
             y_var += self.eps_y_std * ( -y_var + (y-y_mean)**2.)
             
             E_mean += self.eps_E_mean * ( -E_mean + X_e)
-            E_var += self.eps_E_std * ( -E_var + (X_e - E_mean)**.2)
+            E_var += self.eps_E_std * ( -E_var + (X_e - E_mean)**2.)
                         
             if adapt_mode == "local":
                 var_t = 1. - 1./(1. + 2. * self.R_target**2. * y_var +  2.*E_var)**.5
@@ -444,7 +446,7 @@ class RNN():
             if t%T_skip_rec == 0:
 
                 t_rec = int(t/T_skip_rec)
-
+                                
                 y_rec[t_rec,:] = y
                 X_r_rec[t_rec,:] = X_r
                 X_e_rec[t_rec,:] = X_e

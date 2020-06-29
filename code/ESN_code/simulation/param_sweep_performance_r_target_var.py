@@ -161,8 +161,6 @@ for k in tqdm(range(n_sweep_sigm_e)):
             #run sample after adaptation, USING THE INPUT STATISTICS OF THE ADAPTATION!!
             y, X_r, X_e = rnn.run_sample(u_in=None,sigm_e=sigm_e[k],T=T_sample_variance,show_progress=False)
             
-            import pdb
-            pdb.set_trace()
             
         elif input_type == 2:
 

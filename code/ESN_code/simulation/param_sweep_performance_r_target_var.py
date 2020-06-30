@@ -224,7 +224,7 @@ for k in tqdm(range(n_sweep_sigm_e)):
 if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type+'_input_ESN/performance_sweep/'))):
     os.makedirs(os.path.join(DATA_DIR, args.input_type+'_input_ESN/performance_sweep/'))
 
-np.savez(os.path.join(DATA_DIR, args.input_type+'_input_ESN/performance_sweep/param_sweep_performance_'
+np.savez(os.path.join(DATA_DIR, args.input_type+'_input_ESN/performance_sweep/param_sweep_performance_R_t_'
         +adapt_mode + "_"
         +str(datetime.now().isoformat())+'.npz'),
         R_t=R_t,

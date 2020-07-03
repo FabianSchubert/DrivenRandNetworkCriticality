@@ -163,8 +163,8 @@ if __name__ == '__main__':
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH*.5,TEXT_WIDTH*.45))
 
     plot(ax,args.input_type,args.adapt_mode)
-    ax.set_xlabel("$R_{\\rm t}$ (target)")
-    ax.set_ylabel("$\\sigma_{\\rm ext}$ (input)")
+    ax.set_xlabel("$R_{\\rm t}$")
+    ax.set_ylabel("$\\sigma_{\\rm ext}$")
 
     fig.tight_layout(pad=0.1)
 

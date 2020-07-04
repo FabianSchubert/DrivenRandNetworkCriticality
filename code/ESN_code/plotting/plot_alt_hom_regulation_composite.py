@@ -17,6 +17,15 @@ colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 from stdParams import *
 import os
 
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--hide_plot",action='store_true')
+
+args = parser.parse_args()
+
+
 import ESN_code.plotting.plot_alt_hom_regulation_check_conv_cond as check_conv_cond
 import ESN_code.plotting.plot_alt_hom_regulation_r_a as r_a
 import ESN_code.plotting.plot_alt_hom_regulation_specrad as specrad
@@ -58,8 +67,8 @@ ax4.set_title(ax4_title,loc='left',usetex=True)
 fig.tight_layout(pad=0.1,h_pad=0.1,w_pad=0.3)
 
 fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_composite.pdf'))
-fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_composite.png'),dpi=300)
+fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_composite.png'),dpi=1000)
 
 #fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_composite_low_res.png'),dpi=300)
-
-plt.show()
+if not(args.hide_plot):
+   plt.show()

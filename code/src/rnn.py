@@ -351,6 +351,9 @@ class RNN():
 
         T_rec = int((T-1)/T_skip_rec) + 1
         
+        #check parameter
+        if not(adapt_mode in ["local","global"]):
+            raise ValueError("wrong adaptation mode parameter!")
         
         
         #### Recorders
@@ -431,7 +434,7 @@ class RNN():
             if adapt_mode == "local":
                 var_t = 1. - 1./(1. + 2. * self.R_target**2. * y_var +  2.*E_var)**.5
             else:
-                var_t = 1. - 1./(1. + 2. *self.R_target**2. * y_var.mean() + 2.*E_var)**.5
+                var_t = 1. - 1./(1. + 2. * self.R_target**2. * y_var.mean() + 2.*E_var)**.5
             
             delta_a = (var_t - (y-y_mean)**2.)
             delta_b = (y - self.y_mean_target)

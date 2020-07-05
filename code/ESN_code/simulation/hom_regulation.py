@@ -75,7 +75,7 @@ default=1e-2)
 parser.add_argument("--eps_y_squ",
 help='''squared local activity trailing averate adaptation rate''',
 type=float,
-default=1.)
+default=1e-2)
 
 parser.add_argument("--eps_X_r_squ",
 help='''adaptation rate for trailing average of squared recurrent membrane potential''',
@@ -172,11 +172,11 @@ for k in tqdm(range(n_samples)):
     
     if sigm_w_e > 0.:
         if (input_type in [0,1]):
-            w_in = np.ones(N) * (np.random.rand(N) <= cf_w_in) * (1./cf_w_in**.5)
+            w_in = np.ones((N,1)) * (np.random.rand(N,1) <= cf_w_in) * (1./cf_w_in**.5)
         else:
-            w_in = np.random.normal(0.,1.,(N)) * (np.random.rand(N) <= cf_w_in) * (1./cf_w_in**.5)
+            w_in = np.random.normal(0.,1.,(N,1)) * (np.random.rand(N,1) <= cf_w_in) * (1./cf_w_in**.5)
     else:
-        w_in = np.zeros((N))    
+        w_in = np.zeros((N,1))    
     
     rnn = RNN(N=N,
         cf=cf_w,
@@ -184,9 +184,9 @@ for k in tqdm(range(n_samples)):
         eps_a_r = eps_a,
         eps_b = eps_b,
         eps_y_mean = eps_mu,
-        eps_y_std = eps_y_squ,
+        eps_y_std = eps_var,
         eps_E_mean = eps_mu,
-        eps_E_std = eps_y_squ,
+        eps_E_std = eps_var,
         y_mean_target = mu_y_target,
         R_target = 1.)
     
@@ -200,8 +200,12 @@ for k in tqdm(range(n_samples)):
         
         
     else:
-        y_temp, X_r_temp, X_e_temp, a_r_temp, b_temp, y_mean_temp, y_std_temp = rnn.run_var_adapt_R(sigm_e=sigm_w_e,T=T,T_skip_rec = T_skip_rec,adapt_mode=args.adaptation_mode)
-
+        if (input_type == 1):
+            y_temp, X_r_temp, X_e_temp, a_r_temp, b_temp, y_mean_temp, y_std_temp = rnn.run_var_adapt_R(sigm_e=sigm_w_e,T=T,T_skip_rec = T_skip_rec,adapt_mode=args.adaptation_mode)
+        else:
+            y_temp, X_r_temp, X_e_temp, a_r_temp, b_temp, y_mean_temp, y_std_temp = rnn.run_var_adapt_R(sigm_e=np.abs(np.random.normal(0.,sigm_w_e,(N))),T=T,T_skip_rec = T_skip_rec,adapt_mode=args.adaptation_mode)
+    
+    
     a_rec.append(a_r_temp)
     b_rec.append(b_temp)
 

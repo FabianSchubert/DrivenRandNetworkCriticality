@@ -35,7 +35,9 @@ def plot(ax,input_type,adaptation_mode,col=colors[0]):
     W = dat['W']
 
     r_a = a_rec[0,:,:]**2. * (W[0,:,:]**2.).sum(axis=1)
-
+    
+    
+    
     ax.plot(r_a[:,0],c=col,alpha=0.25,label='$R^2_{{\\rm a},i}$')
     ax.plot(r_a[:,1:100],c=col,alpha=0.25)
 

@@ -35,7 +35,7 @@ parser.add_argument("--adapt_mode",
 help='''specify the adaptation mode (local or global).''',
 default='local')
 
-args = parser.parse_args()
+
 
 
 def plot(ax,input_type,adapt_mode):
@@ -161,7 +161,9 @@ def plot(ax,input_type,adapt_mode):
 if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH*.5,TEXT_WIDTH*.45))
-
+    
+    args = parser.parse_args()
+    
     plot(ax,args.input_type,args.adapt_mode)
     ax.set_xlabel("$R_{\\rm t}$")
     ax.set_ylabel("$\\sigma_{\\rm ext}$")

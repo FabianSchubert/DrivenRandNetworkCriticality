@@ -32,9 +32,12 @@ def plot(ax,input_type,adaptation_mode,label_str,col=colors[0]):
     a_rec = dat['a']
     N=dat['N']
     W = dat['W']
-
-    l_start = np.linalg.eigvals((W.T * a_rec[0,0,:]).T)
-    l_end = np.linalg.eigvals((W.T * a_rec[0,-1,:]).T)
+    
+    #import pdb
+    #pdb.set_trace()
+    
+    l_start = np.linalg.eigvals((W[0].T * a_rec[0,0,:]).T)
+    l_end = np.linalg.eigvals((W[0].T * a_rec[0,-1,:]).T)
 
     #ax.plot(l_start.real,l_start.imag,'.',markersize=5,label='$t=0$')
     #sc_not_fact = a_rec.shape[1]/10**sc_not_exp

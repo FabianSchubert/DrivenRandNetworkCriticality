@@ -31,6 +31,8 @@ choices=['homogeneous_identical_binary',
 'heterogeneous_identical_binary',
 'heterogeneous_independent_gaussian'])
 
+parser.add_argument("--hide_plot",action='store_true')
+
 def plot(ax,input_type):
 
     try:
@@ -108,5 +110,6 @@ if __name__ == '__main__':
 
     fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.pdf'))
     fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.png'),dpi=300)
-
-    plt.show()
+    
+    if not(args.hide_plot):
+        plt.show()

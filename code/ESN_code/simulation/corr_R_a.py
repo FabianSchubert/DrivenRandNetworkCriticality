@@ -46,7 +46,7 @@ default=30)
 parser.add_argument("--T_run_adapt",
 help="number of time steps for adaptation",
 type=int,
-default=2000)
+default=1000)
 
 parser.add_argument("--T_sample",
 help="number of time steps for the sample run",

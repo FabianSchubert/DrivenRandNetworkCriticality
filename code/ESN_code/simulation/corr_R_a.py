@@ -115,7 +115,7 @@ for k in tqdm(range(n_sweep_sigm_e)):
             u_in_sample,u_out = gen_in_out_one_in_subs(T_sample,1)
             u_in_sample *= sigm_e[k]
             
-            sample = rnn.run_sample(self,u_in=u_in_sample,show_progress=False)
+            sample = rnn.run_sample(u_in=u_in_sample,show_progress=False)
          
          if(input_type == "heterogeneous_independent_gaussian"):
             
@@ -140,7 +140,7 @@ for k in tqdm(range(n_sweep_sigm_e)):
             u_in_sample,u_out = gen_in_out_one_in_subs(T_sample,1)
             u_in_sample *= sigm_e[k]
             
-            sample = rnn.run_sample(self,u_in=u_in_sample,show_progress=False)
+            sample = rnn.run_sample(u_in=u_in_sample,show_progress=False)
          
          if(input_type == "homogeneous_independent_gaussian"):
             
@@ -164,8 +164,7 @@ for k in tqdm(range(n_sweep_sigm_e)):
 if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type+'_input_ESN'))):
     os.makedirs(os.path.join(DATA_DIR, args.input_type+'_input_ESN'))
 
-np.savez(os.path.join(DATA_DIR, args.input_type + '_input_ESN/corr_R'
-   +input_type+".npz"),
+np.savez(os.path.join(DATA_DIR, args.input_type + '_input_ESN/corr_R_a.npz'),
    R_sweep = R_a,
    sigm_ext_sweep=sigm_e,
    Corr_av_samples = Corr_av_samples)

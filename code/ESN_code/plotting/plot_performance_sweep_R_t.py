@@ -153,7 +153,8 @@ def plot(ax,input_type,adapt_mode):
     #ax.plot(sigm_t,sigm_e_crit,'--',lw=2.,c=BRIGHT_RED)
 
     ax.set_xlim([R_t[0],R_t[-1]])
-    ax.set_ylim([sigm_e[0],sigm_e[-1]])
+    #ax.set_ylim([sigm_e[0],sigm_e[-1]])
+    ax.set_ylim([0.,1.])
 
     ax.set_xlabel("$R_{\\rm t}$")
     ax.set_ylabel("$\\sigma_{\\rm ext}$")

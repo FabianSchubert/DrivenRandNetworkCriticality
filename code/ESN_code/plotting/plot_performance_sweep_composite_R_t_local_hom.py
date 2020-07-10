@@ -15,6 +15,14 @@ plt.rc('text.latex', preamble=r'''
 from stdParams import *
 import os
 
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--hide_plot",action="store_true")
+
+args = parser.parse_args()
+
 import ESN_code.plotting.plot_performance_sweep_R_t as plot_performance_sweep
 
 fig = plt.figure(figsize=(TEXT_WIDTH,TEXT_WIDTH*0.45))
@@ -45,5 +53,5 @@ fig.savefig(os.path.join(PLOT_DIR,'performance_sweep_composite_R_t_local_hom.pdf
 fig.savefig(os.path.join(PLOT_DIR,'performance_sweep_composite_R_t_local_hom.png'),dpi=1000)
 
 #fig.savefig(os.path.join(PLOT_DIR,'r_a_sweep_composite_low_res.png'),dpi=300)
-
-plt.show()
+if not(args.hide_plot):
+    plt.show()

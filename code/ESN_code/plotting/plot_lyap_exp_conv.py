@@ -16,7 +16,16 @@ from stdParams import *
 
 import os
 
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--hide_plot",action='store_true')
+
+args = parser.parse_args()
+
 from tqdm import tqdm
+
 
 from scipy.linalg import logm
 
@@ -76,4 +85,5 @@ fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 fig.savefig(os.path.join(PLOT_DIR,'lyap_exp_conv.pdf'))
 fig.savefig(os.path.join(PLOT_DIR,'lyap_exp_conv.png'),dpi=300)
 
-plt.show()
+if not(args.hide_plot):
+    plt.show()

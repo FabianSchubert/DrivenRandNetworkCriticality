@@ -7,18 +7,32 @@ import seaborn as sns
 sns.set()
 mpl.style.use('matplotlibrc')
 
+plt.rc('text.latex', preamble=r'''
+\usepackage{dejavu}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}''')
+
 from stdParams import *
 import os
 import glob
+
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--hide_plot",action='store_true')
+
+args = parser.parse_args()
+
 
 fig, ax = plt.subplots(1,2,figsize=(TEXT_WIDTH,TEXT_WIDTH*0.4))
 
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-modes_full = [["heterogeneous","binary"],
-        ["homogeneous","binary"],
-        ["heterogeneous","gaussian"],
-        ["homogeneous","gaussian"]]
+modes = ["heterogeneous_identical_binary",
+        "homogeneous_identical_binary",
+        "heterogeneous_independent_gaussian",
+        "homogeneous_independent_gaussian"]
 
 colors_new_order = [colors[3],colors[1],colors[2],colors[0]]
 
@@ -26,7 +40,8 @@ colors_new_order = [colors[3],colors[1],colors[2],colors[0]]
 cmap = mpl.cm.get_cmap('viridis')
 
 for ax_i,k in enumerate([0,2]):
-    dat = np.load("corr_R_"+modes_new_order[k][0]+"_" + modes_new_order[k][1] + ".npz",allow_pickle=True)
+    dat = np.load(os.path.join(DATA_DIR, modes[k] + '_input_ESN/corr_R_a.npz'),
+    allow_pickle=True)
     
     sigm_ext_sweep = dat["sigm_ext_sweep"]
     n_sigm_ext_sweep = sigm_ext_sweep.shape[0]
@@ -75,9 +90,9 @@ ax[1].set_title(ax2_title,loc='left',usetex=True)
 
 fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 
-fig.tight_layout(pad=0.1,h_pad=.5,w_pad=0.5)
+fig.savefig(os.path.join(PLOT_DIR,'corr_R_het.pdf'))
+fig.savefig(os.path.join(PLOT_DIR,'corr_R_het.png'),dpi=300)
 
-fig.savefig("corr_R_het.pdf")
-fig.savefig("corr_R_het.png",dpi=1000)
-
-plt.show()
+#fig.savefig(os.path.join(PLOT_DIR,'r_a_sweep_composite_low_res.png'),dpi=300)
+if not(args.hide_plot):
+   plt.show()

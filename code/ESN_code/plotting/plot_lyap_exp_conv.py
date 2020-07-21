@@ -83,7 +83,7 @@ ax.set_ylim([-1.,1.])
 fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 
 fig.savefig(os.path.join(PLOT_DIR,'lyap_exp_conv.pdf'))
-fig.savefig(os.path.join(PLOT_DIR,'lyap_exp_conv.png'),dpi=300)
+fig.savefig(os.path.join(PLOT_DIR,'lyap_exp_conv.png'),dpi=1000)
 
 if not(args.hide_plot):
     plt.show()

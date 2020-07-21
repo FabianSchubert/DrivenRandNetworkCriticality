@@ -6,8 +6,6 @@ import sys
 import glob
 from pathlib import Path
 
-from src.analysis_tools import get_simfile_prop
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -109,7 +107,7 @@ if __name__ == '__main__':
     fig.tight_layout(pad=0.1)
 
     fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.png'),dpi=300)
+    fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.png'),dpi=1000)
     
     if not(args.hide_plot):
         plt.show()

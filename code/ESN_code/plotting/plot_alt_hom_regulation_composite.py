@@ -25,8 +25,6 @@ parser.add_argument("--hide_plot",action='store_true')
 
 args = parser.parse_args()
 
-
-import ESN_code.plotting.plot_alt_hom_regulation_check_conv_cond as check_conv_cond
 import ESN_code.plotting.plot_alt_hom_regulation_r_a as r_a
 import ESN_code.plotting.plot_alt_hom_regulation_specrad as specrad
 

@@ -77,7 +77,7 @@ ax.legend(custom_lines,['heterogeneous binary',
 fig.tight_layout(rect=[0.1, 0, 0.9, 1],pad=0.1)
 
 fig.savefig(os.path.join(PLOT_DIR,'var_predict_composite_R_a_fixed.pdf'))
-fig.savefig(os.path.join(PLOT_DIR,'var_predict_composite_R_a_fixed.png'),dpi=300)
+fig.savefig(os.path.join(PLOT_DIR,'var_predict_composite_R_a_fixed.png'),dpi=1000)
 
 #fig.savefig(os.path.join(PLOT_DIR,'var_predict_composite_low_res.png'),dpi=300)
 if not(args.hide_plot):

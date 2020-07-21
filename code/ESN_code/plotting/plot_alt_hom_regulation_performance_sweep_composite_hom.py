@@ -48,7 +48,7 @@ ax2.set_title(ax2_title,loc='left',usetex=True)
 fig.tight_layout(pad=0.1,h_pad=0.5,w_pad=0.5)
 
 fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_performance_sweep_composite_hom.pdf'))
-fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_performance_sweep_composite_hom.png'),dpi=300)
+fig.savefig(os.path.join(PLOT_DIR,'alt_hom_regulation_performance_sweep_composite_hom.png'),dpi=1000)
 
 #fig.savefig(os.path.join(PLOT_DIR,'r_a_sweep_composite_low_res.png'),dpi=300)
 if not(args.hide_plot):

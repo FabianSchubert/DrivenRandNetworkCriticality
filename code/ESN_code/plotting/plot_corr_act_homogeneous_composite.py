@@ -8,7 +8,7 @@ sns.set()
 mpl.style.use('matplotlibrc')
 
 plt.rc('text.latex', preamble=r'''
-\usepackage{dejavu}
+\usepackage{DejaVu}
 \renewcommand*\familydefault{\sfdefault}
 \usepackage[T1]{fontenc}''')
 

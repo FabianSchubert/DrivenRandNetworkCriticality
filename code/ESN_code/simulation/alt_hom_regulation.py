@@ -115,6 +115,11 @@ help='''if true, the adaptation rate for the gains is normalized by the x_r^2'''
 type=bool,
 default=True)
 
+parser.add_argument("--R_t",
+help='''Target spectral radius, default = 1''',
+type=float,
+default=1.)
+
 args = parser.parse_args()
 
 input_type = ['homogeneous_identical_binary',
@@ -150,6 +155,7 @@ rand_a_init = args.rand_a_init
 
 norm_flow = args.norm_flow
 
+R_t = args.R_t
 #r_target = .9
 
 T = args.T
@@ -209,8 +215,7 @@ for k in tqdm(range(n_samples)):
 
     y_squ_trail_av = np.ndarray((N))
 
-    ##trailing average of X_r**2 for adjusting the learning rate
-    X_r_squ_av = X_r**2.
+
 
     #X_e = (w_in @ u_in).T
     #X_e = np.random.normal(0.,1.,(T,N)) * w_in[:,0]
@@ -232,6 +237,8 @@ for k in tqdm(range(n_samples)):
     X_r[:] *= np.random.rand()*X_r_norm_init_span/np.linalg.norm(X_r)
     y[:] = np.tanh(X_r[:] + X_e[:])
     y_squ_trail_av[:] = y**2.
+    ##trailing average of X_r**2 for adjusting the learning rate
+    X_r_squ_av = X_r**2.
 
     mu_y[:] = y
     mu_X_e[:] = X_e
@@ -283,9 +290,9 @@ for k in tqdm(range(n_samples)):
 
         #a = a + eps_a * a * ((y**2.).mean() - (X_r**2.).mean())
         if adaptation_mode == 0:
-            da = eps_a * a * (y_squ_trail_av - X_r_squ_av)
+            da = eps_a * a * (R_t**2.*y_squ_trail_av - X_r_squ_av)
         else:
-            da = eps_a * a * (y_squ_trail_av.mean() - X_r_squ_av.mean())
+            da = eps_a * a * (R_t**2.*y_squ_trail_av.mean() - X_r_squ_av.mean())
 
         if norm_flow:
             da /= X_r_squ_av.mean()

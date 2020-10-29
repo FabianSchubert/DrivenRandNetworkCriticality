@@ -42,7 +42,7 @@ default="flow_data.npz")
 parser.add_argument("--figname",
 default="alt_hom_regulation_flow")
 
-def plot(ax,input_type,T_offset,datafile):
+def plot(ax,input_type,T_offset,R_t,datafile):
 
     try:
         dat = np.load(os.path.join(DATA_DIR, input_type + '_input_ESN/alt_hom_regulation/'+datafile))
@@ -63,14 +63,14 @@ def plot(ax,input_type,T_offset,datafile):
     eps_b = dat['eps_b']
     mu_y_target = dat['mu_y_target']
 
-    n_averaging_inp = 1000
+    n_averaging_inp = 100
 
     a = np.linspace(0.,2.5,500)
     vy = np.linspace(0.,1.,500)
 
     A,VY = np.meshgrid(a,vy)
 
-    delta_a = eps_a*A*(1.-A**2.)*VY
+    delta_a = eps_a*A*(R_t**2.-A**2.)*VY
 
     delta_vy = np.zeros((500,500))
 
@@ -92,12 +92,17 @@ def plot(ax,input_type,T_offset,datafile):
     #ax.plot(0.*a + sigm_w**(-1.),vy)
 
     for k in range(n_samples):
-        plt.plot(a_rec[k,T_offset:,0],y_norm_rec[k,T_offset:]**2./N,c=colors[1],alpha=1.,lw=1)
+        ax.plot(a_rec[k,T_offset:,0],y_norm_rec[k,T_offset:]**2./N,c=colors[1],alpha=1.,lw=1)
         #plt.plot(a_rec[k,1:,0])
         #plt.plot(y_norm_rec[k,1:])
 
     ax.contour(a,vy,delta_a,levels=[0.],colors=[colors[2]],linewidths=[2.],zorder=3)
     ax.contour(a,vy,delta_vy,levels=[0.],colors=[colors[3]],linewidths=[2.],zorder=4)
+
+    for k in range(n_samples):
+        ax.plot([a_rec[k,-10:,0].mean()],[(y_norm_rec[k,-10:]**2.).mean()/N],'o',c='k',alpha=1.,zorder=5)
+        #plt.plot(a_rec[k,1:,0])
+        #plt.plot(y_norm_rec[k,1:])
 
     ax.set_xlim([a_pl[0]-.1,a_pl[-1]])
     ax.set_ylim([vy_pl[0]-.1,vy_pl[-1]])
@@ -112,7 +117,7 @@ if __name__ == '__main__':
     input_type = args.input_type
     datafile = args.datafile
     figname = args.figname
-    
+
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH,TEXT_WIDTH*0.6))
 
     plot(ax,input_type,T_offset,datafile)

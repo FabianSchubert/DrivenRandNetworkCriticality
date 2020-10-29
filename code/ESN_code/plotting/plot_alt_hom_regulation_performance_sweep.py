@@ -141,7 +141,7 @@ def plot(ax,input_type,adaptation_mode):
     MC_pivot = sweep_df_merge.pivot(index='sigm_e',columns='r_a',values='MC_abs_mean')
 
     ### Cutoff for masking is 0.2
-    pcm = ax.pcolormesh(r_a_ax,sigm_e_ax,np.ma.MaskedArray(MC_pivot,MC_pivot < 2e-1),cmap='viridis',rasterized=True,vmin=0.,vmax=9.)
+    pcm = ax.pcolormesh(r_a_ax,sigm_e_ax,np.ma.MaskedArray(MC_pivot,MC_pivot < 2e-1),cmap='viridis',rasterized=True,vmin=0.)#,vmax=9.)
 
     plt.colorbar(ax=ax,mappable=pcm)
 

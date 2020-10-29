@@ -49,7 +49,7 @@ def plot(ax,input_type,adapt_mode):
 
     try:
         #sweep_df = pd.read_pickle(file_search_preprocess)
-        sweep_df = pd.read_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/performance_sweep/param_sweep_performance_R_t_' + 
+        sweep_df = pd.read_hdf(os.path.join(DATA_DIR, input_type + '_input_ESN/performance_sweep/param_sweep_performance_R_t_' +
         adapt_mode + '_processed_data.h5'), 'table')
     except:
 
@@ -139,7 +139,7 @@ def plot(ax,input_type,adapt_mode):
     MC_pivot = sweep_df_merge.pivot(index='sigm_e',columns='R_t',values='MC_abs_mean')
 
     ### Cutoff for masking is 0.2
-    pcm = ax.pcolormesh(R_t,sigm_e,np.ma.MaskedArray(MC_pivot,MC_pivot < 2e-1),cmap='viridis',rasterized=True,vmin=0.,vmax=9.)
+    pcm = ax.pcolormesh(R_t,sigm_e,np.ma.MaskedArray(MC_pivot,MC_pivot < 2e-1),cmap='viridis',rasterized=True,vmin=0)#.,vmax=9.)
 
     plt.colorbar(ax=ax,mappable=pcm)
 
@@ -162,9 +162,9 @@ def plot(ax,input_type,adapt_mode):
 if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH*.5,TEXT_WIDTH*.45))
-    
+
     args = parser.parse_args()
-    
+
     plot(ax,args.input_type,args.adapt_mode)
     ax.set_xlabel("$R_{\\rm t}$")
     ax.set_ylabel("$\\sigma_{\\rm ext}$")

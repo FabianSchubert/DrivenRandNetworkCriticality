@@ -110,6 +110,11 @@ help='''if true, initial gain is randomized between 0 and a_init''',
 type=bool,
 default=False)
 
+parser.add_argument("--norm_flow",
+help='''if true, the adaptation rate for the gains is normalized by the x_r^2''',
+type=bool,
+default=True)
+
 args = parser.parse_args()
 
 input_type = ['homogeneous_identical_binary',
@@ -142,6 +147,8 @@ a_init = args.a_init
 X_r_norm_init_span = args.X_r_norm_init_span
 
 rand_a_init = args.rand_a_init
+
+norm_flow = args.norm_flow
 
 #r_target = .9
 
@@ -183,6 +190,8 @@ for k in tqdm(range(n_samples)):
         a = np.ones((N)) * np.random.rand() * a_init
     else:
         a = np.ones((N))*a_init
+
+    da = np.ndarray((N))
 
     b = np.zeros((N))
 
@@ -247,7 +256,7 @@ for k in tqdm(range(n_samples)):
     ####
     ###
 
-    for t in tqdm(range(1,T)):
+    for t in tqdm(range(1,T),leave=False):
 
         y_prev = y[:]
 
@@ -274,9 +283,14 @@ for k in tqdm(range(n_samples)):
 
         #a = a + eps_a * a * ((y**2.).mean() - (X_r**2.).mean())
         if adaptation_mode == 0:
-            a = a + eps_a * a * (y_squ_trail_av - X_r_squ_av)/X_r_squ_av.mean()
+            da = eps_a * a * (y_squ_trail_av - X_r_squ_av)
         else:
-            a = a + eps_a * a * (y_squ_trail_av.mean() - X_r_squ_av.mean())/X_r_squ_av.mean()
+            da = eps_a * a * (y_squ_trail_av.mean() - X_r_squ_av.mean())
+
+        if norm_flow:
+            da /= X_r_squ_av.mean()
+
+        a = a + da
         #a = a + eps_a * (W_av @ (y_prev**2.) - X_r**2.)
         #a = a + eps_a * ((y**2.) - (X_r**2.))
         b = b + eps_b * (y - mu_y_target)
@@ -303,7 +317,7 @@ for k in tqdm(range(n_samples)):
             ####
     y_norm_rec[k,:] = np.linalg.norm(y_rec,axis=1)
 
-DATA_DIR = '/home/fabian/work/data/'
+#DATA_DIR = '/home/fabian/work/data/'
 
 if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type + '_input_ESN/alt_hom_regulation/'))):
     os.makedirs(os.path.join(DATA_DIR, args.input_type + '_input_ESN/alt_hom_regulation/'))

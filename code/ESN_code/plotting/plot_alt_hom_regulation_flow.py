@@ -29,12 +29,23 @@ choices=['homogeneous_identical_binary',
 'heterogeneous_identical_binary',
 'heterogeneous_independent_gaussian'])
 
+parser.add_argument("--T_offset",
+help='''Start plotting from time T_offset''',
+type=int,
+default=0)
+
 parser.add_argument("--hide_plot",action='store_true')
 
-def plot(ax,input_type):
+parser.add_argument("--datafile",
+default="flow_data.npz")
+
+parser.add_argument("--figname",
+default="alt_hom_regulation_flow")
+
+def plot(ax,input_type,T_offset,datafile):
 
     try:
-        dat = np.load(os.path.join(DATA_DIR, input_type + '_input_ESN/alt_hom_regulation/flow_data.npz'))
+        dat = np.load(os.path.join(DATA_DIR, input_type + '_input_ESN/alt_hom_regulation/'+datafile))
     except:
         print("Could not load data file!")
         sys.exit()
@@ -81,7 +92,7 @@ def plot(ax,input_type):
     #ax.plot(0.*a + sigm_w**(-1.),vy)
 
     for k in range(n_samples):
-        plt.plot(a_rec[k,:,0],y_norm_rec[k,:]**2./N,c=colors[1],alpha=1.,lw=1)
+        plt.plot(a_rec[k,T_offset:,0],y_norm_rec[k,T_offset:]**2./N,c=colors[1],alpha=1.,lw=1)
         #plt.plot(a_rec[k,1:,0])
         #plt.plot(y_norm_rec[k,1:])
 
@@ -97,17 +108,19 @@ def plot(ax,input_type):
 if __name__ == '__main__':
 
     args = parser.parse_args()
-
+    T_offset = args.T_offset
     input_type = args.input_type
-
+    datafile = args.datafile
+    figname = args.figname
+    
     fig, ax = plt.subplots(1,1,figsize=(TEXT_WIDTH,TEXT_WIDTH*0.6))
 
-    plot(ax,input_type)
+    plot(ax,input_type,T_offset,datafile)
 
     fig.tight_layout(pad=0.1)
 
-    fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.pdf'))
-    fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_alt_hom_regulation_flow.png'),dpi=1000)
-    
+    fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_' + figname + '.pdf'))
+    fig.savefig(os.path.join(PLOT_DIR, input_type + '_input_' + figname + '.png'),dpi=1000)
+
     if not(args.hide_plot):
         plt.show()

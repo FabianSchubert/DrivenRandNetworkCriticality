@@ -8,7 +8,8 @@ axes.spines.top: False
 axes.spines.right: False
 xtick.labelsize: 9.
 ytick.labelsize: 9.
-legend.fontsize: 11
+legend.fontsize: 9
+legend.title_fontsize: 9
 grid.linewidth: 0.8
 lines.linewidth: 1.
 patch.linewidth: 0.24

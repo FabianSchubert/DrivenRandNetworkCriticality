@@ -73,7 +73,7 @@ default=1.)
 parser.add_argument("--eps_a",
 help='''gain learning rate''',
 type=float,
-default=2e-4)
+default=1e-3)
 
 parser.add_argument("--eps_b",
 help='''bias learning rate''',

@@ -72,7 +72,7 @@ default=1.)
 parser.add_argument("--eps_a",
 help='''gain learning rate''',
 type=float,
-default=2e-4)
+default=1e-3)
 
 parser.add_argument("--eps_b",
 help='''bias learning rate''',
@@ -109,6 +109,16 @@ help='''activity target''',
 type=float,
 default=0.05)
 
+parser.add_argument("--norm_flow",
+help='''if true, the adaptation rate for the gains is normalized by the x_r^2''',
+type=bool,
+default=True)
+
+parser.add_argument("--a_init_offset",
+help='''Initial offset for gain factors from the target spectral radius''',
+type=float,
+default=0.)
+
 args = parser.parse_args()
 
 input_type = ['homogeneous_identical_binary',
@@ -129,7 +139,7 @@ elif args.n_sweep_sigm_e == 1:
     sigm_e = np.array([.5])
 else:
     n_sweep_sigm_e = args.n_sweep_sigm_e
-    sigm_e = .5*np.array(range(n_sweep_sigm_e))
+    sigm_e = np.linspace(0.,1.,n_sweep_sigm_e)
 
 n_sweep_r_a = args.n_sweep_r_a
 cf_w = args.cf_w
@@ -143,6 +153,9 @@ T_run_sample = args.T_run_sample
 T_skip_rec = args.T_skip_rec
 T_rec = int(T_run_adapt/T_skip_rec)
 mu_y_target = args.mu_y_target
+
+norm_flow = args.norm_flow
+a_init_offset = args.a_init_offset
 
 record_adaptation = args.record_adaptation
 
@@ -170,8 +183,8 @@ else:
     b_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_a,N))
 
 for n in tqdm(range(n_samples)):
-    for k in tqdm(range(n_sweep_sigm_e)):
-        for l in tqdm(range(n_sweep_r_a)):
+    for k in tqdm(range(n_sweep_sigm_e),leave=False):
+        for l in tqdm(range(n_sweep_r_a),leave=False):
 
             W = np.random.normal(0.,1./(cf_w*N)**.5,(N,N)) * (np.random.rand(N,N) <= cf_w)
             W[range(N),range(N)] = 0.
@@ -180,7 +193,7 @@ for n in tqdm(range(n_samples)):
 
             W_store[n,k,l,:,:] = W
 
-            a = np.ones((N))*r_a[l]
+            a = np.ones((N))*(r_a[l] + a_init_offset)
 
             b = np.zeros((N))
 
@@ -213,8 +226,12 @@ for n in tqdm(range(n_samples)):
             ##trailing average of X_r**2 for adjusting the learning rate
             X_r_squ_av = (X_r**2.).mean()
 
+            if record_adaptation:
+                a_store[n,0,k,l,:] = a
+                b_store[n,0,k,l,:] = b
+
             ### adaptation part
-            for t in tqdm(range(1,T_run_adapt)):
+            for t in tqdm(range(1,T_run_adapt),leave=False):
 
                 y_prev = y[:]
 
@@ -234,11 +251,21 @@ for n in tqdm(range(n_samples)):
                 X_r_squ_av += eps_X_r_squ*((X_r**2.).mean() - X_r_squ_av)
 
                 if adaptation_mode == 0:
-                    #a = a + eps_a * a * (r_a[l]**2. * y_prev**2. - X_r**2.)
-                    a = a + eps_a * a * (r_a[l]**2. * y_prev**2. - X_r**2.)/X_r_squ_av
+                    da = eps_a * a * (r_a[l]**2.*y_prev**2. - X_r**2.)
                 else:
-                    #a = a + eps_a * a * (r_a[l]**2. * (y_prev**2.).mean() - (X_r**2.).mean())
-                    a = a + eps_a * a * (r_a[l]**2. * (y_prev**2.).mean() - (X_r**2.).mean())/X_r_squ_av
+                    da = eps_a * a * (r_a[l]**2.*(y_prev**2.).mean() - (X_r**2.).mean())
+
+                if norm_flow:
+                    da /= X_r_squ_av.mean()
+
+                a = a + da
+
+                #if adaptation_mode == 0:
+                    #a = a + eps_a * a * (r_a[l]**2. * y_prev**2. - X_r**2.)
+                #    a = a + eps_a * a * (r_a[l]**2. * y_prev**2. - X_r**2.)/X_r_squ_av
+                #else:
+                #    #a = a + eps_a * a * (r_a[l]**2. * (y_prev**2.).mean() - (X_r**2.).mean())
+                #    a = a + eps_a * a * (r_a[l]**2. * (y_prev**2.).mean() - (X_r**2.).mean())/X_r_squ_av
                 #a = a + eps_a * (W_av @ (y_prev**2.) - X_r**2.)
                 #a = a + eps_a * ((y**2.) - (X_r**2.))
                 b = b + eps_b * (y - mu_y_target)
@@ -285,20 +312,20 @@ for n in tqdm(range(n_samples)):
                 u_in_sample,u_out_sample = gen_in_out_one_in_subs(T_run_sample+T_prerun_sample,0)
                 u_in_sample *= sigm_e[k]
 
-                y_res,X_r_res,X_e_res = rnn.run_sample(u_in=u_in_sample,show_progress=True)
+                y_res,X_r_res,X_e_res = rnn.run_sample(u_in=u_in_sample,show_progress=False)
 
 
             elif input_type == 1:
 
                 #run sample after adaptation, USING THE INPUT STATISTICS OF THE ADAPTATION!!
-                y_res,X_r_res,X_e_res = rnn.run_sample(u_in=None,sigm_e=sigm_e[k],T=T_run_sample+T_prerun_sample,show_progress=True)
+                y_res,X_r_res,X_e_res = rnn.run_sample(u_in=None,sigm_e=sigm_e[k],T=T_run_sample+T_prerun_sample,show_progress=False)
 
             else:
 
                 sigm_e_dist = np.abs(rnn.w_in[:,0]) * sigm_e[k]
 
                 #run sample after adaptation, USING THE INPUT STATISTICS OF THE ADAPTATION!!
-                y_res,X_r_res,X_e_res = rnn.run_sample(u_in=None,sigm_e=sigm_e_dist,T=T_run_sample+T_prerun_sample,show_progress=True)
+                y_res,X_r_res,X_e_res = rnn.run_sample(u_in=None,sigm_e=sigm_e_dist,T=T_run_sample+T_prerun_sample,show_progress=False)
             ######################################
 
             y_store[n,k,l,:,:] = y_res[T_prerun_sample:,:]

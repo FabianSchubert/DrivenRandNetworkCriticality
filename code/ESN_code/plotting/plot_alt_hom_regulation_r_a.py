@@ -22,7 +22,7 @@ import sys
 
 import argparse
 
-def plot(ax,input_type,adaptation_mode,col=colors[0]):
+def plot(ax,input_type,adaptation_mode,col=colors[0],skip_steps=1):
 
     file = get_simfile_prop(os.path.join(DATA_DIR,input_type
     +'_input_ESN/alt_hom_regulation/alt_hom_regulation_'+adaptation_mode))
@@ -41,12 +41,14 @@ def plot(ax,input_type,adaptation_mode,col=colors[0]):
     mu_y_target = dat['mu_y_target']
     W = dat['W']
 
-    r_a = a_rec[0,:,:]**2. * (W**2.).sum(axis=1)
+    r_a = a_rec[0,::skip_steps,:]**2. * (W**2.).sum(axis=1)
 
-    ax.plot(r_a[:,0],c=col,alpha=0.25,label='$R^2_{{\\rm a},i}$')
-    ax.plot(r_a[:,1:100],c=col,alpha=0.25)
+    t = np.arange(a_rec.shape[1])[::skip_steps]
 
-    ax.plot(r_a.mean(axis=1),'--',c='k',label='$R^2_{\\rm a}$',lw=2)
+    ax.plot(t,r_a[:,0],c=col,alpha=0.25,label='$R^2_{{\\rm a},i}$')
+    ax.plot(t,r_a[:,1:100],c=col,alpha=0.25)
+
+    ax.plot(t,r_a.mean(axis=1),'--',c='k',label='$R^2_{\\rm a}$',lw=2)
 
     ax.ticklabel_format(axis='x',style='sci',scilimits=(0,0),useMathText=True)
 

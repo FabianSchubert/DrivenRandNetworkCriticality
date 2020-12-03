@@ -30,14 +30,21 @@ parser.add_argument("adaptation_mode",
 help='''specify the mode of adaptation: local or global''',
 choices=['local','global'])
 
-parser.add_argument("--record_adaptation",
+
+parser.add_argument("--record_adaptation_vars",
 help='''whether to record and save the time course of gains and biases during adaptation''',
 dest="record_adaptation",
 action="store_true")
-parser.add_argument("--no_record_adaptation",
+parser.add_argument("--no_record_adaptation_vars",
 dest="record_adaptation",
 action="store_false")
-parser.set_defaults(record_adaptation=False)
+parser.set_defaults(record_adaptation_vars=False)
+
+parser.add_argument("--record_r_a_est",
+help='''Wheter to record and save an estimate of the spectral radius during adaptation''',
+dest="record_r_a_est",
+action="store_true")
+parser.set_defaults(record_r_a_est=False)
 
 
 parser.add_argument("--N",
@@ -54,7 +61,7 @@ parser.add_argument("--n_sweep_sigm_e",
 help="number of sweep steps for external input variance",
 type=int)
 
-parser.add_argument("--n_sweep_r_a",
+parser.add_argument("--n_sweep_r_t",
 help="number of sweep steps for target spectral radius",
 type=int,
 default=30)
@@ -110,14 +117,28 @@ type=float,
 default=0.05)
 
 parser.add_argument("--norm_flow",
-help='''if true, the adaptation rate for the gains is normalized by the x_r^2''',
-type=bool,
-default=True)
+help='''The adaptation rate for the gains is normalized by the x_r^2''',
+dest="norm_flow",
+action="store_true")
+parser.add_argument("--no_norm_flow",
+help="The adaptation rate for the gains is NOT normalized by the x_r^2",
+dest="norm_flow",
+action="store_false")
+parser.set_defaults(norm_flow=True)
+
 
 parser.add_argument("--a_init_offset",
 help='''Initial offset for gain factors from the target spectral radius''',
 type=float,
 default=0.)
+
+parser.add_argument("--save_dir",
+help='''Directory for saving data. Base folder is the folder corresponding 
+to the input type.''',
+default='alt_hom_regulation')
+
+parser.add_argument("--filename",
+help='''Name of the simulation data file''')
 
 args = parser.parse_args()
 
@@ -141,7 +162,7 @@ else:
     n_sweep_sigm_e = args.n_sweep_sigm_e
     sigm_e = np.linspace(0.,1.,n_sweep_sigm_e)
 
-n_sweep_r_a = args.n_sweep_r_a
+n_sweep_r_t = args.n_sweep_r_t
 cf_w = args.cf_w
 cf_w_in = args.cf_w_in
 eps_a = args.eps_a
@@ -155,36 +176,50 @@ T_rec = int(T_run_adapt/T_skip_rec)
 mu_y_target = args.mu_y_target
 
 norm_flow = args.norm_flow
+
 a_init_offset = args.a_init_offset
 
-record_adaptation = args.record_adaptation
+record_adaptation = args.record_adaptation_vars
+record_r_a_est = args.record_r_a_est
+
+if args.filename == None:
+    filename = ('param_sweep_alt_hom_regulation_'
+    +args.adaptation_mode
+    +'_'+str(datetime.now().isoformat())+'.npz')
+else:
+    filename = args.filename
 
 if n_sweep_sigm_e == 1:
     sigm_e = np.array([0.05])
 
-r_a = np.linspace(0.,2.,n_sweep_r_a)
+r_t = np.linspace(0.,2.,n_sweep_r_t)
 
-if n_sweep_r_a == 1:
-    r_a = np.array([.1])
+if n_sweep_r_t == 1:
+    r_t = np.array([.1])
 
-W_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_a,N,N))
-w_in_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_a,N))
+W_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_t,N,N))
+w_in_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_t,N))
 
-y_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_a,T_run_sample,N))
-X_r_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_a,T_run_sample,N))
-X_e_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_a,T_run_sample,N))
+y_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_t,T_run_sample,N))
+X_r_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_t,T_run_sample,N))
+X_e_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_t,T_run_sample,N))
 
 if record_adaptation:
-    a_store = np.ndarray((n_samples,T_rec,n_sweep_sigm_e,n_sweep_r_a,N))
-    b_store = np.ndarray((n_samples,T_rec,n_sweep_sigm_e,n_sweep_r_a,N))
+    a_store = np.ndarray((n_samples,T_rec,n_sweep_sigm_e,n_sweep_r_t,N))
+    b_store = np.ndarray((n_samples,T_rec,n_sweep_sigm_e,n_sweep_r_t,N))
 
 else:
-    a_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_a,N))
-    b_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_a,N))
+    a_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_t,N))
+    b_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_t,N))
+
+if record_r_a_est:
+    r_a_est_store = np.ndarray((n_samples,T_rec,n_sweep_sigm_e,n_sweep_r_t))
+else:
+    r_a_est_store = np.ndarray((n_samples,n_sweep_sigm_e,n_sweep_r_t))
 
 for n in tqdm(range(n_samples)):
     for k in tqdm(range(n_sweep_sigm_e),leave=False):
-        for l in tqdm(range(n_sweep_r_a),leave=False):
+        for l in tqdm(range(n_sweep_r_t),leave=False):
 
             W = np.random.normal(0.,1./(cf_w*N)**.5,(N,N)) * (np.random.rand(N,N) <= cf_w)
             W[range(N),range(N)] = 0.
@@ -193,7 +228,7 @@ for n in tqdm(range(n_samples)):
 
             W_store[n,k,l,:,:] = W
 
-            a = np.ones((N))*(r_a[l] + a_init_offset)
+            a = np.ones((N))*(r_t[l] + a_init_offset)
 
             b = np.zeros((N))
 
@@ -229,7 +264,9 @@ for n in tqdm(range(n_samples)):
             if record_adaptation:
                 a_store[n,0,k,l,:] = a
                 b_store[n,0,k,l,:] = b
-
+            
+            W_var = W.var(axis=1)
+                        
             ### adaptation part
             for t in tqdm(range(1,T_run_adapt),leave=False):
 
@@ -251,9 +288,9 @@ for n in tqdm(range(n_samples)):
                 X_r_squ_av += eps_X_r_squ*((X_r**2.).mean() - X_r_squ_av)
 
                 if adaptation_mode == 0:
-                    da = eps_a * a * (r_a[l]**2.*y_prev**2. - X_r**2.)
+                    da = eps_a * a * (r_t[l]**2.*y_prev**2. - X_r**2.)
                 else:
-                    da = eps_a * a * (r_a[l]**2.*(y_prev**2.).mean() - (X_r**2.).mean())
+                    da = eps_a * a * (r_t[l]**2.*(y_prev**2.).mean() - (X_r**2.).mean())
 
                 if norm_flow:
                     da /= X_r_squ_av.mean()
@@ -261,28 +298,35 @@ for n in tqdm(range(n_samples)):
                 a = a + da
 
                 #if adaptation_mode == 0:
-                    #a = a + eps_a * a * (r_a[l]**2. * y_prev**2. - X_r**2.)
-                #    a = a + eps_a * a * (r_a[l]**2. * y_prev**2. - X_r**2.)/X_r_squ_av
+                    #a = a + eps_a * a * (r_t[l]**2. * y_prev**2. - X_r**2.)
+                #    a = a + eps_a * a * (r_t[l]**2. * y_prev**2. - X_r**2.)/X_r_squ_av
                 #else:
-                #    #a = a + eps_a * a * (r_a[l]**2. * (y_prev**2.).mean() - (X_r**2.).mean())
-                #    a = a + eps_a * a * (r_a[l]**2. * (y_prev**2.).mean() - (X_r**2.).mean())/X_r_squ_av
+                #    #a = a + eps_a * a * (r_t[l]**2. * (y_prev**2.).mean() - (X_r**2.).mean())
+                #    a = a + eps_a * a * (r_t[l]**2. * (y_prev**2.).mean() - (X_r**2.).mean())/X_r_squ_av
                 #a = a + eps_a * (W_av @ (y_prev**2.) - X_r**2.)
                 #a = a + eps_a * ((y**2.) - (X_r**2.))
                 b = b + eps_b * (y - mu_y_target)
 
                 a = np.maximum(0.001,a)
 
-                if t%T_skip_rec == 0 and record_adaptation:
-
+                if t%T_skip_rec == 0:
+                    
                     t_rec = int(t/T_skip_rec)
-
-                    a_store[n,t_rec,k,l,:] = a
-                    b_store[n,t_rec,k,l,:] = b
+                    
+                    if record_adaptation:
+                        a_store[n,t_rec,k,l,:] = a
+                        b_store[n,t_rec,k,l,:] = b
+                    
+                    if record_r_a_est:
+                        r_a_est_store[n,t_rec,k,l] = (a**2.*W_var).sum()**.5
 
             if not(record_adaptation):
 
                 a_store[n,k,l,:] = a
                 b_store[n,k,l,:] = b
+            
+            if not(record_r_a_est):
+                r_a_est_store[n,k,l] = (a**2.*W_var).sum()**.5
 
 
             ###testing part
@@ -332,22 +376,27 @@ for n in tqdm(range(n_samples)):
             X_r_store[n,k,l,:,:] = X_r_res[T_prerun_sample:,:]
             X_e_store[n,k,l,:,:] = X_e_res[T_prerun_sample:,:]
 
+savefold = os.path.join(DATA_DIR,
+                        args.input_type+'_input_ESN',
+                        args.save_dir)
 
-if not(os.path.isdir(os.path.join(DATA_DIR, args.input_type+'_input_ESN/gains_sweep'))):
-    os.makedirs(os.path.join(DATA_DIR, args.input_type+'_input_ESN/gains_sweep'))
+if not(os.path.isdir(savefold)):
+    os.makedirs(savefold)
 
-np.savez(os.path.join(DATA_DIR, args.input_type+'_input_ESN/gains_sweep/param_sweep_alt_hom_regulation_'
-        +args.adaptation_mode
-        +'_'+str(datetime.now().isoformat())+'.npz'),
-        r_a=r_a,
+savepath = os.path.join(savefold, filename)
+
+np.savez(savepath,
+        r_t=r_t,
         sigm_e=sigm_e,
         W=W_store,
         a=a_store,
         b=b_store,
+        r_a_est=r_a_est_store,
         w_in=w_in,
         y=y_store,
         X_r=X_r_store,
-        X_e=X_e_store)
+        X_e=X_e_store,
+        T_skip=T_skip_rec)
 
 '''
 np.savez(os.path.join(DATA_DIR, args.input_type+'_input_ESN/performance_sweep/param_sweep_alt_hom_regulation_performance_test.npz'),
